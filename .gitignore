@@ -1,0 +1,16 @@
+.direnv/
+.env
+.env.*
+!.env.example
+result
+result-*
+.tmp/
+tmp/
+dist/
+build/
+coverage/
+node_modules/
+.pytest_cache/
+__pycache__/
+*.pyc
+.DS_Store

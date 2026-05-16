@@ -1,0 +1,176 @@
+project:
+  name: null
+  purpose: null
+  status: template
+
+domain:
+  summary: null
+  primary_users: []
+  core_capabilities: []
+  non_goals: []
+
+architecture:
+  style: infer
+  application_shape: infer
+  language: infer
+  framework: infer
+  build: infer
+  deployment: infer
+  persistence: infer
+  messaging: infer
+  external_services: []
+
+development:
+  local_environment:
+    nix: required
+    containers: infer
+  commands:
+    test: specialise
+    lint: specialise
+    integration_test: specialise
+    run: specialise
+    image: specialise
+
+testing:
+  philosophy: testing_trophy
+  test_first: true
+  harness: specialise
+  layers:
+    unit: infer
+    contract: infer
+    integration: infer
+    component: infer
+    e2e: infer
+  real_dependency_policy:
+    cheap_and_semantically_important: use_real
+    expensive_or_remote: substitute_or_later_fidelity
+
+persistence:
+  engine: infer
+  provider: infer
+  migrations: required_if_relational
+
+containers:
+  application_image: infer
+  local_runtime: infer
+  compose_required: infer
+  platform_smoke: optional
+
+agents:
+  mode: hybrid
+  token_efficiency:
+    minimise_duplicate_context: true
+    bounded_delegation_default: true
+    compress_results_before_team_sharing: true
+    stop_completed_subagents: true
+    lazy_load_skills: true
+  model_efficiency:
+    strongest_model_everywhere: false
+    task_appropriate_routing: true
+    independent_review_where_valuable: true
+  team:
+    enabled: true
+    max_persistent_teammates: 3
+    roles:
+      product_owner:
+        enabled: true
+        responsibility: business_value
+      architect:
+        enabled: true
+        responsibility: boundaries_and_tradeoffs
+      tech_lead:
+        enabled: true
+        responsibility: delivery_and_implementation
+      domain_expert:
+        enabled: infer
+        responsibility: null
+  subagents:
+    default_enabled:
+      - researcher
+      - repository_explorer
+      - red_team_reviewer
+      - evidence_checker
+      - test_reviewer
+    conditional:
+      security_reviewer:
+        when:
+          - authentication
+          - personal_data
+          - payments
+          - untrusted_external_input
+      performance_reviewer:
+        when:
+          - latency_sensitive
+          - throughput_sensitive
+          - realtime
+          - resource_constrained
+
+coordination:
+  lead_owns_final_decisions: true
+  force_consensus: false
+  debate_required_for:
+    - architecture_boundary_change
+    - irreversible_dependency_choice
+    - material_scope_change
+  independent_review_required_for:
+    - security_sensitive_change
+    - migration
+    - public_contract_change
+
+communication:
+  inverted_pyramid: true
+  concise_default: true
+  ascii_diagrams_for_structure: true
+  progressive_disclosure: true
+  paginate_large_feedback: true
+  neurodiverse_friendly: true
+
+sdd:
+  enabled: true
+  spec_required_for:
+    - meaningful_feature
+    - behavioural_change
+    - boundary_change
+    - migration
+    - high_risk_change
+  trivial_change_exemption: true
+  acceptance_evidence_required: true
+  assumptions_required: true
+  unknowns_required: true
+  thin_slice_default: true
+  promote_durable_decisions_to_adr: true
+  promote_durable_knowledge_to_wiki: true
+  archive_completed_specs: true
+
+tooling:
+  superpowers:
+    expected: optional
+    status: detect
+  mcp:
+    required: []
+    optional: []
+
+generation:
+  mode: evidence_driven_agent_assisted
+  agent_tasks:
+    - inspect repository evidence
+    - run composable init discovery
+    - populate project profile
+    - capture material unknowns
+    - recommend smallest architecture
+    - ask only high-impact unresolved questions
+    - specialise runtime
+    - specialise persistence
+    - specialise messaging where required
+    - specialise test harness
+    - specialise SQL migration strategy where relational persistence exists
+    - specialise application build container where appropriate
+    - configure Nix development shell
+    - configure repository commands
+    - configure agent topology
+    - validate MCP expectations
+    - detect Superpowers integration
+    - configure CI from repository primitives
+    - initialise project wiki
+    - initialise current handoff state
+    - validate complete project state

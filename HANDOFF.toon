@@ -1,0 +1,58 @@
+session:
+  updated: actual_current_state
+  status: bootstrap_complete
+
+goal:
+  current: reusable AI-first project template
+
+completed:
+  - canonical repository operating contract
+  - composable lazy-loaded skill system
+  - evidence-driven project discovery
+  - project profile with structured unknowns
+  - hybrid agent topology
+  - token-efficient coordination
+  - model routing
+  - lightweight SDD
+  - test-first workflow
+  - testing trophy specialisation
+  - SQL migration policy
+  - init orchestration
+  - build-container specialisation
+  - tooling and MCP discovery
+  - Nix environment
+  - CI and repo checks
+
+in_progress: []
+
+next:
+  - instantiate template
+  - run init
+  - allow evidence-driven project specialisation
+
+decisions:
+  - id: composable_skills
+    summary: init orchestrates lazy-loaded bounded skills
+  - id: evidence_driven_bootstrap
+    summary: infer and recommend before asking human preference questions
+  - id: project_profile
+    summary: separate project facts, inferences, decisions and unknowns
+  - id: clean_architecture_bias
+    summary: protect meaningful volatility boundaries without ceremonial layering
+  - id: testing_trophy
+    summary: favour fast feedback plus strong integration confidence
+
+risks:
+  - constrained TOON validation is intentionally incomplete
+  - framework detection remains evidence-based inference
+  - plugin discovery may be advisory
+  - MCP discovery must remain secret-safe
+
+files_of_interest:
+  - AGENTS.md
+  - PROJECT_PROFILE.toon
+  - CUSTOMIZE_THIS_PROJECT.toon
+  - .agents/skills/CATALOG.toon
+  - .agents/skills/
+  - scripts/
+  - specs/

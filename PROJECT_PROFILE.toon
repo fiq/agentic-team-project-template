@@ -1,0 +1,134 @@
+project:
+  state: template
+  confidence: medium
+
+facts:
+  - id: template_repository
+    observation: repository is a reusable AI-first project template
+    evidence:
+      - AGENTS.md
+      - CUSTOMIZE_THIS_PROJECT.toon
+    confidence: high
+
+inferences:
+  - id: no_application_runtime_yet
+    conclusion: template state intentionally has no Java, Python, Node, Elixir or Godot runtime
+    based_on:
+      - no_runtime_manifest_present
+      - generic_nix_shell
+    confidence: high
+    validation: run scripts/inspect-project after customisation
+
+decisions:
+  - id: composable_skills
+    decision: /init orchestrates lazy-loaded bounded skills
+    reason:
+      - reduces context size
+      - avoids one monolithic prompt
+    confidence: high
+    status: active
+    validation:
+      - .agents/skills/CATALOG.toon
+      - .agents/skills/init/SKILL.md
+    consequence_if_changed: init workflow becomes harder to reason about
+  - id: mit_template_license
+    decision: include MIT license in template state
+    reason:
+      - permissive default for reusable template
+      - /init must re-evaluate license fit
+    confidence: medium
+    status: active
+    validation:
+      - LICENSE
+      - .agents/skills/init/SKILL.md
+    consequence_if_changed: downstream projects may need a different license
+  - id: truthful_git_provenance
+    decision: use real commit author and committer dates
+    reason:
+      - avoids false project history
+      - keeps repository provenance auditable
+    confidence: high
+    status: active
+    validation:
+      - AGENTS.md
+    consequence_if_changed: history becomes misleading
+
+unknowns:
+  - id: target_project_domain
+    question: What domain and users will a generated project serve?
+    why_it_matters:
+      - affects architecture recommendation
+      - affects test harness risks
+      - affects persistence and integration choices
+    evidence: []
+    working_assumption: unknown_until_template_instantiated
+    consequence_if_wrong: /init may recommend the wrong thin slice
+    blocking: false
+    validation:
+      - inspect CUSTOMIZE_THIS_PROJECT.toon
+      - inspect repository evidence
+      - ask smallest useful question set
+    status: open
+  - id: application_runtime
+    question: Which runtime and framework does the instantiated project need?
+    why_it_matters:
+      - determines dev shell extensions
+      - determines test harness
+      - determines build container strategy
+    evidence: []
+    working_assumption: infer_from_repository_evidence
+    consequence_if_wrong: build and test commands may be specialised incorrectly
+    blocking: false
+    validation:
+      - scripts/inspect-project
+      - discovery runtime skills
+    status: open
+
+rejected_options:
+  - id: monolithic_init_prompt
+    option: put all runtime and infrastructure instructions into /init
+    reason_rejected:
+      - wastes context
+      - makes project intelligence harder to evolve
+    evidence:
+      - .agents/skills/CATALOG.toon
+  - id: default_platform_stack
+    option: include Kafka, Redis, database, Kubernetes or LocalStack by default
+    reason_rejected:
+      - no template-state evidence justifies them
+      - increases decision fatigue
+    evidence:
+      - compose.yaml
+
+architecture:
+  application_shape: unknown
+  language: unknown
+  framework: unknown
+  build_system: unknown
+  integrations:
+    messaging: none_known
+    external_services: []
+  persistence:
+    kind: unknown
+    provider: unknown
+  infrastructure:
+    local: nix
+    cloud: unknown
+    deployment: unknown
+
+testing:
+  harness: unspecialised
+  layers: []
+  test_first: true
+  philosophy: testing_trophy
+
+containers:
+  application_image: unknown
+  compose: minimal_template
+
+tooling:
+  superpowers:
+    status: detect
+  mcp:
+    required: []
+    optional: []
