@@ -1,0 +1,136 @@
+skills:
+  init:
+    path: init/SKILL.md
+    trigger: project_profile_absent_or_material_project_shape_unknown
+    purpose: orchestrate discovery, specialisation and validation
+
+  detect_project_shape:
+    path: discovery/detect-project-shape/SKILL.md
+    trigger: repository_shape_unknown
+    required_evidence:
+      - file_tree
+      - existing_docs
+
+  detect_runtime:
+    path: discovery/detect-runtime/SKILL.md
+    trigger: project_runtime_unknown
+    required_evidence:
+      - dependency_manifests
+      - lock_files
+      - runtime_config
+
+  detect_application_shape:
+    path: discovery/detect-application-shape/SKILL.md
+    trigger: runtime_or_framework_detected
+    required_evidence:
+      - entrypoints
+      - routes
+      - workers
+      - package_scripts
+
+  detect_messaging:
+    path: discovery/detect-messaging/SKILL.md
+    trigger: messaging_evidence_or_requirement
+    required_evidence:
+      - broker_dependencies
+      - listeners
+      - producers
+      - queue_workers
+
+  detect_persistence:
+    path: discovery/detect-persistence/SKILL.md
+    trigger: persistence_unknown
+    required_evidence:
+      - database_dependencies
+      - migrations
+      - connection_config
+
+  detect_infrastructure:
+    path: discovery/detect-infrastructure/SKILL.md
+    trigger: deployment_or_local_topology_unknown
+    required_evidence:
+      - compose
+      - Dockerfile
+      - Containerfile
+      - cloud_manifests
+      - ci
+
+  capture_unknowns:
+    path: discovery/capture-unknowns/SKILL.md
+    trigger: material_unknown_discovered
+
+  runtime_node:
+    path: specialise/runtime-node/SKILL.md
+    trigger: node_or_typescript_detected
+  runtime_java:
+    path: specialise/runtime-java/SKILL.md
+    trigger: java_detected
+  runtime_python:
+    path: specialise/runtime-python/SKILL.md
+    trigger: python_detected
+  runtime_elixir:
+    path: specialise/runtime-elixir/SKILL.md
+    trigger: elixir_detected
+  runtime_godot:
+    path: specialise/runtime-godot/SKILL.md
+    trigger: godot_detected
+
+  messaging_kafka:
+    path: specialise/messaging-kafka/SKILL.md
+    trigger: kafka_active_role_detected
+
+  persistence_sql:
+    path: specialise/persistence-sql/SKILL.md
+    trigger: persistent_relational_database
+  persistence_document:
+    path: specialise/persistence-document/SKILL.md
+    trigger: document_database_selected
+  persistence_redis:
+    path: specialise/persistence-redis/SKILL.md
+    trigger: redis_cache_or_coordination_selected
+
+  sql_migrations:
+    path: specialise/sql-migrations/SKILL.md
+    trigger: persistent_relational_database
+
+  test_harness:
+    path: specialise/test-harness/SKILL.md
+    trigger: runtime_and_application_shape_known
+
+  container_build:
+    path: specialise/container-build/SKILL.md
+    trigger: application_container_deployable
+
+  ci:
+    path: specialise/ci/SKILL.md
+    trigger: repository_commands_known
+
+  infra_local_compose:
+    path: specialise/infra-local-compose/SKILL.md
+    trigger: local_runtime_topology_requires_services
+  infra_aws:
+    path: specialise/infra-aws/SKILL.md
+    trigger: aws_deployment_evidence
+  infra_fly:
+    path: specialise/infra-fly/SKILL.md
+    trigger: fly_deployment_evidence
+
+  test_first:
+    path: workflow/test-first/SKILL.md
+    trigger: meaningful_behaviour_change
+  reassess_project_profile:
+    path: workflow/reassess-project-profile/SKILL.md
+    trigger: material_profile_assumption_changed
+  update_handoff:
+    path: workflow/update-handoff/SKILL.md
+    trigger: work_state_changed
+
+  detect_superpowers:
+    path: tooling/detect-superpowers/SKILL.md
+    trigger: tooling_inspection
+  detect_mcp:
+    path: tooling/detect-mcp/SKILL.md
+    trigger: mcp_expectations_declared
+  model_routing:
+    path: tooling/model-routing/SKILL.md
+    trigger: delegation_or_model_choice_needed
