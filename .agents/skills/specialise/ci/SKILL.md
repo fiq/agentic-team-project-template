@@ -1,0 +1,11 @@
+---
+name: ci
+---
+
+# CI
+
+CI must call repository primitives such as `make check`, `make test`,
+`make integration-test` and `make image`. Do not duplicate build logic in YAML.
+
+Generic template CI must not require interactive AI tooling, MCP servers,
+Superpowers or external model access.
