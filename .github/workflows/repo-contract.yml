@@ -1,0 +1,13 @@
+name: Repo Contract
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  repo-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Contract
+        run: make repo-check
