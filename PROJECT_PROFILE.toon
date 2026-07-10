@@ -1,6 +1,8 @@
 project:
   state: template
   confidence: medium
+  concept_date: 2026-05-16
+  concept_date_reason: original decision date for creating this template
 
 facts:
   - id: template_repository
@@ -20,6 +22,16 @@ inferences:
     validation: run scripts/inspect-project after customisation
 
 decisions:
+  - id: project_concept_date
+    decision: record 2026-05-16 as the project concept date
+    reason:
+      - captures the date the project was decided
+      - separates project intent metadata from implementation timestamps
+    confidence: high
+    status: active
+    validation:
+      - docs/decisions/0001-record-project-concept-date.md
+    consequence_if_changed: project origin metadata becomes less clear
   - id: composable_skills
     decision: /init orchestrates lazy-loaded bounded skills
     reason:

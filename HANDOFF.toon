@@ -31,6 +31,8 @@ next:
   - allow evidence-driven project specialisation
 
 decisions:
+  - id: project_concept_date
+    summary: 2026-05-16 is recorded as the project concept date
   - id: composable_skills
     summary: init orchestrates lazy-loaded bounded skills
   - id: evidence_driven_bootstrap
