@@ -1,0 +1,20 @@
+#!/usr/bin/env python3
+import shutil
+from pathlib import Path
+
+def status(name, ok):
+    return f"  {name:<18} {'available' if ok else 'missing'}"
+
+def main():
+    print("TOOLING STATUS")
+    print()
+    print(status("git", shutil.which("git")))
+    print(status("make", shutil.which("make")))
+    print(status("nix", shutil.which("nix")))
+    print(status("docker", shutil.which("docker") or shutil.which("podman")))
+    print(status("superpowers", Path.home().joinpath(".claude", "skills").exists() or Path.home().joinpath(".codex", "skills").exists()))
+    print(status("claude hints", Path(".claude").exists()))
+    print(status("codex hints", Path(".codex").exists()))
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+import argparse
+import subprocess
+
+def main():
+    parser = argparse.ArgumentParser(description="Evidence-driven project bootstrap")
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--validate-only", action="store_true")
+    args = parser.parse_args()
+
+    print("INIT")
+    print()
+    print("reading AGENTS.md, HANDOFF.toon, PROJECT_PROFILE.toon and CUSTOMIZE_THIS_PROJECT.toon")
+    print("loading .agents/skills/CATALOG.toon")
+    print("inspecting repository evidence")
+    subprocess.run(["scripts/inspect-project"], check=False)
+    print()
+    print("RECOMMENDATION")
+    print()
+    print("Template state has no application runtime yet. Keep architecture unspecialised,")
+    print("capture unknowns, and run /init again after adding project evidence.")
+    print()
+    print("NEXT")
+    print()
+    print("- update CUSTOMIZE_THIS_PROJECT.toon with project intent if known")
+    print("- add real project files or source evidence")
+    print("- run make init again")
+    if args.dry_run:
+        print()
+        print("dry-run: no files changed")
+    if args.validate_only:
+        return subprocess.run(["make", "check"]).returncode
+    return 0
+
+if __name__ == "__main__":
+    raise SystemExit(main())

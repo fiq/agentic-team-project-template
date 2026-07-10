@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+from pathlib import Path
+import os
+import sys
+
+ROOT = Path.cwd()
+
+REQUIRED_FILES = [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "HANDOFF.toon",
+    "PROJECT_PROFILE.toon",
+    "CUSTOMIZE_THIS_PROJECT.toon",
+    "README.md",
+    "LICENSE",
+    "Makefile",
+    ".agents/skills/CATALOG.toon",
+    ".agents/skills/init/SKILL.md",
+    ".agents/coordination/COMMUNICATION_POLICY.md",
+    ".agents/coordination/MODEL_ROUTING_POLICY.md",
+    "specs/templates/feature.md",
+    "docs/wiki/index.md",
+    ".github/workflows/ci.yml",
+    ".github/copilot-instructions.md",
+]
+
+REQUIRED_SKILLS = [
+    "discovery/detect-runtime",
+    "discovery/detect-application-shape",
+    "discovery/detect-messaging",
+    "discovery/detect-persistence",
+    "discovery/detect-infrastructure",
+    "specialise/runtime-node",
+    "specialise/runtime-java",
+    "specialise/runtime-python",
+    "specialise/runtime-elixir",
+    "specialise/runtime-godot",
+    "specialise/messaging-kafka",
+    "specialise/sql-migrations",
+    "specialise/test-harness",
+    "specialise/container-build",
+    "workflow/test-first",
+    "workflow/reassess-project-profile",
+    "tooling/detect-mcp",
+    "tooling/detect-superpowers",
+]
+
+MAKE_TARGETS = [
+    "help", "init", "inspect", "check", "test", "contract-test",
+    "integration-test", "component-test", "e2e-test", "lint", "run",
+    "image", "image-test", "repo-check", "check-profile", "check-handoff",
+    "check-tooling", "check-mcp", "doctor",
+]
+
+def fail(lines):
+    print("REPO CONTRACT FAILED")
+    print()
+    for line in lines:
+        print("- " + line)
+    return 1
+
+def main():
+    errors = []
+    for rel in REQUIRED_FILES:
+        if not (ROOT / rel).exists():
+            errors.append(f"missing {rel}")
+    claude = ROOT / "CLAUDE.md"
+    if not claude.is_symlink():
+        errors.append("CLAUDE.md is not a symlink")
+    elif os.readlink(claude) != "AGENTS.md":
+        errors.append("CLAUDE.md does not link to AGENTS.md")
+    for skill in REQUIRED_SKILLS:
+        if not (ROOT / ".agents/skills" / skill / "SKILL.md").exists():
+            errors.append(f"missing skill {skill}")
+    makefile = (ROOT / "Makefile").read_text() if (ROOT / "Makefile").exists() else ""
+    for target in MAKE_TARGETS:
+        if f"{target}:" not in makefile and f"{target} " not in makefile:
+            errors.append(f"Makefile missing target {target}")
+    if errors:
+        return fail(errors)
+    print("REPO CONTRACT OK")
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())

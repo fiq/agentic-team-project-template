@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+from pathlib import Path
+import sys
+
+ROOT = Path.cwd()
+PROFILE = ROOT / "PROJECT_PROFILE.toon"
+CUSTOM = ROOT / "CUSTOMIZE_THIS_PROJECT.toon"
+
+REQUIRED_SECTIONS = [
+    "project:",
+    "facts:",
+    "inferences:",
+    "decisions:",
+    "unknowns:",
+    "rejected_options:",
+    "architecture:",
+    "testing:",
+    "containers:",
+    "tooling:",
+]
+
+UNKNOWN_FIELDS = [
+    "id:",
+    "question:",
+    "why_it_matters:",
+    "evidence:",
+    "working_assumption:",
+    "consequence_if_wrong:",
+    "blocking:",
+    "validation:",
+    "status:",
+]
+
+def fail(msg):
+    print("ERROR")
+    print()
+    print(msg)
+    return 1
+
+def section_block(text, section):
+    start = text.find(section)
+    if start < 0:
+        return ""
+    next_positions = [text.find("\n" + s, start + 1) for s in REQUIRED_SECTIONS if text.find("\n" + s, start + 1) > 0]
+    end = min(next_positions) if next_positions else len(text)
+    return text[start:end]
+
+def main():
+    if not PROFILE.exists():
+        return fail("PROJECT_PROFILE.toon missing")
+    text = PROFILE.read_text()
+    missing = [s for s in REQUIRED_SECTIONS if s not in text]
+    if missing:
+        return fail("PROJECT_PROFILE.toon missing sections: " + ", ".join(missing))
+
+    unknowns = section_block(text, "unknowns:")
+    if "\n  - id:" in unknowns:
+        blocks = unknowns.split("\n  - id:")[1:]
+        for block in blocks:
+            candidate = "id:" + block
+            missing_fields = [f for f in UNKNOWN_FIELDS if f not in candidate]
+            if missing_fields:
+                return fail("Malformed unknown is missing fields: " + ", ".join(missing_fields))
+
+    if CUSTOM.exists():
+        custom = CUSTOM.read_text()
+        customised = "status: customised" in custom or "status: customized" in custom
+        if customised and "harness: unspecialised" in text:
+            return fail("Project marked customised while test harness is unspecialised")
+
+    print("PROJECT PROFILE OK")
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())

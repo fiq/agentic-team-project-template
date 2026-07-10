@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+from pathlib import Path
+import re
+
+def list_items(section_text):
+    return re.findall(r"^\s+-\s+([A-Za-z0-9_.-]+)\s*$", section_text, flags=re.M)
+
+def main():
+    profile = Path("PROJECT_PROFILE.toon").read_text() if Path("PROJECT_PROFILE.toon").exists() else ""
+    required = []
+    optional = []
+    mcp = profile.split("mcp:", 1)[1] if "mcp:" in profile else ""
+    if "required:" in mcp:
+        required = list_items(mcp.split("required:", 1)[1].split("optional:", 1)[0])
+    if "optional:" in mcp:
+        optional = list_items(mcp.split("optional:", 1)[1].split("\n\n", 1)[0])
+
+    print("MCP STATUS")
+    print()
+    print("required")
+    if required:
+        for item in required:
+            print(f"  {item:<18} unknown")
+    else:
+        print("  none declared")
+    print()
+    print("optional")
+    if optional:
+        for item in optional:
+            print(f"  {item:<18} unknown")
+    else:
+        print("  none declared")
+    print()
+    print("undeclared")
+    print("  not inspected by script to avoid exposing configuration")
+
+if __name__ == "__main__":
+    main()

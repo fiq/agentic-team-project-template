@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+import subprocess
+
+CHECKS = [
+    ("repo contract", ["scripts/check-repo-contract"]),
+    ("project profile", ["scripts/check-project-profile"]),
+    ("handoff", ["scripts/check-handoff"]),
+]
+
+def run(cmd):
+    return subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+
+def main():
+    ready = 0
+    blockers = []
+    warnings = []
+    for name, cmd in CHECKS:
+        result = run(cmd)
+        if result.returncode == 0:
+            ready += 1
+        else:
+            blockers.append((name, result.stdout.strip()))
+    if run(["sh", "-c", "command -v docker >/dev/null 2>&1 || command -v podman >/dev/null 2>&1"]).returncode != 0:
+        warnings.append(("container runtime unavailable", "container integration tests cannot run"))
+
+    print("SUMMARY")
+    print()
+    print(f"ready       {ready}")
+    print(f"warnings    {len(warnings)}")
+    print(f"blockers    {len(blockers)}")
+    print()
+    if blockers:
+        print("BLOCKERS")
+        print()
+        for name, detail in blockers:
+            print(name)
+            print("action:")
+            print("  fix validation failure")
+            print(detail)
+            print()
+    if warnings:
+        print("WARNINGS")
+        print()
+        for name, impact in warnings:
+            print(name)
+            print("impact:")
+            print(f"  {impact}")
+            print()
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+from pathlib import Path
+import sys
+
+REQUIRED = [
+    "session:",
+    "goal:",
+    "completed:",
+    "in_progress:",
+    "next:",
+    "decisions:",
+    "risks:",
+    "files_of_interest:",
+]
+
+def main():
+    path = Path("HANDOFF.toon")
+    if not path.exists():
+        print("ERROR\n\nHANDOFF.toon missing")
+        return 1
+    text = path.read_text()
+    missing = [item for item in REQUIRED if item not in text]
+    if missing:
+        print("ERROR\n\nHANDOFF.toon missing sections: " + ", ".join(missing))
+        return 1
+    print("HANDOFF OK")
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())
