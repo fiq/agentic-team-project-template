@@ -15,7 +15,7 @@
           name = "repo-contract";
           inherit system;
           builder = "/bin/sh";
-          args = [ "-c" "mkdir -p $out" ];
+          args = [ "-c" "echo ok > $out" ];
         };
       });
 
@@ -24,7 +24,7 @@
           name = "agentic-template-shell";
           inherit system;
           builder = "/bin/sh";
-          args = [ "-c" "mkdir -p $out" ];
+          args = [ "-c" "echo ok > $out" ];
           shellHook = ''
             echo "AI-first template shell: use make help"
           '';
