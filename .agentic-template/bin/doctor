@@ -8,6 +8,7 @@ CHECKS = [
     ("repo contract", [str(BIN / "check-repo-contract")]),
     ("project profile", [str(BIN / "check-project-profile")]),
     ("handoff", [str(BIN / "check-handoff")]),
+    ("knowledge", [str(BIN / "check-knowledge")]),
     ("tooling", [str(BIN / "check-tooling")]),
     ("mcp", [str(BIN / "check-mcp")]),
 ]

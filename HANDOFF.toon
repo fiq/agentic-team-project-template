@@ -23,6 +23,7 @@ completed:
   - Nix environment
   - CI and repo checks
   - script-based command dispatcher
+  - repository-local knowledge wiki and validation
 
 in_progress: []
 
@@ -46,12 +47,15 @@ decisions:
     summary: favour fast feedback plus strong integration confidence
   - id: canonical_project_script
     summary: .agentic-template/bin/project is the canonical hidden command surface; no template Makefile
+  - id: repository_local_knowledge_layer
+    summary: .agents/knowledge stores durable knowledge and proposals; HANDOFF stays active state
 
 risks:
   - constrained TOON validation is intentionally incomplete
   - framework detection remains evidence-based inference
   - plugin discovery may be advisory
   - MCP discovery must remain secret-safe
+  - knowledge validation is lightweight Markdown frontmatter parsing
 
 files_of_interest:
   - AGENTS.md
@@ -61,4 +65,6 @@ files_of_interest:
   - .agents/skills/
   - .agentic-template/bin/
   - .agentic-template/bin/project
+  - .agents/knowledge/
+  - .agents/schemas/
   - specs/

@@ -59,6 +59,25 @@ skills:
     path: discovery/capture-unknowns/SKILL.md
     trigger: material_unknown_discovered
 
+  team_selection:
+    path: coordination/team-selection/SKILL.md
+    trigger: task_requires_role_selection
+
+  knowledge_search:
+    path: knowledge/knowledge-search/SKILL.md
+    trigger: before_planning_or_implementation
+    required_evidence:
+      - user_request
+      - knowledge_index
+
+  knowledge_capture:
+    path: knowledge/knowledge-capture/SKILL.md
+    trigger: after_meaningful_work
+
+  handoff_maintenance:
+    path: workflow/handoff-maintenance/SKILL.md
+    trigger: active_work_state_changed
+
   runtime_node:
     path: specialise/runtime-node/SKILL.md
     trigger: node_or_typescript_detected

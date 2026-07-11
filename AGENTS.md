@@ -42,6 +42,8 @@ thin slice -> tests -> implementation -> review -> HANDOFF.toon
 - `PROJECT_PROFILE.toon` records current evidence-backed understanding.
 - `HANDOFF.toon` records current semantic work state, not history.
 - `CUSTOMIZE_THIS_PROJECT.toon` is the bootstrap contract for new projects.
+- `.agents/knowledge/` records durable reviewed knowledge and unreviewed
+  proposals.
 - Material unknowns must be captured in `PROJECT_PROFILE.toon` as soon as they
   matter. Unknowns do not automatically block work.
 
@@ -74,6 +76,9 @@ thin slice -> tests -> implementation -> review -> HANDOFF.toon
 - External models are workers, reviewers or consultants.
 - Do not send the whole repository to every agent.
 - Use `.agents/skills/CATALOG.toon` to lazy-load only relevant skills.
+- Search `.agents/knowledge/` before creating new project guidance.
+- Do not promote task discoveries directly to canonical knowledge without
+  evidence, repetition or review.
 - The project lead owns final synthesis. Do not force consensus.
 - Use stronger models only where added capability is likely to matter.
 

@@ -1,0 +1,200 @@
+#!/usr/bin/env python3
+from datetime import date
+from pathlib import Path
+import re
+import sys
+
+ROOT = Path.cwd()
+KNOWLEDGE = ROOT / ".agents/knowledge"
+
+VALID_STATUS = {
+    "canonical",
+    "proposed",
+    "experimental",
+    "deprecated",
+    "superseded",
+    "stale",
+    "open",
+    "investigating",
+    "answered",
+    "deferred",
+    "obsolete",
+}
+
+TYPE_PREFIX = {
+    "domain": "DOM-",
+    "system": "SYS-",
+    "contract": "CON-",
+    "architecture": "ARCH-",
+    "decision": "ADR-",
+    "pattern": "PAT-",
+    "risk": "RISK-",
+    "question": "Q-",
+    "learning": "LRN-",
+    "inbox": "INBOX-",
+}
+
+RELATION_FIELDS = {
+    "relates_to",
+    "depends_on",
+    "consumes",
+    "produces",
+    "decisions",
+    "patterns",
+    "risks",
+    "open_questions",
+    "answered_by",
+    "supersedes",
+    "superseded_by",
+    "contradicts",
+}
+
+
+def fail(errors, warnings):
+    print("KNOWLEDGE CHECK FAILED")
+    print()
+    for error in errors:
+        print("- " + error)
+    if warnings:
+        print()
+        print("WARNINGS")
+        for warning in warnings:
+            print("- " + warning)
+    return 1
+
+
+def parse_frontmatter(path):
+    text = path.read_text()
+    if not text.startswith("---\n"):
+        return None, "missing frontmatter"
+    end = text.find("\n---", 4)
+    if end < 0:
+        return None, "unterminated frontmatter"
+    frontmatter = text[4:end].splitlines()
+    data = {}
+    current = None
+    for raw in frontmatter:
+        if not raw.strip():
+            continue
+        if raw.startswith("  - ") and current:
+            if not isinstance(data.get(current), list):
+                data[current] = []
+            data[current].append(raw.strip()[2:].strip())
+            continue
+        if ":" in raw and not raw.startswith(" "):
+            key, value = raw.split(":", 1)
+            value = value.strip()
+            current = key.strip()
+            if value == "[]":
+                data[current] = []
+            elif value in {"null", ""}:
+                data[current] = None
+            else:
+                data[current] = value
+    return data, None
+
+
+def entry_files():
+    for path in KNOWLEDGE.rglob("*.md"):
+        if "/templates/" in str(path):
+            continue
+        if path.name in {"README.md", "index.md"}:
+            continue
+        yield path
+
+
+def as_list(value):
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return value
+    if isinstance(value, str) and value not in {"", "null"}:
+        return [value]
+    return []
+
+
+def is_iso_date(value):
+    try:
+        date.fromisoformat(value)
+        return True
+    except (TypeError, ValueError):
+        return False
+
+
+def main():
+    errors = []
+    warnings = []
+    entries = []
+    ids = {}
+
+    if not KNOWLEDGE.exists():
+        return fail([".agents/knowledge missing"], [])
+
+    for path in entry_files():
+        data, problem = parse_frontmatter(path)
+        rel = path.relative_to(ROOT)
+        if problem:
+            errors.append(f"{rel}: {problem}")
+            continue
+        for field in ["id", "type", "title", "status", "summary"]:
+            if not data.get(field):
+                errors.append(f"{rel}: missing {field}")
+        entry_id = data.get("id")
+        entry_type = data.get("type")
+        if entry_id:
+            ids.setdefault(entry_id, []).append(rel)
+        if entry_type in TYPE_PREFIX and entry_id and not entry_id.startswith(TYPE_PREFIX[entry_type]):
+            errors.append(f"{rel}: id {entry_id} does not match type {entry_type}")
+        elif entry_type and entry_type not in TYPE_PREFIX:
+            errors.append(f"{rel}: invalid type {entry_type}")
+        status = data.get("status")
+        if status and status not in VALID_STATUS:
+            errors.append(f"{rel}: invalid status {status}")
+        if status == "canonical":
+            if not is_iso_date(data.get("reviewed_at")):
+                errors.append(f"{rel}: canonical entry missing reviewed_at ISO date")
+            if not is_iso_date(data.get("review_after")):
+                errors.append(f"{rel}: canonical entry missing review_after ISO date")
+        if status == "superseded" and not data.get("superseded_by"):
+            errors.append(f"{rel}: superseded entry missing superseded_by")
+        if entry_type == "question" and status == "answered":
+            if not data.get("resolution") and not as_list(data.get("answered_by")):
+                errors.append(f"{rel}: answered question missing resolution or answered_by")
+        entries.append((path, data))
+
+    for entry_id, paths in ids.items():
+        if len(paths) > 1:
+            joined = ", ".join(str(path) for path in paths)
+            errors.append(f"duplicate id {entry_id}: {joined}")
+
+    known_ids = set(ids)
+    for path, data in entries:
+        rel = path.relative_to(ROOT)
+        for field in RELATION_FIELDS:
+            for target in as_list(data.get(field)):
+                if target in {"null", "none", "[]"}:
+                    continue
+                if not re.match(r"^[A-Z]+-[0-9]+$", target):
+                    continue
+                if target not in known_ids:
+                    errors.append(f"{rel}: {field} references missing id {target}")
+
+    inbox_files = list((KNOWLEDGE / "inbox").glob("*.md")) if (KNOWLEDGE / "inbox").exists() else []
+    for path in inbox_files:
+        data, _ = parse_frontmatter(path)
+        if data and not data.get("expires_after"):
+            warnings.append(f"{path.relative_to(ROOT)}: inbox proposal has no expires_after")
+
+    if errors:
+        return fail(errors, warnings)
+    print("KNOWLEDGE OK")
+    if warnings:
+        print()
+        print("WARNINGS")
+        for warning in warnings:
+            print("- " + warning)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -83,12 +83,17 @@ questions.
 | `HANDOFF.toon` | Current semantic work state |
 | `CUSTOMIZE_THIS_PROJECT.toon` | Bootstrap contract for generated projects |
 | `.agents/skills/CATALOG.toon` | Lazy-loading skill router |
+| `.agents/knowledge/` | Durable knowledge, questions, learnings and proposals |
+| `.agentic-template/bin/project` | Hidden boilerplate command dispatcher |
 
 ## Practices
 
 - Use TOON for compact current state and coordination contracts.
 - Use Markdown for durable explanation, wiki, specs and ADRs.
 - Capture material unknowns immediately in `PROJECT_PROFILE.toon`.
+- Search `.agents/knowledge/` before creating new guidance.
+- Capture new learnings as proposals before promoting them to canonical
+  knowledge.
 - Prefer recommendations with evidence over technology shopping lists.
 - Prefer thin slices, acceptance evidence and local feedback.
 - Use test-first development where behaviour can be specified usefully.

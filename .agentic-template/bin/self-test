@@ -112,6 +112,39 @@ def main():
         ):
             failures += 1
 
+        bad = work / ".agents/knowledge/systems/SYS-001-bad.md"
+        bad.write_text(
+            "---\n"
+            "id: SYS-001\n"
+            "type: system\n"
+            "title: Bad system\n"
+            "status: canonical\n"
+            "summary: Missing review metadata.\n"
+            "---\n"
+            "\n"
+            "# Bad System\n"
+        )
+        duplicate = work / ".agents/knowledge/domains/SYS-001-duplicate.md"
+        duplicate.write_text(
+            "---\n"
+            "id: SYS-001\n"
+            "type: domain\n"
+            "title: Duplicate id\n"
+            "status: proposed\n"
+            "summary: Duplicate ID example.\n"
+            "---\n"
+            "\n"
+            "# Duplicate\n"
+        )
+        if not expect(
+            work,
+            "invalid knowledge entries fail validation",
+            PROJECT + ["check-knowledge"],
+            1,
+            "duplicate id SYS-001",
+        ):
+            failures += 1
+
     if failures:
         print()
         print(f"SELF TEST FAILED: {failures} failure(s)")

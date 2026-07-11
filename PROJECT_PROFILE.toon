@@ -76,6 +76,18 @@ decisions:
       - .agentic-template/bin/project --list
       - .agentic-template/bin/project check
     consequence_if_changed: generated projects may inherit confusing or conflicting command wrappers
+  - id: repository_local_knowledge_layer
+    decision: use .agents/knowledge for durable knowledge, proposals and graph-like relationships
+    reason:
+      - preserves HANDOFF.toon as active task state
+      - keeps Superpowers focused on engineering workflow
+      - gives agents searchable local context without external infrastructure
+    confidence: high
+    status: active
+    validation:
+      - .agents/knowledge/README.md
+      - .agentic-template/bin/check-knowledge
+    consequence_if_changed: agents may duplicate guidance or lose durable learnings between sessions
 
 unknowns:
   - id: target_project_domain
@@ -164,3 +176,7 @@ tooling:
   mcp:
     required: []
     optional: []
+  knowledge:
+    location: .agents/knowledge
+    validator: .agentic-template/bin/check-knowledge
+    promotion: inbox_then_review
