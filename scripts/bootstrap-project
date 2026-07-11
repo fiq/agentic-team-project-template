@@ -24,12 +24,12 @@ def main():
     print()
     print("- update CUSTOMIZE_THIS_PROJECT.toon with project intent if known")
     print("- add real project files or source evidence")
-    print("- run make init again")
+    print("- run scripts/project init again")
     if args.dry_run:
         print()
         print("dry-run: no files changed")
     if args.validate_only:
-        return subprocess.run(["make", "check"]).returncode
+        return subprocess.run(["scripts/project", "check"]).returncode
     return 0
 
 if __name__ == "__main__":

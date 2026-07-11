@@ -51,9 +51,9 @@ def main():
         work = Path(tmp) / "repo"
         copy_repo(work)
 
-        if not expect(work, "baseline repo check passes", ["make", "repo-check"], 0):
+        if not expect(work, "baseline repo check passes", ["scripts/project", "repo-check"], 0):
             failures += 1
-        if not expect(work, "template unresolved fields are allowed", ["make", "check-profile"], 0):
+        if not expect(work, "template unresolved fields are allowed", ["scripts/project", "check-profile"], 0):
             failures += 1
 
         claude = work / "CLAUDE.md"
@@ -62,14 +62,14 @@ def main():
         if not expect(
             work,
             "broken CLAUDE.md symlink fails",
-            ["make", "repo-check"],
-            2,
+            ["scripts/project", "repo-check"],
+            1,
             "CLAUDE.md is not a symlink",
         ):
             failures += 1
         claude.unlink()
         claude.symlink_to("AGENTS.md")
-        if not expect(work, "restored CLAUDE.md symlink passes", ["make", "repo-check"], 0):
+        if not expect(work, "restored CLAUDE.md symlink passes", ["scripts/project", "repo-check"], 0):
             failures += 1
 
         profile = work / "PROJECT_PROFILE.toon"
@@ -81,8 +81,8 @@ def main():
         if not expect(
             work,
             "malformed unknown fails profile validation",
-            ["make", "check-profile"],
-            2,
+            ["scripts/project", "check-profile"],
+            1,
             "Malformed unknown is missing fields",
         ):
             failures += 1
@@ -95,8 +95,8 @@ def main():
         if not expect(
             work,
             "customised project with unspecialised profile fails",
-            ["make", "check-profile"],
-            2,
+            ["scripts/project", "check-profile"],
+            1,
             "required specialisation is unresolved",
         ):
             failures += 1
@@ -104,8 +104,8 @@ def main():
 
         if not expect(
             work,
-            "unspecialised make test fails clearly",
-            ["make", "test"],
+            "unspecialised test command fails clearly",
+            ["scripts/project", "test"],
             2,
             "test harness not specialised",
         ):

@@ -20,13 +20,13 @@
             pkgs = nixpkgs.legacyPackages.${system};
           in
             pkgs.runCommand "repo-contract" {
-              nativeBuildInputs = [ pkgs.bash pkgs.gnumake pkgs.python3 ];
+              nativeBuildInputs = [ pkgs.bash pkgs.python3 ];
             } ''
               cp -r ${self} source
               chmod -R u+w source
               cd source
               patchShebangs scripts
-              make check
+              scripts/project check
               touch $out
             '';
       });
@@ -39,14 +39,13 @@
           pkgs.mkShell {
             packages = [
               pkgs.git
-              pkgs.gnumake
               pkgs.jq
               pkgs.python3
               pkgs.ripgrep
             ];
 
           shellHook = ''
-            echo "AI-first template shell: use make help"
+            echo "AI-first template shell: use scripts/project help"
           '';
           };
       });

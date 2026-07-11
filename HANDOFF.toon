@@ -1,5 +1,5 @@
 session:
-  updated: 2026-07-10
+  updated: 2026-07-11
   status: bootstrap_complete
 
 goal:
@@ -22,6 +22,7 @@ completed:
   - tooling and MCP discovery
   - Nix environment
   - CI and repo checks
+  - script-based command dispatcher
 
 in_progress: []
 
@@ -43,6 +44,8 @@ decisions:
     summary: protect meaningful volatility boundaries without ceremonial layering
   - id: testing_trophy
     summary: favour fast feedback plus strong integration confidence
+  - id: canonical_project_script
+    summary: scripts/project is the canonical command surface; no template Makefile
 
 risks:
   - constrained TOON validation is intentionally incomplete
@@ -57,4 +60,5 @@ files_of_interest:
   - .agents/skills/CATALOG.toon
   - .agents/skills/
   - scripts/
+  - scripts/project
   - specs/

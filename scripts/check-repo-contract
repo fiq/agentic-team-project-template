@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
 import os
+import subprocess
 import sys
 
 ROOT = Path.cwd()
@@ -13,7 +14,6 @@ REQUIRED_FILES = [
     "CUSTOMIZE_THIS_PROJECT.toon",
     "README.md",
     "LICENSE",
-    "Makefile",
     "flake.nix",
     "flake.lock",
     "compose.yaml",
@@ -26,6 +26,7 @@ REQUIRED_FILES = [
     ".github/workflows/ci.yml",
     ".github/copilot-instructions.md",
     "scripts/bootstrap-project",
+    "scripts/project",
     "scripts/inspect-project",
     "scripts/check-project-profile",
     "scripts/check-repo-contract",
@@ -61,7 +62,7 @@ REQUIRED_SKILLS = [
     "tooling/detect-superpowers",
 ]
 
-MAKE_TARGETS = [
+PROJECT_COMMANDS = [
     "help", "init", "inspect", "check", "test", "contract-test",
     "integration-test", "component-test", "e2e-test", "lint", "run",
     "image", "image-test", "repo-check", "check-profile", "check-handoff",
@@ -92,10 +93,21 @@ def main():
     for skill in REQUIRED_SKILLS:
         if not (ROOT / ".agents/skills" / skill / "SKILL.md").exists():
             errors.append(f"missing skill {skill}")
-    makefile = (ROOT / "Makefile").read_text() if (ROOT / "Makefile").exists() else ""
-    for target in MAKE_TARGETS:
-        if f"{target}:" not in makefile and f"{target} " not in makefile:
-            errors.append(f"Makefile missing target {target}")
+    project_script = ROOT / "scripts/project"
+    if project_script.exists():
+        result = subprocess.run(
+            [str(project_script), "--list"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        if result.returncode:
+            errors.append("scripts/project --list failed")
+        else:
+            commands = set(result.stdout.splitlines())
+            for command in PROJECT_COMMANDS:
+                if command not in commands:
+                    errors.append(f"scripts/project missing command {command}")
     if errors:
         return fail(errors)
     print("REPO CONTRACT OK")

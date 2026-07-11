@@ -64,6 +64,18 @@ decisions:
     validation:
       - AGENTS.md
     consequence_if_changed: history becomes misleading
+  - id: canonical_project_script
+    decision: use scripts/project as the stable repository command surface
+    reason:
+      - avoids colliding with downstream projects that already have a Makefile
+      - keeps command dispatch testable with Python standard library
+      - leaves runtime-specific build tools free for project specialisation
+    confidence: high
+    status: active
+    validation:
+      - scripts/project --list
+      - scripts/project check
+    consequence_if_changed: generated projects may inherit confusing or conflicting command wrappers
 
 unknowns:
   - id: target_project_domain
@@ -111,6 +123,14 @@ rejected_options:
       - increases decision fatigue
     evidence:
       - compose.yaml
+  - id: template_makefile_facade
+    option: keep a template Makefile as the canonical command facade
+    reason_rejected:
+      - can conflict with legitimate downstream project Makefiles
+      - Make target hierarchies can hide behaviour and confuse agents
+      - scripts/project is explicit and directly testable
+    evidence:
+      - scripts/project
 
 architecture:
   application_shape: unknown

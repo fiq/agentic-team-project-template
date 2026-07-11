@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+import argparse
+import subprocess
+import sys
+
+COMMANDS = {
+    "init": [["scripts/bootstrap-project"]],
+    "inspect": [["scripts/inspect-project"]],
+    "check": [
+        ["scripts/check-repo-contract"],
+        ["scripts/check-project-profile"],
+        ["scripts/check-handoff"],
+        ["scripts/check-tooling"],
+        ["scripts/check-mcp"],
+    ],
+    "repo-check": [["scripts/check-repo-contract"]],
+    "check-profile": [["scripts/check-project-profile"]],
+    "check-handoff": [["scripts/check-handoff"]],
+    "check-tooling": [["scripts/check-tooling"]],
+    "check-mcp": [["scripts/check-mcp"]],
+    "doctor": [["scripts/doctor"]],
+    "self-test": [["scripts/self-test"]],
+}
+
+UNSPECIALISED = {
+    "test",
+    "contract-test",
+    "integration-test",
+    "component-test",
+    "e2e-test",
+    "lint",
+    "run",
+    "image",
+    "image-test",
+}
+
+
+def print_help():
+    print("Usage: scripts/project <command> [args...]")
+    print()
+    print("Commands:")
+    for name in sorted(COMMANDS):
+        print(f"  {name}")
+    for name in sorted(UNSPECIALISED):
+        print(f"  {name}  (specialise during init)")
+
+
+def run_many(commands):
+    for command in commands:
+        result = subprocess.run(command)
+        if result.returncode:
+            return result.returncode
+    return 0
+
+
+def fail_unspecialised(command):
+    print("ERROR")
+    print()
+    print(f"{command} harness not specialised")
+    print()
+    print("next:")
+    print("  scripts/project init")
+    print("project state:")
+    print("  testing.harness = unspecialised")
+    return 2
+
+
+def main(argv):
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("--list", action="store_true")
+    parser.add_argument("command", nargs="?")
+    parser.add_argument("args", nargs=argparse.REMAINDER)
+    args = parser.parse_args(argv)
+
+    if args.list:
+        for name in sorted(set(COMMANDS) | UNSPECIALISED | {"help"}):
+            print(name)
+        return 0
+
+    if args.command in {None, "help", "--help", "-h"}:
+        print_help()
+        return 0
+
+    if args.command in UNSPECIALISED:
+        return fail_unspecialised(args.command)
+
+    command = COMMANDS.get(args.command)
+    if command is None:
+        print("ERROR")
+        print()
+        print(f"unknown command: {args.command}")
+        print()
+        print("Run:")
+        print("  scripts/project help")
+        return 2
+
+    if args.args and len(command) > 1:
+        print("ERROR")
+        print()
+        print(f"{args.command} does not accept extra arguments")
+        return 2
+
+    if args.args:
+        command = [command[0] + args.args]
+    return run_many(command)
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

@@ -1,4 +1,4 @@
 { }:
 {
-  note = "Repository checks are exposed through make check and flake checks.";
+  note = "Repository checks are exposed through scripts/project check and flake checks.";
 }

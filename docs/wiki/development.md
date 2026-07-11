@@ -6,8 +6,8 @@ entrypoints.
 Start with:
 
 ```sh
-make help
-make init
-make check
-make doctor
+scripts/project help
+scripts/project init
+scripts/project check
+scripts/project doctor
 ```

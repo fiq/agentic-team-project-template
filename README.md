@@ -62,9 +62,9 @@ instantiated.
 Run:
 
 ```sh
-make init
-make check
-make doctor
+scripts/project init
+scripts/project check
+scripts/project doctor
 ```
 
 `/init` reads `AGENTS.md`, `HANDOFF.toon`, `PROJECT_PROFILE.toon`,
@@ -107,5 +107,5 @@ models are routed by task suitability, but direct user addressing wins.
 
 Nix owns developer tooling. Containers are for application packaging or local
 runtime topology when evidence justifies them. Compose starts empty. CI calls
-`make` targets and does not require interactive AI tooling, Superpowers, MCP
-servers or external models.
+`scripts/project` commands and does not require interactive AI tooling,
+Superpowers, MCP servers or external models.

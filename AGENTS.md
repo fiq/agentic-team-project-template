@@ -64,7 +64,7 @@ thin slice -> tests -> implementation -> review -> HANDOFF.toon
 - Default to test-first for meaningful behaviour.
 - Use a testing trophy: strong unit/domain feedback, strong integration or
   component confidence, focused contracts, and a few high-value E2E paths.
-- Unspecialised test targets must fail clearly and point to `make init`.
+- Unspecialised test targets must fail clearly and point to `scripts/project init`.
 - Real dependency semantics should be tested when they are cheap and material.
 
 ## Agent rules
