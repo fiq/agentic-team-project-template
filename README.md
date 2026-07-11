@@ -69,20 +69,26 @@ messaging, deployment or test harness details.
 Start by creating a new project repository from this template repository.
 
 - On GitHub, use **Use this template** and clone the generated repository.
+  Choose **Private** during repository creation if the project should not be
+  public.
 - Locally, copy or clone this repository into a new project directory and point
   `origin` at the new project repository.
 
 Do the remaining steps inside the new project repository, not in the template
 source repository.
 
-### 2. Add project intent and evidence
+### 2. Provide briefs, artifacts and intent
 
-Update `CUSTOMIZE_THIS_PROJECT.toon` with anything already known about the
-project: name, purpose, users, core capabilities, non-goals and hard
-constraints.
+Bring whatever project material exists. It does not need to be polished.
 
-Add any real project evidence you already have, such as product notes, API
-sketches, source files, package manifests or deployment constraints.
+- Update `CUSTOMIZE_THIS_PROJECT.toon` with anything already known: name,
+  purpose, users, core capabilities, non-goals and hard constraints.
+- Add briefs, product notes, research notes, architecture sketches, API drafts,
+  source files, package manifests, deployment constraints, screenshots or links
+  to relevant external systems.
+- If the intent is still fuzzy, ask the agent to interview you. It should use
+  the material you provided, ask the smallest useful question set, capture
+  assumptions and unknowns, then turn the answers into project state.
 
 ### 3. Start the agent-guided setup
 
@@ -94,7 +100,8 @@ useful first prompt is:
 Help me initialise this project from the template.
 If AGENTS.md or CLAUDE.md was not loaded automatically, read it first.
 Run .agentic-template/bin/project init, inspect the result, and guide me through
-the smallest useful next setup steps.
+the smallest useful next setup steps. If my project intent is unclear, interview
+me and help convert my answers, briefs and artifacts into project state.
 ```
 
 Enter the Nix development shell if you use flakes:
