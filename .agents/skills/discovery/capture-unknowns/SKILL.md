@@ -1,5 +1,6 @@
 ---
 name: capture-unknowns
+description: Capture material unknowns in PROJECT_PROFILE.toon with impact and validation path.
 ---
 
 # Capture Unknowns

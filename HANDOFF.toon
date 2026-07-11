@@ -45,7 +45,7 @@ decisions:
   - id: testing_trophy
     summary: favour fast feedback plus strong integration confidence
   - id: canonical_project_script
-    summary: scripts/project is the canonical command surface; no template Makefile
+    summary: .agentic-template/bin/project is the canonical hidden command surface; no template Makefile
 
 risks:
   - constrained TOON validation is intentionally incomplete
@@ -59,6 +59,6 @@ files_of_interest:
   - CUSTOMIZE_THIS_PROJECT.toon
   - .agents/skills/CATALOG.toon
   - .agents/skills/
-  - scripts/
-  - scripts/project
+  - .agentic-template/bin/
+  - .agentic-template/bin/project
   - specs/

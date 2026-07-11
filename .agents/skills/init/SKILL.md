@@ -1,5 +1,6 @@
 ---
 name: init
+description: Orchestrate evidence-driven project discovery, specialisation and validation.
 ---
 
 # /init Orchestrator
@@ -14,7 +15,7 @@ Specialise the project from evidence, not preference shopping.
 2. Read `HANDOFF.toon`.
 3. Read `PROJECT_PROFILE.toon` if present.
 4. Read `CUSTOMIZE_THIS_PROJECT.toon`.
-5. Inspect repository evidence with `scripts/inspect-project`.
+5. Inspect repository evidence with `.agentic-template/bin/inspect-project`.
 6. Load `.agents/skills/CATALOG.toon`.
 7. Load only relevant discovery skills.
 8. Update `PROJECT_PROFILE.toon` with facts, inferences, decisions and unknowns.

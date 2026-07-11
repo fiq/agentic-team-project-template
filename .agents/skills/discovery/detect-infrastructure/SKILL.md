@@ -1,5 +1,6 @@
 ---
 name: detect-infrastructure
+description: Detect local and deployment infrastructure evidence without inventing platform choices.
 ---
 
 # Detect Infrastructure

@@ -25,8 +25,8 @@
               cp -r ${self} source
               chmod -R u+w source
               cd source
-              patchShebangs scripts
-              scripts/project check
+              patchShebangs .agentic-template/bin
+              .agentic-template/bin/project check
               touch $out
             '';
       });
@@ -45,7 +45,7 @@
             ];
 
           shellHook = ''
-            echo "AI-first template shell: use scripts/project help"
+            echo "AI-first template shell: use .agentic-template/bin/project help"
           '';
           };
       });

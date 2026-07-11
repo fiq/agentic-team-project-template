@@ -1,5 +1,6 @@
 ---
 name: promote-knowledge
+description: Promote durable decisions and knowledge to wiki or ADRs.
 ---
 
 # Promote Knowledge

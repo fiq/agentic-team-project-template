@@ -1,5 +1,6 @@
 ---
 name: runtime-godot
+description: Specialise Godot runtime, export and headless test conventions.
 ---
 
 # Runtime: Godot

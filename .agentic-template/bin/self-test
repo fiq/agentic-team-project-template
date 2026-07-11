@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path.cwd()
+PROJECT = [".agentic-template/bin/project"]
 
 
 def copy_repo(target):
@@ -51,9 +52,9 @@ def main():
         work = Path(tmp) / "repo"
         copy_repo(work)
 
-        if not expect(work, "baseline repo check passes", ["scripts/project", "repo-check"], 0):
+        if not expect(work, "baseline repo check passes", PROJECT + ["repo-check"], 0):
             failures += 1
-        if not expect(work, "template unresolved fields are allowed", ["scripts/project", "check-profile"], 0):
+        if not expect(work, "template unresolved fields are allowed", PROJECT + ["check-profile"], 0):
             failures += 1
 
         claude = work / "CLAUDE.md"
@@ -62,14 +63,14 @@ def main():
         if not expect(
             work,
             "broken CLAUDE.md symlink fails",
-            ["scripts/project", "repo-check"],
+            PROJECT + ["repo-check"],
             1,
             "CLAUDE.md is not a symlink",
         ):
             failures += 1
         claude.unlink()
         claude.symlink_to("AGENTS.md")
-        if not expect(work, "restored CLAUDE.md symlink passes", ["scripts/project", "repo-check"], 0):
+        if not expect(work, "restored CLAUDE.md symlink passes", PROJECT + ["repo-check"], 0):
             failures += 1
 
         profile = work / "PROJECT_PROFILE.toon"
@@ -81,7 +82,7 @@ def main():
         if not expect(
             work,
             "malformed unknown fails profile validation",
-            ["scripts/project", "check-profile"],
+            PROJECT + ["check-profile"],
             1,
             "Malformed unknown is missing fields",
         ):
@@ -95,7 +96,7 @@ def main():
         if not expect(
             work,
             "customised project with unspecialised profile fails",
-            ["scripts/project", "check-profile"],
+            PROJECT + ["check-profile"],
             1,
             "required specialisation is unresolved",
         ):
@@ -105,7 +106,7 @@ def main():
         if not expect(
             work,
             "unspecialised test command fails clearly",
-            ["scripts/project", "test"],
+            PROJECT + ["test"],
             2,
             "test harness not specialised",
         ):

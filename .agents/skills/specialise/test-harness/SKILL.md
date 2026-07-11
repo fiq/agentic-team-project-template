@@ -1,5 +1,6 @@
 ---
 name: test-harness
+description: Specialise a testing trophy harness from runtime, framework and risk evidence.
 ---
 
 # Test Harness

@@ -1,5 +1,6 @@
 ---
 name: infra-local-compose
+description: Specialise local Compose topology only when runtime dependencies require it.
 ---
 
 # Infrastructure: Local Compose

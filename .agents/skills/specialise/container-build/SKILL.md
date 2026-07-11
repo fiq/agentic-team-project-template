@@ -1,5 +1,6 @@
 ---
 name: container-build
+description: Specialise application container build strategy when packaging evidence justifies it.
 ---
 
 # Container Build

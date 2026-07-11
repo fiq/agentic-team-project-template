@@ -1,5 +1,6 @@
 ---
 name: implement-slice
+description: Implement the smallest useful verified vertical slice.
 ---
 
 # Implement Slice

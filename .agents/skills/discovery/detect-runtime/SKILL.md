@@ -1,5 +1,6 @@
 ---
 name: detect-runtime
+description: Identify runtime, framework and package-management evidence.
 ---
 
 # Detect Runtime

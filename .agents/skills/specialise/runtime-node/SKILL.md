@@ -1,5 +1,6 @@
 ---
 name: runtime-node
+description: Specialise Node, TypeScript, React and package-manager conventions.
 ---
 
 # Runtime: Node or TypeScript

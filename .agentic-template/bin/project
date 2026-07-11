@@ -1,25 +1,29 @@
 #!/usr/bin/env python3
 import argparse
+from pathlib import Path
 import subprocess
 import sys
 
+BIN = Path(__file__).resolve().parent
+COMMAND_NAME = ".agentic-template/bin/project"
+
 COMMANDS = {
-    "init": [["scripts/bootstrap-project"]],
-    "inspect": [["scripts/inspect-project"]],
+    "init": [[str(BIN / "bootstrap-project")]],
+    "inspect": [[str(BIN / "inspect-project")]],
     "check": [
-        ["scripts/check-repo-contract"],
-        ["scripts/check-project-profile"],
-        ["scripts/check-handoff"],
-        ["scripts/check-tooling"],
-        ["scripts/check-mcp"],
+        [str(BIN / "check-repo-contract")],
+        [str(BIN / "check-project-profile")],
+        [str(BIN / "check-handoff")],
+        [str(BIN / "check-tooling")],
+        [str(BIN / "check-mcp")],
     ],
-    "repo-check": [["scripts/check-repo-contract"]],
-    "check-profile": [["scripts/check-project-profile"]],
-    "check-handoff": [["scripts/check-handoff"]],
-    "check-tooling": [["scripts/check-tooling"]],
-    "check-mcp": [["scripts/check-mcp"]],
-    "doctor": [["scripts/doctor"]],
-    "self-test": [["scripts/self-test"]],
+    "repo-check": [[str(BIN / "check-repo-contract")]],
+    "check-profile": [[str(BIN / "check-project-profile")]],
+    "check-handoff": [[str(BIN / "check-handoff")]],
+    "check-tooling": [[str(BIN / "check-tooling")]],
+    "check-mcp": [[str(BIN / "check-mcp")]],
+    "doctor": [[str(BIN / "doctor")]],
+    "self-test": [[str(BIN / "self-test")]],
 }
 
 UNSPECIALISED = {
@@ -36,7 +40,7 @@ UNSPECIALISED = {
 
 
 def print_help():
-    print("Usage: scripts/project <command> [args...]")
+    print(f"Usage: {COMMAND_NAME} <command> [args...]")
     print()
     print("Commands:")
     for name in sorted(COMMANDS):
@@ -59,7 +63,7 @@ def fail_unspecialised(command):
     print(f"{command} harness not specialised")
     print()
     print("next:")
-    print("  scripts/project init")
+    print(f"  {COMMAND_NAME} init")
     print("project state:")
     print("  testing.harness = unspecialised")
     return 2
@@ -91,7 +95,7 @@ def main(argv):
         print(f"unknown command: {args.command}")
         print()
         print("Run:")
-        print("  scripts/project help")
+        print(f"  {COMMAND_NAME} help")
         return 2
 
     if args.args and len(command) > 1:

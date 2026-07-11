@@ -6,8 +6,8 @@ entrypoints.
 Start with:
 
 ```sh
-scripts/project help
-scripts/project init
-scripts/project check
-scripts/project doctor
+.agentic-template/bin/project help
+.agentic-template/bin/project init
+.agentic-template/bin/project check
+.agentic-template/bin/project doctor
 ```

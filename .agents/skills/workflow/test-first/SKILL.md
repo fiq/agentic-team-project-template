@@ -1,5 +1,6 @@
 ---
 name: test-first
+description: Drive meaningful behaviour changes with the smallest useful failing test.
 ---
 
 # Test-first Workflow

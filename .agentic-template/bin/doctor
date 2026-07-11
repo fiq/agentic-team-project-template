@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
+from pathlib import Path
 import subprocess
 
+BIN = Path(__file__).resolve().parent
+
 CHECKS = [
-    ("repo contract", ["scripts/check-repo-contract"]),
-    ("project profile", ["scripts/check-project-profile"]),
-    ("handoff", ["scripts/check-handoff"]),
-    ("tooling", ["scripts/check-tooling"]),
-    ("mcp", ["scripts/check-mcp"]),
+    ("repo contract", [str(BIN / "check-repo-contract")]),
+    ("project profile", [str(BIN / "check-project-profile")]),
+    ("handoff", [str(BIN / "check-handoff")]),
+    ("tooling", [str(BIN / "check-tooling")]),
+    ("mcp", [str(BIN / "check-mcp")]),
 ]
 
 def run(cmd):

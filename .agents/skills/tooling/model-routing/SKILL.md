@@ -1,5 +1,6 @@
 ---
 name: model-routing
+description: Route work to appropriate agents and models with token efficiency.
 ---
 
 # Model Routing

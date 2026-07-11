@@ -1,5 +1,6 @@
 ---
 name: detect-project-shape
+description: Classify repository shape and template customisation state from evidence.
 ---
 
 # Detect Project Shape

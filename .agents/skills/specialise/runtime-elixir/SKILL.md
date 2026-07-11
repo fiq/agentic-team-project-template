@@ -1,5 +1,6 @@
 ---
 name: runtime-elixir
+description: Specialise Elixir, Mix, Phoenix, Ecto and OTP project conventions.
 ---
 
 # Runtime: Elixir

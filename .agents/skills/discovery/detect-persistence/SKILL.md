@@ -1,5 +1,6 @@
 ---
 name: detect-persistence
+description: Identify persistence evidence and separate engine, provider and usage semantics.
 ---
 
 # Detect Persistence

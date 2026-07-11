@@ -1,5 +1,6 @@
 ---
 name: plan-task
+description: Plan bounded work from intent, evidence, risks and acceptance criteria.
 ---
 
 # Plan Task

@@ -1,5 +1,6 @@
 ---
 name: discover
+description: Gather focused evidence before proposing implementation or architecture.
 ---
 
 # Discover

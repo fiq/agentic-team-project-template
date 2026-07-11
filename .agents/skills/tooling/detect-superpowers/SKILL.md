@@ -1,5 +1,6 @@
 ---
 name: detect-superpowers
+description: Detect Superpowers availability and compatibility without changing global state.
 ---
 
 # Detect Superpowers

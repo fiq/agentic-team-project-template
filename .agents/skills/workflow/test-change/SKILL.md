@@ -1,5 +1,6 @@
 ---
 name: test-change
+description: Select and run tests that prove a change at suitable fidelity.
 ---
 
 # Test Change

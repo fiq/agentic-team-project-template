@@ -1,5 +1,6 @@
 ---
 name: red-team
+description: Perform adversarial review of risks, assumptions and failure modes.
 ---
 
 # Red Team

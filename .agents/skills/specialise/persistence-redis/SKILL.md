@@ -1,5 +1,6 @@
 ---
 name: persistence-redis
+description: Specialise Redis as cache, coordination or queue infrastructure when justified.
 ---
 
 # Persistence: Redis

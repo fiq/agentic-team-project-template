@@ -19,7 +19,7 @@ inferences:
       - no_runtime_manifest_present
       - generic_nix_shell
     confidence: high
-    validation: run scripts/inspect-project after customisation
+    validation: run .agentic-template/bin/inspect-project after customisation
 
 decisions:
   - id: project_concept_date
@@ -65,7 +65,7 @@ decisions:
       - AGENTS.md
     consequence_if_changed: history becomes misleading
   - id: canonical_project_script
-    decision: use scripts/project as the stable repository command surface
+    decision: use .agentic-template/bin/project as the stable repository command surface
     reason:
       - avoids colliding with downstream projects that already have a Makefile
       - keeps command dispatch testable with Python standard library
@@ -73,8 +73,8 @@ decisions:
     confidence: high
     status: active
     validation:
-      - scripts/project --list
-      - scripts/project check
+      - .agentic-template/bin/project --list
+      - .agentic-template/bin/project check
     consequence_if_changed: generated projects may inherit confusing or conflicting command wrappers
 
 unknowns:
@@ -104,7 +104,7 @@ unknowns:
     consequence_if_wrong: build and test commands may be specialised incorrectly
     blocking: false
     validation:
-      - scripts/inspect-project
+      - .agentic-template/bin/inspect-project
       - discovery runtime skills
     status: open
 
@@ -128,9 +128,9 @@ rejected_options:
     reason_rejected:
       - can conflict with legitimate downstream project Makefiles
       - Make target hierarchies can hide behaviour and confuse agents
-      - scripts/project is explicit and directly testable
+      - .agentic-template/bin/project is explicit and directly testable
     evidence:
-      - scripts/project
+      - .agentic-template/bin/project
 
 architecture:
   application_shape: unknown

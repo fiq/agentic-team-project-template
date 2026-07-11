@@ -1,5 +1,6 @@
 ---
 name: infra-fly
+description: Assess Fly.io deployment evidence and process/storage implications.
 ---
 
 # Infrastructure: Fly.io

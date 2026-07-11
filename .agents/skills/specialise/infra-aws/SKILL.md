@@ -1,5 +1,6 @@
 ---
 name: infra-aws
+description: Assess AWS deployment evidence and select only justified service guidance.
 ---
 
 # Infrastructure: AWS

@@ -1,5 +1,6 @@
 ---
 name: detect-application-shape
+description: Infer application shape from entrypoints, routes, workers and deployable evidence.
 ---
 
 # Detect Application Shape

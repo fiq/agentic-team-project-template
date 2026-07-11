@@ -1,5 +1,6 @@
 ---
 name: persistence-document
+description: Specialise document persistence when document database semantics are justified.
 ---
 
 # Persistence: Document

@@ -1,5 +1,6 @@
 ---
 name: sql-migrations
+description: Configure stack-appropriate relational migration policy and verification.
 ---
 
 # SQL Migrations

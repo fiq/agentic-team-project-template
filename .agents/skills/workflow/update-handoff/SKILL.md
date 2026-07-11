@@ -1,5 +1,6 @@
 ---
 name: update-handoff
+description: Update HANDOFF.toon with current semantic work state.
 ---
 
 # Update Handoff

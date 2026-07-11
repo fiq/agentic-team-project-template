@@ -1,5 +1,6 @@
 ---
 name: detect-mcp
+description: Detect declared MCP expectations without exposing secrets.
 ---
 
 # Detect MCP

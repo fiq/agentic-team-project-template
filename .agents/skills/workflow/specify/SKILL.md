@@ -1,5 +1,6 @@
 ---
 name: specify
+description: Create proportional lightweight specs for meaningful changes.
 ---
 
 # Specify

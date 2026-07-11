@@ -1,5 +1,6 @@
 ---
 name: ci
+description: Specialise CI so workflows call repository command primitives.
 ---
 
 # CI

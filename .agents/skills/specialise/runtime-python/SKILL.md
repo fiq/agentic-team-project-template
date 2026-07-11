@@ -1,5 +1,6 @@
 ---
 name: runtime-python
+description: Specialise Python runtime, package, framework and test conventions.
 ---
 
 # Runtime: Python

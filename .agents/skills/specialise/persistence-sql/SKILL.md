@@ -1,5 +1,6 @@
 ---
 name: persistence-sql
+description: Specialise relational persistence boundaries, tests and migration expectations.
 ---
 
 # Persistence: SQL

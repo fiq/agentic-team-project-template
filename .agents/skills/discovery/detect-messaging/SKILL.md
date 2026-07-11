@@ -1,5 +1,6 @@
 ---
 name: detect-messaging
+description: Identify messaging roles and interaction semantics from repository evidence.
 ---
 
 # Detect Messaging

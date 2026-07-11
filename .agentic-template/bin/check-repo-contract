@@ -25,20 +25,20 @@ REQUIRED_FILES = [
     "docs/wiki/index.md",
     ".github/workflows/ci.yml",
     ".github/copilot-instructions.md",
-    "scripts/bootstrap-project",
-    "scripts/project",
-    "scripts/inspect-project",
-    "scripts/check-project-profile",
-    "scripts/check-repo-contract",
-    "scripts/check-handoff",
-    "scripts/check-tooling",
-    "scripts/check-mcp",
-    "scripts/doctor",
-    "scripts/self-test",
+    ".agentic-template/bin/bootstrap-project",
+    ".agentic-template/bin/project",
+    ".agentic-template/bin/inspect-project",
+    ".agentic-template/bin/check-project-profile",
+    ".agentic-template/bin/check-repo-contract",
+    ".agentic-template/bin/check-handoff",
+    ".agentic-template/bin/check-tooling",
+    ".agentic-template/bin/check-mcp",
+    ".agentic-template/bin/doctor",
+    ".agentic-template/bin/self-test",
 ]
 
 REQUIRED_EXECUTABLES = [
-    rel for rel in REQUIRED_FILES if rel.startswith("scripts/")
+    rel for rel in REQUIRED_FILES if rel.startswith(".agentic-template/bin/")
 ]
 
 REQUIRED_SKILLS = [
@@ -76,6 +76,20 @@ def fail(lines):
         print("- " + line)
     return 1
 
+def check_skill_frontmatter(path):
+    text = path.read_text()
+    if not text.startswith("---\n"):
+        return "missing frontmatter"
+    end = text.find("\n---", 4)
+    if end < 0:
+        return "unterminated frontmatter"
+    frontmatter = text[4:end]
+    if "\nname:" not in "\n" + frontmatter:
+        return "frontmatter missing name"
+    if "\ndescription:" not in "\n" + frontmatter:
+        return "frontmatter missing description"
+    return None
+
 def main():
     errors = []
     for rel in REQUIRED_FILES:
@@ -91,9 +105,14 @@ def main():
     elif os.readlink(claude) != "AGENTS.md":
         errors.append("CLAUDE.md does not link to AGENTS.md")
     for skill in REQUIRED_SKILLS:
-        if not (ROOT / ".agents/skills" / skill / "SKILL.md").exists():
+        skill_path = ROOT / ".agents/skills" / skill / "SKILL.md"
+        if not skill_path.exists():
             errors.append(f"missing skill {skill}")
-    project_script = ROOT / "scripts/project"
+    for skill_path in sorted((ROOT / ".agents/skills").rglob("SKILL.md")):
+        problem = check_skill_frontmatter(skill_path)
+        if problem:
+            errors.append(f"{skill_path.relative_to(ROOT)} {problem}")
+    project_script = ROOT / ".agentic-template/bin/project"
     if project_script.exists():
         result = subprocess.run(
             [str(project_script), "--list"],
@@ -102,12 +121,12 @@ def main():
             text=True,
         )
         if result.returncode:
-            errors.append("scripts/project --list failed")
+            errors.append(".agentic-template/bin/project --list failed")
         else:
             commands = set(result.stdout.splitlines())
             for command in PROJECT_COMMANDS:
                 if command not in commands:
-                    errors.append(f"scripts/project missing command {command}")
+                    errors.append(f".agentic-template/bin/project missing command {command}")
     if errors:
         return fail(errors)
     print("REPO CONTRACT OK")

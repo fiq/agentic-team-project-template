@@ -1,5 +1,6 @@
 ---
 name: messaging-kafka
+description: Specialise Kafka semantics, reliability concerns and tests when active Kafka roles exist.
 ---
 
 # Messaging: Kafka

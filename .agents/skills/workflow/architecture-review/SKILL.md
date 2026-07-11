@@ -1,5 +1,6 @@
 ---
 name: architecture-review
+description: Review architecture boundaries, coupling, tradeoffs and reversibility.
 ---
 
 # Architecture Review

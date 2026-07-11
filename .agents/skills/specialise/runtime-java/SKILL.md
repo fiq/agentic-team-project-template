@@ -1,5 +1,6 @@
 ---
 name: runtime-java
+description: Specialise Java runtime, build, framework and test conventions.
 ---
 
 # Runtime: Java

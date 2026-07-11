@@ -1,5 +1,6 @@
 ---
 name: reassess-project-profile
+description: Reassess profile assumptions after material project changes.
 ---
 
 # Reassess Project Profile
