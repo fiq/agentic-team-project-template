@@ -3,7 +3,8 @@
 This is a reusable, opinionated template for software projects where AI agents
 reduce decision fatigue. It favours evidence-driven `/init`, concise semantic
 state, composable skills, Nix-owned developer tooling, thin vertical slices,
-test-first work, and practical Clean Architecture boundaries.
+test-first work, optional Superpowers workflow support, and practical Clean
+Architecture boundaries.
 
 It is not an internal developer platform. It does not install a default
 database, broker, cloud emulator, Kubernetes stack, Java, Python, Node, Elixir
@@ -59,7 +60,50 @@ instantiated.
 
 ## Start
 
-Run:
+Use this repository as the starting point for a new project, then let the
+agentic bootstrap inspect evidence before choosing runtime, persistence,
+messaging, deployment or test harness details.
+
+### 1. Create your project from this template repo
+
+Start by creating a new project repository from this template repository.
+
+- On GitHub, use **Use this template** and clone the generated repository.
+- Locally, copy or clone this repository into a new project directory and point
+  `origin` at the new project repository.
+
+Do the remaining steps inside the new project repository, not in the template
+source repository.
+
+### 2. Add project intent and evidence
+
+Update `CUSTOMIZE_THIS_PROJECT.toon` with anything already known about the
+project: name, purpose, users, core capabilities, non-goals and hard
+constraints.
+
+Add any real project evidence you already have, such as product notes, API
+sketches, source files, package manifests or deployment constraints.
+
+### 3. Start the agent-guided setup
+
+In Claude, Codex or another coding agent, ask it to read `AGENTS.md` and run the
+template bootstrap if the repo instructions were not loaded automatically. A
+useful first prompt is:
+
+```text
+Help me initialise this project from the template.
+If AGENTS.md or CLAUDE.md was not loaded automatically, read it first.
+Run .agentic-template/bin/project init, inspect the result, and guide me through
+the smallest useful next setup steps.
+```
+
+Enter the Nix development shell if you use flakes:
+
+```sh
+nix develop
+```
+
+Run the project bootstrap and checks:
 
 ```sh
 .agentic-template/bin/project init
@@ -67,11 +111,51 @@ Run:
 .agentic-template/bin/project doctor
 ```
 
-`/init` reads `AGENTS.md`, `HANDOFF.toon`, `PROJECT_PROFILE.toon`,
-`CUSTOMIZE_THIS_PROJECT.toon`, repository evidence and `.agents/skills/CATALOG.toon`.
-It loads only relevant skills, updates project facts and unknowns, recommends
-the smallest useful architecture, then asks only high-impact unresolved
-questions.
+`init` reads `AGENTS.md`, `HANDOFF.toon`, `PROJECT_PROFILE.toon`,
+`CUSTOMIZE_THIS_PROJECT.toon`, repository evidence and
+`.agents/skills/CATALOG.toon`. It loads only relevant skills, inspects project
+evidence, recommends the smallest useful architecture, and asks only
+high-impact unresolved questions.
+
+### Illustrative example
+
+This is README-only sample input, not project state committed elsewhere in the
+template. For a new project called `field-notes`, create the repository from
+this template, then make the first project intent explicit in
+`CUSTOMIZE_THIS_PROJECT.toon`:
+
+```toon
+project:
+  name: field-notes
+  purpose: offline-first notes for field researchers
+  status: bootstrap
+
+domain:
+  summary: capture, tag and sync field observations
+  primary_users:
+    - field researcher
+    - research coordinator
+  core_capabilities:
+    - write notes offline
+    - attach photos and locations
+    - sync when connectivity returns
+  non_goals:
+    - public social publishing
+    - real-time multiplayer editing
+```
+
+Then run:
+
+```sh
+.agentic-template/bin/project init
+.agentic-template/bin/project inspect
+.agentic-template/bin/project check
+```
+
+If no application evidence exists yet, the template should remain
+unspecialised. Add the smallest useful evidence next, such as
+`docs/product/README.md` or a runtime manifest like `package.json`,
+`pyproject.toml`, `pom.xml`, `mix.exs` or `project.godot`, then rerun `init`.
 
 ## Core files
 
@@ -114,3 +198,8 @@ Nix owns developer tooling. Containers are for application packaging or local
 runtime topology when evidence justifies them. Compose starts empty. CI calls
 `.agentic-template/bin/project` commands and does not require interactive AI tooling,
 Superpowers, MCP servers or external models.
+
+The template works with Superpowers when it is available: agents may use it for
+brainstorming, planning, TDD, debugging, implementation, review and
+verification. Superpowers is detected as optional tooling, so a new project can
+still start cleanly in Claude, Codex, Copilot or CI without it.

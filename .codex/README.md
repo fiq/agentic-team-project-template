@@ -10,5 +10,12 @@ For substantial work, start from:
 - relevant active spec
 - relevant files or skills only
 
-Prefer repository commands such as `make check`, `make repo-check` and
-`make doctor`.
+For project setup or fresh repository orientation, run:
+
+```sh
+.agentic-template/bin/project init
+.agentic-template/bin/project check
+.agentic-template/bin/project doctor
+```
+
+Prefer repository commands exposed through `.agentic-template/bin/project`.

@@ -13,10 +13,12 @@ limited to active task state and reference knowledge IDs instead of copying
 entries.
 
 ```
-request -> team selection -> knowledge search -> Superpowers workflow
+request -> team selection -> knowledge search -> optional Superpowers workflow
         -> implementation/review -> handoff -> knowledge capture
         -> inbox proposal -> review -> canonical knowledge
 ```
 
-Superpowers owns engineering workflow. This repository owns local roles,
-knowledge retrieval, learning capture and promotion rules.
+When Superpowers is available, it owns engineering workflow steps such as
+brainstorming, planning, TDD, debugging, implementation, review and
+verification. This repository owns local roles, knowledge retrieval, learning
+capture and promotion rules, and must also work without Superpowers.

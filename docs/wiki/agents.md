@@ -12,5 +12,8 @@ through the `knowledge-search` skill. After meaningful work, use
 the knowledge inbox, questions, learnings, decisions, patterns, risks or no
 durable record.
 
-Superpowers remains the workflow layer for brainstorming, planning, TDD,
-debugging, implementation, review and verification.
+Superpowers remains the preferred workflow layer for brainstorming, planning,
+TDD, debugging, implementation, review and verification when it is available.
+It is optional: Claude, Codex, Copilot and CI must still be able to start from
+`AGENTS.md`, `PROJECT_PROFILE.toon`, `HANDOFF.toon` and repository commands
+without Superpowers.

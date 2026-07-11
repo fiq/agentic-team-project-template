@@ -10,10 +10,12 @@ behavioural and integration risks, then select a small testing trophy.
 
 Expose stable commands:
 
-- `make test`
-- `make integration-test`
-- `make check`
-- optional `make contract-test`, `make component-test`, `make e2e-test`
+- `.agentic-template/bin/project test`
+- `.agentic-template/bin/project integration-test`
+- `.agentic-template/bin/project check`
+- optional `.agentic-template/bin/project contract-test`
+- optional `.agentic-template/bin/project component-test`
+- optional `.agentic-template/bin/project e2e-test`
 
 Do not leave generic placeholders after customisation. Unspecialised targets
 must fail clearly.
