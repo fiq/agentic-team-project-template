@@ -1,4 +1,4 @@
-.PHONY: help init inspect check test contract-test integration-test component-test e2e-test lint run image image-test repo-check check-profile check-handoff check-tooling check-mcp doctor
+.PHONY: help init inspect check test contract-test integration-test component-test e2e-test lint run image image-test repo-check check-profile check-handoff check-tooling check-mcp doctor self-test
 
 help:
 	@printf '%s\n' \
@@ -9,7 +9,8 @@ help:
 	  '  make repo-check        validate template contract' \
 	  '  make check-profile     validate PROJECT_PROFILE.toon' \
 	  '  make check-handoff     validate HANDOFF.toon' \
-	  '  make doctor            concise readiness report'
+	  '  make doctor            concise readiness report' \
+	  '  make self-test         run validator negative tests in a temp copy'
 
 init:
 	@scripts/bootstrap-project
@@ -36,6 +37,9 @@ check-mcp:
 
 doctor:
 	@scripts/doctor
+
+self-test:
+	@scripts/self-test
 
 test contract-test integration-test component-test e2e-test lint run image image-test:
 	@printf '%s\n\n' 'ERROR'

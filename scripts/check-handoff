@@ -23,6 +23,13 @@ def main():
     if missing:
         print("ERROR\n\nHANDOFF.toon missing sections: " + ", ".join(missing))
         return 1
+    placeholders = ["actual_current_state"]
+    found = [item for item in placeholders if item in text]
+    if found:
+        print("ERROR")
+        print()
+        print("HANDOFF.toon contains placeholder text: " + ", ".join(found))
+        return 1
     print("HANDOFF OK")
     return 0
 

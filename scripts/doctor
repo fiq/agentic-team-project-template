@@ -5,6 +5,8 @@ CHECKS = [
     ("repo contract", ["scripts/check-repo-contract"]),
     ("project profile", ["scripts/check-project-profile"]),
     ("handoff", ["scripts/check-handoff"]),
+    ("tooling", ["scripts/check-tooling"]),
+    ("mcp", ["scripts/check-mcp"]),
 ]
 
 def run(cmd):

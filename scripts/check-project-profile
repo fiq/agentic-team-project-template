@@ -65,8 +65,22 @@ def main():
     if CUSTOM.exists():
         custom = CUSTOM.read_text()
         customised = "status: customised" in custom or "status: customized" in custom
-        if customised and "harness: unspecialised" in text:
-            return fail("Project marked customised while test harness is unspecialised")
+        if customised:
+            unresolved = []
+            for marker in [
+                "application_shape: unknown",
+                "language: unknown",
+                "framework: unknown",
+                "build_system: unknown",
+                "harness: unspecialised",
+            ]:
+                if marker in text:
+                    unresolved.append(marker)
+            if unresolved:
+                return fail(
+                    "Project marked customised while required specialisation is unresolved: "
+                    + ", ".join(unresolved)
+                )
 
     print("PROJECT PROFILE OK")
     return 0
