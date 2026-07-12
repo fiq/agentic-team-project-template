@@ -271,15 +271,25 @@ def main():
         custom = work / "CUSTOMIZE_THIS_PROJECT.toon"
         replace(custom, "status: template", "status: consumed")
 
-        # Write a project-facing README
+        # Write a project-facing README with all required sections
         readme = work / "README.md"
         readme.write_text(
             "# My Specialised Project\n\n"
             "A specialised project.\n\n"
             "## Run locally\n\n"
             "Run the project.\n\n"
+            "## Run with containers\n\n"
+            "Not applicable for this project type.\n\n"
             "## Tests\n\n"
-            "Run tests.\n"
+            "Run tests.\n\n"
+            "## Configuration and environment variables\n\n"
+            "None required.\n\n"
+            "## Infrastructure and deployment state\n\n"
+            "Deferred.\n\n"
+            "## Deliberate non-goals\n\n"
+            "No cloud platform.\n\n"
+            "## Important decisions and documentation links\n\n"
+            "See AGENTS.md.\n"
         )
 
         if not expect(

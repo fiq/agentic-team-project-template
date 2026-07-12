@@ -77,6 +77,9 @@ def check_pulumi():
     if not pul:
         return fail("pulumi not found on PATH")
 
+    # Pulumi preview with a local backend does not require cloud credentials.
+    # Projects using a cloud backend (S3, Azure, GCP, etc.) must provide
+    # credentials out-of-band; this check does not inject secrets.
     result = subprocess.run(
         [pul, "preview", "--diff", "--non-interactive"],
         stdout=subprocess.PIPE,

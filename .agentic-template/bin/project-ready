@@ -39,7 +39,9 @@ def has_compose_file():
         text = compose.read_text()
     except OSError:
         return False
-    return "services: {}" not in text and "services: {}" not in text.replace(" ", "")
+    # Empty compose file has "services: {}" (with or without spaces).
+    normalised = text.replace(" ", "")
+    return "services:{}" not in normalised
 
 
 def has_dockerfile():

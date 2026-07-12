@@ -13,7 +13,12 @@ TEMPLATE_MARKERS = [
 
 REQUIRED_SECTIONS = [
     "Run locally",
+    "Run with containers",
     "Tests",
+    "Configuration and environment variables",
+    "Infrastructure and deployment state",
+    "Deliberate non-goals",
+    "Important decisions and documentation links",
 ]
 
 

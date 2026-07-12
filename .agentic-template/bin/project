@@ -62,9 +62,11 @@ def print_help():
     print()
     print("Commands:")
     for name in sorted(COMMANDS):
-        print(f"  {name}")
+        tag = "  (optional)" if name in OPTIONAL_COMMANDS else ""
+        print(f"  {name}{tag}")
     for name in sorted(UNSPECIALISED):
-        print(f"  {name}  (specialise during init)")
+        tag = "  (optional, specialise or mark not_applicable)" if name in OPTIONAL_COMMANDS else "  (specialise during init)"
+        print(f"  {name}{tag}")
 
 
 def run_many(commands):
