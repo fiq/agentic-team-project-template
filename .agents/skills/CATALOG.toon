@@ -83,6 +83,10 @@ skills:
     path: coordination/specialist-recruitment-advisory/SKILL.md
     trigger: task_matches_specialist_domain_and_none_engaged
 
+  context_hygiene_advisory:
+    path: coordination/context-hygiene-advisory/SKILL.md
+    trigger: context_growing_or_natural_task_boundary_reached
+
   knowledge_search:
     path: knowledge/knowledge-search/SKILL.md
     trigger: before_planning_or_implementation
