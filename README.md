@@ -212,7 +212,7 @@ required structure of a generated project `AGENTS.md`.
 | Workflow | `init`, `discover`, `plan-task`, `specify`, `test-first`, `implement-slice`, `test-change`, `update-handoff`, `handoff-maintenance`, `reassess-project-profile`, `reconcile-delivery`, `architecture-review`, `red-team`, `promote-knowledge` | Orchestrate discovery, planning, implementation, review and delivery |
 | Discovery | `detect-project-shape`, `detect-runtime`, `detect-application-shape`, `detect-messaging`, `detect-persistence`, `detect-infrastructure`, `capture-unknowns` | Inspect repository evidence and classify unknowns |
 | Specialise | `runtime-node`, `runtime-java`, `runtime-python`, `runtime-elixir`, `runtime-godot`, `messaging-kafka`, `persistence-sql`, `persistence-document`, `persistence-redis`, `sql-migrations`, `test-harness`, `container-build`, `infra-local-compose`, `infra-decision`, `infra-aws`, `infra-fly`, `ci` | Specialise runtime, persistence, messaging, testing, containers, infrastructure and CI |
-| Coordination | `team-selection`, `sudo`, `adversarial-debate`, `agent-team-fallback` | Select agent roles, switch personas, debate decisions, degrade gracefully |
+| Coordination | `team-selection`, `sudo`, `adversarial-debate`, `agent-team-fallback`, `loop-engineering-advisory`, `specialist-recruitment-advisory`, `context-hygiene-advisory` | Select agent roles, switch personas, debate decisions, degrade gracefully, and proactively advise on looping, specialist help and context hygiene |
 | Knowledge | `knowledge-search`, `knowledge-capture` | Search and capture durable project knowledge |
 | Tooling | `detect-mcp`, `detect-superpowers`, `model-routing` | Inspect MCP, Superpowers and model routing |
 
@@ -282,6 +282,9 @@ lazy-loaded via [`CATALOG.toon`](.agents/skills/CATALOG.toon).
 | `sudo` | [`coordination/sudo/SKILL.md`](.agents/skills/coordination/sudo/SKILL.md) | agent switches persona for bounded operation |
 | `adversarial-debate` | [`coordination/adversarial-debate/SKILL.md`](.agents/skills/coordination/adversarial-debate/SKILL.md) | irreversible decision or reviewer disagreement |
 | `agent-team-fallback` | [`coordination/agent-team-fallback/SKILL.md`](.agents/skills/coordination/agent-team-fallback/SKILL.md) | preferred team topology unavailable |
+| `loop-engineering-advisory` | [`coordination/loop-engineering-advisory/SKILL.md`](.agents/skills/coordination/loop-engineering-advisory/SKILL.md) | repeating bounded subtask pattern detected |
+| `specialist-recruitment-advisory` | [`coordination/specialist-recruitment-advisory/SKILL.md`](.agents/skills/coordination/specialist-recruitment-advisory/SKILL.md) | task matches specialist domain and none engaged |
+| `context-hygiene-advisory` | [`coordination/context-hygiene-advisory/SKILL.md`](.agents/skills/coordination/context-hygiene-advisory/SKILL.md) | context growing or natural task boundary reached |
 
 #### Knowledge skills
 
