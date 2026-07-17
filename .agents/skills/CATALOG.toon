@@ -75,6 +75,10 @@ skills:
     path: coordination/agent-team-fallback/SKILL.md
     trigger: preferred_team_topology_unavailable
 
+  loop_engineering_advisory:
+    path: coordination/loop-engineering-advisory/SKILL.md
+    trigger: repeating_bounded_subtask_pattern_detected
+
   knowledge_search:
     path: knowledge/knowledge-search/SKILL.md
     trigger: before_planning_or_implementation
