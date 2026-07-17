@@ -82,6 +82,7 @@ REQUIRED_SKILLS = [
     "coordination/adversarial-debate",
     "coordination/agent-team-fallback",
     "coordination/loop-engineering-advisory",
+    "coordination/specialist-recruitment-advisory",
     "knowledge/knowledge-search",
     "knowledge/knowledge-capture",
     "tooling/detect-mcp",

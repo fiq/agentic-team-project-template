@@ -79,6 +79,10 @@ skills:
     path: coordination/loop-engineering-advisory/SKILL.md
     trigger: repeating_bounded_subtask_pattern_detected
 
+  specialist_recruitment_advisory:
+    path: coordination/specialist-recruitment-advisory/SKILL.md
+    trigger: task_matches_specialist_domain_and_none_engaged
+
   knowledge_search:
     path: knowledge/knowledge-search/SKILL.md
     trigger: before_planning_or_implementation
