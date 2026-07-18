@@ -50,12 +50,54 @@ non-applicable commands explicitly rather than leaving them unspecialised.
 - Do not merge provider-specific or platform-specific paths into shared
   abstractions unless explicitly requested.
 
+## Quality and technical debt
+
+Quality is a standing obligation on all work, re-checked explicitly inside
+`/ideate` and `/review`, not a separate phase.
+
+- Follow the boy-scout rule: leave code in the path of a change cleaner than
+  you found it.
+- Prefer reuse over duplication. Extract shared utility at the second or later
+  occurrence, never on a single occurrence. Do not pre-abstract.
+- Pay down technical debt encountered directly in the work's path. Record
+  out-of-scope debt as a spec follow-up or a `RISK-`/`Q-` knowledge entry
+  instead of leaving it silent.
+- Documentation updates land in the same change as the behaviour they
+  describe. Do not defer them.
+- Check non-trivial design choices against boundaries, dependency direction,
+  coupling and reversibility before implementing.
+- Do not leave silent `TODO`s or dead code. Convert them into recorded
+  changes, tasks or knowledge entries.
+
+## Right-sizing and over-engineering
+
+Architecture scales to the calibrated app shape and audience skill level: a
+simpler shape means fewer layers. Recommend the smallest sufficient design.
+
+The smaller architecture is a conscious, bought-into choice, never a silent
+omission:
+
+- state plainly what is deliberately not being built and why;
+- secure the user's buy-in before proceeding;
+- record the right-sizing decision in `PROJECT_PROFILE.toon` decisions,
+  promoted to an ADR when durable;
+- record the conditions that would justify revisiting it.
+
+This keeps YAGNI deliberate and revisitable rather than unexamined.
+
 ## Testing expectations
 
 - Default to test-first for meaningful behaviour.
 - Use a testing trophy: strong unit/domain feedback, strong integration or
   component confidence, focused contracts, and a few high-value E2E paths.
 - Select test layers from actual risks, not a fixed checklist.
+- Drive design outside-in, from the boundary in. A change's `WHEN/THEN`
+  scenarios (see the spec system) drive tests before implementation
+  (ATDD-aligned).
+- Choose the boundary test's fidelity by risk and known architectural
+  direction: acceptance, component-integration or subcutaneous. Keep a thin
+  real-dependency confirmation layer where it is cheap and materially
+  important.
 - Unspecialised test targets must fail clearly and point to
   `.agentic-template/bin/project init`.
 - Real dependency semantics should be tested when cheap and materially
@@ -93,7 +135,35 @@ Update documentation when:
 - active specs are delivered, changed, deferred or removed;
 - architecture boundaries or ADRs change;
 - canonical commands are specialised or marked not applicable;
-- delivery reconciliation is performed.
+- delivery reconciliation is performed;
+- audience calibration or right-sizing decisions change;
+- the wiki drifts from the knowledge graph, specs or code.
+
+## Spec system
+
+Specs are OpenSpec-shaped, TOON-encoded and agent-first.
+
+- Living requirements sit in `specs/capabilities/`; in-flight proposals in
+  `specs/changes/<id>/`; completed proposals in `specs/archive/`.
+- A change proposal is `proposal.md` (why), optional `design.md` (tradeoffs)
+  and `change.toon` (the agent source of truth: `ADDED`/`MODIFIED`/`REMOVED`
+  deltas, each requirement carrying `WHEN/THEN` scenarios, plus an
+  `acceptance` map from scenario to test and `tasks`).
+- Structured spec content is TOON, validated by `.agents/schemas/` via
+  `project check-changes`. Markdown holds only rationale.
+- Do not add an external spec CLI dependency. A Markdown export is deferred
+  until a non-agent consumer needs it.
+
+## Knowledge graph and taxonomy
+
+Knowledge, specs, ADRs and wiki pages form one connected graph defined by
+`.agents/knowledge/TAXONOMY.md`.
+
+- Search the graph via `knowledge-search` before planning or implementing.
+- Link every new durable artifact back into the graph by ID; edges must
+  resolve to existing nodes (enforced by `check-knowledge` and
+  `check-changes`).
+- Keep the wiki current against the graph; `check-wiki` warns on drift.
 
 ## Branch and PR workflow
 

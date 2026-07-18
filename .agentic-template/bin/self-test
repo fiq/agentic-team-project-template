@@ -262,6 +262,15 @@ def main():
             "harness: unspecialised",
             "harness: specialised",
         ).replace(
+            "skill_level: unknown",
+            "skill_level: developer",
+        ).replace(
+            "app_shape: unknown",
+            "app_shape: cli",
+        ).replace(
+            "bought_in: false",
+            "bought_in: true",
+        ).replace(
             "application_image: not_applicable",
             "application_image: not_applicable",
         )

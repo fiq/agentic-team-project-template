@@ -59,6 +59,14 @@ skills:
     path: discovery/capture-unknowns/SKILL.md
     trigger: material_unknown_discovered
 
+  calibrate_audience:
+    path: discovery/calibrate-audience/SKILL.md
+    trigger: audience_or_app_shape_unknown_or_changed
+    required_evidence:
+      - existing_docs
+      - entrypoints
+      - user_statements
+
   team_selection:
     path: coordination/team-selection/SKILL.md
     trigger: task_requires_role_selection
