@@ -172,6 +172,9 @@ skills:
   test_first:
     path: workflow/test-first/SKILL.md
     trigger: meaningful_behaviour_change
+  outside_in_tdd:
+    path: workflow/outside-in-tdd/SKILL.md
+    trigger: implementing_a_change_scenario
   reassess_project_profile:
     path: workflow/reassess-project-profile/SKILL.md
     trigger: material_profile_assumption_changed
