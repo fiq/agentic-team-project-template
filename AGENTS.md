@@ -23,7 +23,9 @@ The canonical command surface is `.agentic-template/bin/project`.
 | `project check-handoff` | Validate HANDOFF.toon |
 | `project check-knowledge` | Validate knowledge entries |
 | `project check-changes` | Validate TOON change proposals and capabilities |
+| `project check-wiki` | Warn on wiki drift from the knowledge graph and specs |
 | `project check-readme` | Validate README is not template-facing and has required sections |
+| `project install-hooks` | Opt-in: install a non-blocking wiki-drift pre-commit hook |
 | `project ready` | Run all applicable deterministic readiness checks |
 | `project compose-config` | Validate docker compose configuration |
 | `project compose-test` | Bounded Compose smoke test with deterministic cleanup |

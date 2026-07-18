@@ -102,6 +102,10 @@ skills:
     path: workflow/reconcile-delivery/SKILL.md
     trigger: before_delivery_pr_or_material_scope_change
 
+  wiki_tidy:
+    path: workflow/wiki-tidy/SKILL.md
+    trigger: wiki_drift_or_natural_task_boundary
+
   ideate:
     path: workflow/ideate/SKILL.md
     trigger: ambiguous_or_unspecified_feature_request

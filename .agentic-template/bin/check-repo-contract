@@ -45,6 +45,8 @@ REQUIRED_FILES = [
     ".agentic-template/bin/check-handoff",
     ".agentic-template/bin/check-knowledge",
     ".agentic-template/bin/check-changes",
+    ".agentic-template/bin/check-wiki",
+    ".agentic-template/bin/install-hooks",
     ".agentic-template/bin/check-tooling",
     ".agentic-template/bin/check-mcp",
     ".agentic-template/bin/check-readme",
