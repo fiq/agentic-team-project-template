@@ -102,6 +102,14 @@ skills:
     path: workflow/reconcile-delivery/SKILL.md
     trigger: before_delivery_pr_or_material_scope_change
 
+  ideate:
+    path: workflow/ideate/SKILL.md
+    trigger: ambiguous_or_unspecified_feature_request
+
+  narrative_intake:
+    path: workflow/narrative-intake/SKILL.md
+    trigger: narrative_provided_inline_or_file
+
   runtime_node:
     path: specialise/runtime-node/SKILL.md
     trigger: node_or_typescript_detected

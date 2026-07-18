@@ -268,8 +268,21 @@ or the task can no longer be safely bounded.
 
 - Put the most important conclusion first.
 - Use concise sections, short paragraphs, small tables and ASCII diagrams.
+  Prefer bullets and diagrams over prose as complexity rises.
 - Use TOON for compact semantic state and Markdown for durable explanation.
 - Prefer progressive disclosure over walls of text.
+- At a status handoff or decision point, offer alternatives and guidance, not
+  a flat report.
+- At a genuinely hard choice, attribute each relevant persona's stance as
+  `discourages` / `accepts` / `encourages`, then let the lead synthesise
+  without forcing consensus. For example:
+
+  ```
+  choice: add a message broker now
+    architect     discourages (no evidence of async need yet)
+    tech-lead     accepts     (isolated, reversible)
+    product-owner encourages  (unblocks the next capability)
+  ```
 
 ## Git provenance
 
