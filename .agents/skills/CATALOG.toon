@@ -106,6 +106,10 @@ skills:
     path: workflow/ideate/SKILL.md
     trigger: ambiguous_or_unspecified_feature_request
 
+  review_loop:
+    path: workflow/review-loop/SKILL.md
+    trigger: before_merge_or_boy_scout_cleanup
+
   narrative_intake:
     path: workflow/narrative-intake/SKILL.md
     trigger: narrative_provided_inline_or_file
