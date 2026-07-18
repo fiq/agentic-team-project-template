@@ -17,11 +17,12 @@ The canonical command surface is `.agentic-template/bin/project`.
 |---|---|
 | `project init` | Evidence-driven discovery, specialisation, identity rewrite and validation |
 | `project inspect` | Print compact project evidence |
-| `project check` | Run all repo-contract, profile, handoff, knowledge and tooling checks |
+| `project check` | Run all repo-contract, profile, handoff, knowledge, changes and tooling checks |
 | `project repo-check` | Validate required files, skills and commands |
 | `project check-profile` | Validate PROJECT_PROFILE.toon structure and resolved state |
 | `project check-handoff` | Validate HANDOFF.toon |
 | `project check-knowledge` | Validate knowledge entries |
+| `project check-changes` | Validate TOON change proposals and capabilities |
 | `project check-readme` | Validate README is not template-facing and has required sections |
 | `project ready` | Run all applicable deterministic readiness checks |
 | `project compose-config` | Validate docker compose configuration |
