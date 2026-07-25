@@ -27,7 +27,9 @@ projects must no longer present themselves as the template after `/specialise`.
 
 ## Canonical commands
 
-The canonical command surface is `.agentic-template/bin/project`.
+The canonical command surface is `.agentic-template/bin/project`. Other
+scripts under `.agentic-template/bin/` are internal implementation; always
+invoke them through `project <command>`.
 
 | Command | Purpose |
 |---|---|
@@ -258,6 +260,7 @@ validation run, and the knowledge update or no-record rationale.
 - External models are workers, reviewers or consultants.
 - Do not send the whole repository to every agent.
 - Use `.agents/skills/CATALOG.toon` to lazy-load only relevant skills.
+  Resolve skill paths from the catalog's `path` entries; never guess them.
 - Search `.agents/knowledge/` before creating new project guidance.
 - Do not promote task discoveries directly to canonical knowledge without
   evidence, repetition or review.

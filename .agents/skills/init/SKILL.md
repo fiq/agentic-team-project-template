@@ -11,6 +11,10 @@ Transform the repository from a generic template into a specialised, truthful,
 delivered project. After `/specialise` the repository must no longer present itself
 as the AI-first project template.
 
+`project init` is advisory: it inspects evidence and prints the required
+specialisation postconditions, but it does not edit files. The agent workflow
+in this skill performs the edits.
+
 ## Phases
 
 ```text
