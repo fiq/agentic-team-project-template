@@ -221,3 +221,35 @@ skills:
       - objective
       - acceptance_criteria
       - relevant_source_refs
+
+  discover:
+    path: workflow/discover/SKILL.md
+    trigger: evidence_needed_before_decision
+
+  plan_task:
+    path: workflow/plan-task/SKILL.md
+    trigger: bounded_work_needs_a_plan
+
+  specify:
+    path: workflow/specify/SKILL.md
+    trigger: change_needs_a_structured_spec
+
+  implement_slice:
+    path: workflow/implement-slice/SKILL.md
+    trigger: thin_slice_ready_to_build
+
+  test_change:
+    path: workflow/test-change/SKILL.md
+    trigger: change_scenarios_need_tests
+
+  architecture_review:
+    path: workflow/architecture-review/SKILL.md
+    trigger: boundary_or_dependency_direction_in_question
+
+  red_team:
+    path: workflow/red-team/SKILL.md
+    trigger: adversarial_review_requested
+
+  promote_knowledge:
+    path: workflow/promote-knowledge/SKILL.md
+    trigger: inbox_proposal_has_supporting_evidence
