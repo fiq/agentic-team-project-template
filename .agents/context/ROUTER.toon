@@ -1,0 +1,60 @@
+# template-owned: replace via .agentic-template/bin/project context scaffold
+version: 1
+
+order: [lean, standard, guarded]
+
+precedence:
+  - force_override
+  - qualification
+  - degradation_floor
+  - risk_floor
+  - irreversible_guard
+
+profiles:
+  lean:
+    preload_layers: [summary]
+    defer_layers: [core, procedure, verification, examples, failure_modes, references]
+    always_preload: [invariants, gotchas, required_verification]
+    independent_review: not_required
+  standard:
+    preload_layers: [summary, core]
+    defer_layers: [procedure, examples, failure_modes, references]
+    always_preload: [invariants, gotchas, boundaries, required_verification]
+    independent_review: not_required
+  guarded:
+    preload_layers: [summary, core, procedure, verification, failure_modes]
+    defer_layers: [examples, references]
+    always_preload: [invariants, gotchas, boundaries, required_verification, stop_conditions, review_rubric]
+    independent_review: required_when_project_policy_demands
+
+risk_floors:
+  low: lean
+  normal: lean
+  high: guarded
+  irreversible: guarded
+
+effort:
+  minimal:
+    evidence_depth: 1
+    alternatives: 0
+    review_intensity: light
+  standard:
+    evidence_depth: 2
+    alternatives: 2
+    review_intensity: normal
+  deep:
+    evidence_depth: 3
+    alternatives: 3
+    review_intensity: strong
+
+always_preload_sources:
+  invariants: AGENTS.md
+  gotchas: AGENTS.md
+  boundaries: AGENTS.md
+  required_verification: docs/validation.md
+  stop_conditions: .agents/context/RECOVERY.toon
+  review_rubric: .agents/coordination/REVIEW_POLICY.md
+
+degradation:
+  retry_budget: 1
+  reduce_after_successes: 5

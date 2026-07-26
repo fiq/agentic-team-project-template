@@ -1,0 +1,3 @@
+# template-owned: replace via .agentic-template/bin/project context scaffold
+version: 1
+overrides: []
