@@ -816,10 +816,25 @@ class ToonError(ValueError):
     """Raised with a line number whenever input leaves the supported subset."""
 
 
+def _unescape(text):
+    """Reverse _quote's escaping. Terminates on a trailing lone backslash."""
+    out = []
+    index = 0
+    while index < len(text):
+        char = text[index]
+        if char == "\\" and index + 1 < len(text):
+            out.append(text[index + 1])
+            index += 2
+            continue
+        out.append(char)
+        index += 1
+    return "".join(out)
+
+
 def _scalar(raw):
     text = raw.strip()
     if len(text) >= 2 and text[0] == text[-1] and text[0] in "\"'":
-        return text[1:-1]
+        return _unescape(text[1:-1])
     if text == "null":
         return None
     if text == "true":
@@ -927,6 +942,26 @@ def loads(text):
     return value
 
 
+def _needs_quoting(text):
+    """True when emitting text bare would read back as something else."""
+    if text == "" or text.strip() != text or ":" in text:
+        return True
+    if text[0] in "[{\"'":
+        return True
+    return _scalar(text) != text
+
+
+def _quote(text):
+    """Wrap in double quotes, escaping backslashes and quotes losslessly.
+
+    Substituting quote characters instead of escaping them is lossy: it silently
+    rewrites the value. Widening which values get quoted then widens which get
+    corrupted, so the escaping must be an exact inverse of _unescape.
+    """
+    escaped = text.replace("\\", "\\\\").replace('"', '\\"')
+    return '"' + escaped + '"'
+
+
 def _emit_scalar(value):
     if value is None:
         return "null"
@@ -937,8 +972,8 @@ def _emit_scalar(value):
     if isinstance(value, int):
         return str(value)
     text = str(value)
-    if text == "" or ":" in text or text.strip() != text:
-        return '"' + text.replace('"', "'") + '"'
+    if _needs_quoting(text):
+        return _quote(text)
     return text
 
 
@@ -1054,17 +1089,14 @@ precedence:
 profiles:
   lean:
     preload_layers: [summary]
-    defer_layers: [core, procedure, verification, examples, failure_modes, references]
     always_preload: [invariants, gotchas, required_verification]
     independent_review: not_required
   standard:
     preload_layers: [summary, core]
-    defer_layers: [procedure, examples, failure_modes, references]
     always_preload: [invariants, gotchas, boundaries, required_verification]
     independent_review: not_required
   guarded:
     preload_layers: [summary, core, procedure, verification, failure_modes]
-    defer_layers: [examples, references]
     always_preload: [invariants, gotchas, boundaries, required_verification, stop_conditions, review_rubric]
     independent_review: required_when_project_policy_demands
 
@@ -2931,12 +2963,14 @@ def classify_risk(root, paths, explicit=None):
     config = _risk_rules(root)
     if not paths:
         return config["default"], "default"
-    best = config["default"]
+    # Seeded from the first match, not from the default: a rule ranked BELOW the
+    # default (documentation at "low") must still be able to win.
+    best = None
     matched = []
     for path in paths:
         for rule in config["rules"]:
             if any(fnmatch(path, pattern) for pattern in rule["paths"]):
-                if router.RISKS.index(rule["risk"]) > router.RISKS.index(best):
+                if best is None or router.RISKS.index(rule["risk"]) > router.RISKS.index(best):
                     best = rule["risk"]
                 matched.append(rule["id"])
                 break
@@ -3601,6 +3635,30 @@ class TestCanonicalSourceUniqueness(CheckTestCase):
 
 
 class TestRouterConfigValidation(CheckTestCase):
+    def test_duplicate_trigger_fails(self):
+        catalog = self.root / ".agents/skills/CATALOG.toon"
+        catalog.write_text(
+            catalog.read_text()
+            + "\n  shadow_skill:\n    path: workflow/review-loop/SKILL.md\n"
+            "    trigger: before_merge_or_boy_scout_cleanup\n"
+        )
+        result = run_check(self.root)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("share trigger", result.stdout)
+
+    def test_declared_defer_layers_fails(self):
+        config = self.root / ".agents/context/ROUTER.toon"
+        config.write_text(
+            config.read_text().replace(
+                "    preload_layers: [summary]",
+                "    preload_layers: [summary]\n    defer_layers: [core]",
+                1,
+            )
+        )
+        result = run_check(self.root)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("defer_layers", result.stdout)
+
     def test_profile_missing_from_the_order_fails(self):
         config = self.root / ".agents/context/ROUTER.toon"
         config.write_text(config.read_text().replace(
@@ -3729,9 +3787,14 @@ def _check_router_config(root, errors):
     for name, settings in config["profiles"].items():
         if name not in order:
             errors.append(f"ROUTER.toon profile '{name}' is absent from order")
-        for layer in settings["preload_layers"] + settings["defer_layers"]:
+        for layer in settings["preload_layers"]:
             if layer not in skills.LAYERS:
                 errors.append(f"ROUTER.toon profile '{name}' uses unknown layer '{layer}'")
+        if "defer_layers" in settings:
+            errors.append(
+                f"ROUTER.toon profile '{name}' declares defer_layers; the deferred set is "
+                f"derived as the complement of preload_layers and must not be duplicated"
+            )
     for risk in router.RISKS:
         floor = config["risk_floors"].get(risk)
         if floor not in order:
@@ -3763,6 +3826,18 @@ def _check_skills(root, errors):
     catalog = skills.load_catalog(root)
     base = Path(root) / skills.SKILL_ROOT
     catalogued = {entry["path"] for entry in catalog.values()}
+    seen_triggers = {}
+    for skill_id, entry in sorted(catalog.items()):
+        trigger = entry.get("trigger")
+        if not trigger:
+            errors.append(f"{skills.CATALOG}: {skill_id} declares no trigger")
+        elif trigger in seen_triggers:
+            errors.append(
+                f"{skills.CATALOG}: {skill_id} and {seen_triggers[trigger]} share trigger "
+                f"'{trigger}'; resolve(trigger=...) would silently return only one of them"
+            )
+        else:
+            seen_triggers[trigger] = skill_id
     for relative in sorted(catalogued):
         if not (base / relative).exists():
             errors.append(f"{skills.CATALOG} points at missing file: {relative}")
