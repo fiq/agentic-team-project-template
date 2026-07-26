@@ -114,11 +114,19 @@ class TestDegradationLadder(ObservationTestCase):
         observations.record_qualification(self.root, self.env, "fail", {}, "2026-07-26")
         observations.record_event(self.root, self.env, "degraded", "unknown", CONFIG, "lean")
         observations.record_event(self.root, self.env, "degraded", "unknown", CONFIG, "lean")
-        for _ in range(CONFIG["degradation"]["reduce_after_successes"] + 2):
+        escalated = observations.lookup(self.root, self.env).observation["escalated_profile"]
+        self.assertIsNotNone(escalated, "two degradations must have escalated")
+        needed = CONFIG["degradation"]["reduce_after_successes"]
+        for index in range(needed + 2):
             outcome = observations.record_event(
                 self.root, self.env, "success", None, CONFIG, "standard"
             )
-        self.assertEqual(outcome.action, "recorded")
+            with self.subTest(success=index + 1):
+                self.assertEqual(outcome.action, "recorded")
+                self.assertEqual(
+                    observations.lookup(self.root, self.env).observation["escalated_profile"],
+                    escalated,
+                )
 
     def test_recorded_file_is_valid_toon(self):
         observations.record_event(self.root, self.env, "degraded", "unknown", CONFIG, "lean")
