@@ -3399,8 +3399,7 @@ python3 -m unittest discover -s .agentic-template/tests -t .agentic-template/tes
 .agentic-template/bin/project repo-check
 .agentic-template/bin/project context explain --skill review_loop --risk low
 ```
-Expected: tests pass except the four Task-11-blocked expected failures;
-`REPO CONTRACT OK`; a rendered plan naming a profile.
+Expected: all tests pass; `REPO CONTRACT OK`; a rendered plan naming a profile.
 
 - [ ] **Step 7: Commit**
 
@@ -3916,7 +3915,28 @@ Add `import toon  # noqa: E402` to the import block, and register the subcommand
     check.set_defaults(handler=cmd_check)
 ```
 
-- [ ] **Step 5: Wire it into `project check`**
+- [ ] **Step 5: Fix the live duplicate trigger the new check exposes**
+
+`persistence_sql` and `sql_migrations` both declare
+`trigger: persistent_relational_database` in `.agents/skills/CATALOG.toon`. Under the
+duplicate-trigger check added in Step 4 this repository fails its own validation, and
+`resolve(trigger="persistent_relational_database")` silently returns only the first, so
+`sql_migrations` is unreachable by trigger today.
+
+Give `sql_migrations` a trigger describing what it actually does — configure
+stack-appropriate relational migration policy and verification:
+
+```toon
+  sql_migrations:
+    path: specialise/sql-migrations/SKILL.md
+    trigger: relational_schema_requires_migration_policy
+```
+
+Leave `persistence_sql` on `persistent_relational_database`. Re-run
+`project context check` and confirm it passes; if another duplicate surfaces, fix it the
+same way and report it rather than relaxing the check.
+
+- [ ] **Step 6: Wire it into `project check`**
 
 In `.agentic-template/bin/project`, append to the `"check"` list:
 
@@ -3924,7 +3944,7 @@ In `.agentic-template/bin/project`, append to the `"check"` list:
         [str(BIN / "context"), "check"],
 ```
 
-- [ ] **Step 6: Run the tests and the full check**
+- [ ] **Step 7: Run the tests and the full check**
 
 Run:
 ```bash
@@ -3937,7 +3957,7 @@ task.
 
 `project check` prints warnings for D1, D2, D4, D8 and D9 and still exits `0`.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 git add .agents/context/TOPICS.toon .agentic-template/bin/context \
