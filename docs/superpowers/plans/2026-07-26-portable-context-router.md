@@ -2326,10 +2326,26 @@ class TestFrontmatter(unittest.TestCase):
         with self.assertRaises(skills.SkillError):
             skills.parse_frontmatter("# No frontmatter\n")
 
-    def test_unquoted_colon_in_a_value_reports_the_fix(self):
+    def test_colon_in_a_value_is_kept_as_text(self):
+        # toon partitions on the first colon, so prose containing one is safe.
+        meta, _ = skills.parse_frontmatter(
+            "---\nname: a\ndescription: Route work: fast and cheap.\n---\n"
+        )
+        self.assertEqual(meta["description"], "Route work: fast and cheap.")
+
+    def test_malformed_frontmatter_reports_how_to_fix_it(self):
         with self.assertRaises(skills.SkillError) as caught:
-            skills.parse_frontmatter("---\nname: a\ndescription: bad: value\n---\n")
-        self.assertIn("quote", str(caught.exception).lower())
+            skills.parse_frontmatter("---\nname: a\n   description: b\n---\n")
+        message = str(caught.exception)
+        self.assertIn("not parseable", message)
+        self.assertIn("two-space", message)
+
+    def test_bracket_leading_value_is_read_as_a_list_not_text(self):
+        # The real hazard the error message warns about.
+        meta, _ = skills.parse_frontmatter(
+            "---\nname: a\ndescription: [not, prose]\n---\n"
+        )
+        self.assertEqual(meta["description"], ["not", "prose"])
 
 
 class TestCatalogResolution(unittest.TestCase):
@@ -2454,7 +2470,8 @@ def parse_frontmatter(text):
         meta = toon.loads(raw)
     except toon.ToonError as error:
         raise SkillError(
-            f"frontmatter is not parseable ({error}); quote any value containing a colon"
+            f"frontmatter is not parseable ({error}); use two-space indentation, no "
+            f"tabs, and quote any value that starts with '['"
         ) from error
     return meta, text[end + 4 :]
 
@@ -2573,7 +2590,7 @@ Append to `.agents/skills/CATALOG.toon`:
 - [ ] **Step 6: Run the tests to verify they pass**
 
 Run: `python3 -m unittest discover -s .agentic-template/tests -t .agentic-template/tests -v`
-Expected: PASS, 72 tests
+Expected: PASS, 74 tests
 
 - [ ] **Step 7: Commit**
 
