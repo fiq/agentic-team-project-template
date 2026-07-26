@@ -287,8 +287,8 @@ step can lower a profile another step raised.
 | 3 | lean (match) | pass | none | high | standard | **guarded** | risk floor applies after override |
 | 4 | lean (match) | pass | none | irreversible | standard | **guarded** | irreversible guard |
 | 5 | guarded (match) | pass | none | low | standard | **guarded** | guarded override raises |
-| 6 | expired lean | pass | none | low | standard | **lean** | expired override ignored; qualification pass |
-| 7 | expired lean | absent | none | low | standard | **standard** | expired ignored; uncertain ⇒ standard |
+| 6 | expired lean | pass | none | low | standard | **lean** | expired override dropped by `load_overrides`; qualification pass |
+| 7 | expired lean | absent | none | low | standard | **standard** | expired dropped on load; uncertain ⇒ standard |
 | 8 | none | pass | none | low | standard | **lean** | qualification pass ⇒ lean |
 | 9 | none | fail | none | low | standard | **standard** | qualification fail ⇒ standard |
 | 10 | none | uncertain | none | low | standard | **standard** | uncertainty is not qualification |
@@ -301,8 +301,10 @@ step can lower a profile another step raised.
 | 17 | none | pass | 2 events, retry spent | low | standard | **standard** | escalate one step after recovery+retry fail |
 | 18 | none | pass | escalated, 5 successes | low | standard | **lean** | reduction only after sustained success |
 
-Rows 1-15 are unit-testable against `resolve()`; 16-18 additionally exercise the
-observation state machine.
+Rows 1-15 are unit-testable against `resolve()`, except 6 and 7: expiry is filtered by
+`load_overrides`, so those two are proven against real override files at the I/O layer,
+which keeps `resolve()` pure and its decisions reproducible on any date. Rows 16-18
+additionally exercise the observation state machine.
 
 ## A9. Files to add, change, move or delete
 
@@ -1063,8 +1065,7 @@ profiles:
   guarded:
     preload_layers: [summary, core, procedure, verification, failure_modes]
     defer_layers: [examples, references]
-    always_preload:
-      [invariants, gotchas, boundaries, required_verification, stop_conditions, review_rubric]
+    always_preload: [invariants, gotchas, boundaries, required_verification, stop_conditions, review_rubric]
     independent_review: required_when_project_policy_demands
 
 risk_floors:
@@ -1114,7 +1115,9 @@ overrides: []
 `.agentic-template/tests/test_router_precedence.py`:
 
 ```python
+import tempfile
 import unittest
+from pathlib import Path
 
 import _support  # noqa: F401
 import router
@@ -1134,7 +1137,6 @@ GUARDED_OVERRIDE = {
     "reason": "unverified runtime",
     "expires": "2099-01-01",
 }
-EXPIRED_OVERRIDE = dict(LEAN_OVERRIDE, expires="2020-01-01")
 
 
 def env(model="test-model", runtime="claude-code", fingerprint="fp-1"):
@@ -1183,14 +1185,6 @@ class TestPrecedenceTable(unittest.TestCase):
             profile_for([GUARDED_OVERRIDE], observation("pass"), "low"), "guarded"
         )
 
-    def test_06_expired_override_falls_through_to_qualification(self):
-        self.assertEqual(
-            profile_for([EXPIRED_OVERRIDE], observation("pass"), "low"), "lean"
-        )
-
-    def test_07_expired_override_without_qualification_is_standard(self):
-        self.assertEqual(profile_for([EXPIRED_OVERRIDE], None, "low"), "standard")
-
     def test_08_qualification_pass_is_lean(self):
         self.assertEqual(profile_for([], observation("pass"), "low"), "lean")
 
@@ -1222,6 +1216,80 @@ class TestPrecedenceTable(unittest.TestCase):
         self.assertEqual(
             profile_for([LEAN_OVERRIDE, GUARDED_OVERRIDE], None, "low"), "lean"
         )
+
+    def test_risk_floor_raises_above_the_qualification_result(self):
+        # The shipped config floors low and normal at lean, which can never raise
+        # anything, and _validate clamps high and irreversible to guarded, which
+        # irreversible_guard would produce anyway. Raising the normal floor is the
+        # only configuration under which the risk_floor step is observable — without
+        # this test, deleting the step entirely leaves the suite green.
+        config = dict(CONFIG, risk_floors=dict(CONFIG["risk_floors"], normal="standard"))
+        decision = router.resolve(env(), task("normal"), config, [], observation("pass"))
+        self.assertEqual(decision.profile, "standard")
+        self.assertIn("floors the profile at standard", " ".join(decision.reasons))
+
+    def test_irreversible_guard_is_recorded_in_the_trace(self):
+        applied = router.resolve(env(), task("irreversible"), CONFIG, [], observation("pass"))
+        self.assertIn(("irreversible_guard", "applied"), applied.trace)
+        skipped = router.resolve(env(), task("low"), CONFIG, [], observation("pass"))
+        self.assertIn(("irreversible_guard", "not_applicable"), skipped.trace)
+
+    def test_override_matching_is_case_sensitive_on_every_platform(self):
+        # fnmatch normalises case through os.path.normcase, so it is case-insensitive
+        # on Windows. The same override file must route identically on every host.
+        entry = dict(LEAN_OVERRIDE, match={"model": "Test-Model", "runtime": "*"})
+        decision = router.resolve(env(), task("low"), CONFIG, [entry], observation("fail"))
+        self.assertEqual(decision.profile, "standard")
+
+
+class TestOverrideLoading(unittest.TestCase):
+    """Expiry lives in the I/O layer, so it is proven against real files.
+
+    resolve() is pure and never consults the clock; an expired override is one
+    that load_overrides declined to return.
+    """
+
+    def _root_with(self, filename, body):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        (root / ".agents/context").mkdir(parents=True, exist_ok=True)
+        (root / ".agents/context" / filename).write_text(body)
+        return root
+
+    def _entry(self, profile, expires):
+        return (
+            "version: 1\noverrides:\n"
+            "  - match:\n      model: test-model\n"
+            f"    profile: {profile}\n"
+            "    reason: recorded for the test suite\n"
+            f"    expires: {expires}\n"
+        )
+
+    def test_expired_override_is_dropped_on_load(self):
+        root = self._root_with("overrides.toon", self._entry("lean", "2020-01-01"))
+        self.assertEqual(router.load_overrides(root), [])
+
+    def test_expired_override_leaves_routing_to_qualification(self):
+        root = self._root_with("overrides.toon", self._entry("lean", "2020-01-01"))
+        decision = router.resolve(env(), task("low"), CONFIG, router.load_overrides(root), None)
+        self.assertEqual(decision.profile, "standard")
+
+    def test_live_override_survives_load_and_routes(self):
+        root = self._root_with("overrides.toon", self._entry("lean", "2099-01-01"))
+        loaded = router.load_overrides(root)
+        self.assertEqual(len(loaded), 1)
+        self.assertEqual(loaded[0]["source"], ".agents/context/overrides.toon")
+        decision = router.resolve(env(), task("low"), CONFIG, loaded, None)
+        self.assertEqual(decision.profile, "lean")
+
+    def test_local_overrides_load_before_shared(self):
+        root = self._root_with("overrides.toon", self._entry("guarded", "2099-01-01"))
+        (root / ".agents/context/overrides.local.toon").write_text(
+            self._entry("lean", "2099-01-01")
+        )
+        loaded = router.load_overrides(root)
+        self.assertEqual([entry["profile"] for entry in loaded], ["lean", "guarded"])
 
 
 class TestModelIdentityIsNotCapability(unittest.TestCase):
@@ -1284,7 +1352,7 @@ the result never depends on step ordering beyond what the trace records.
 """
 from dataclasses import dataclass, field
 from datetime import date
-from fnmatch import fnmatch
+from fnmatch import fnmatchcase
 from pathlib import Path
 
 import toon
@@ -1368,7 +1436,7 @@ def _matches(entry, env):
     match = entry.get("match") or {}
     model = str(match.get("model", "*"))
     runtime = str(match.get("runtime", "*"))
-    return fnmatch(env.model_id or "", model) and fnmatch(env.runtime or "", runtime)
+    return fnmatchcase(env.model_id or "", model) and fnmatchcase(env.runtime or "", runtime)
 
 
 def _validate(config, task):
@@ -1426,6 +1494,8 @@ def resolve(env, task, config, overrides, observation):
     profile = raised
     trace.append(("risk_floor", floor))
 
+    # irreversible_guard is redundant under _validate but keeps the trace complete and
+    # survives a future ladder with more than three profiles.
     if task.risk in HIGH_RISKS:
         raised = _raise_to(config, profile, "guarded")
         if raised != profile:
@@ -1441,7 +1511,7 @@ def resolve(env, task, config, overrides, observation):
 - [ ] **Step 5: Run the tests to verify they pass**
 
 Run: `python3 -m unittest discover -s .agentic-template/tests -t .agentic-template/tests -v`
-Expected: PASS, 9 + 19 tests
+Expected: PASS, 12 + 25 tests
 
 - [ ] **Step 6: Commit**
 
