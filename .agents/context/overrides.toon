@@ -1,3 +1,4 @@
 # template-owned: replace via .agentic-template/bin/project context scaffold
+# Escape hatch, not the architecture. Projects add entries to overrides.local.toon.
 version: 1
 overrides: []

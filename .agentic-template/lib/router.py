@@ -6,7 +6,7 @@ the result never depends on step ordering beyond what the trace records.
 """
 from dataclasses import dataclass, field
 from datetime import date
-from fnmatch import fnmatch
+from fnmatch import fnmatchcase
 from pathlib import Path
 
 import toon
@@ -90,7 +90,7 @@ def _matches(entry, env):
     match = entry.get("match") or {}
     model = str(match.get("model", "*"))
     runtime = str(match.get("runtime", "*"))
-    return fnmatch(env.model_id or "", model) and fnmatch(env.runtime or "", runtime)
+    return fnmatchcase(env.model_id or "", model) and fnmatchcase(env.runtime or "", runtime)
 
 
 def _validate(config, task):
@@ -113,7 +113,7 @@ def resolve(env, task, config, overrides, observation):
     trace = []
     profile = None
 
-    override = next((entry for entry in overrides if _matches(entry, env) and not _expired(entry)), None)
+    override = next((entry for entry in overrides if _matches(entry, env)), None)
     if override:
         profile = override["profile"]
         trace.append(("force_override", f"hit:{profile}"))
@@ -148,6 +148,8 @@ def resolve(env, task, config, overrides, observation):
     profile = raised
     trace.append(("risk_floor", floor))
 
+    # irreversible_guard is redundant under _validate but keeps the trace complete and
+    # survives a future ladder with more than three profiles.
     if task.risk in HIGH_RISKS:
         raised = _raise_to(config, profile, "guarded")
         if raised != profile:

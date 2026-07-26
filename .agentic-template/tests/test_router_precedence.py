@@ -1,4 +1,6 @@
+import tempfile
 import unittest
+from pathlib import Path
 
 import _support  # noqa: F401
 import router
@@ -18,7 +20,6 @@ GUARDED_OVERRIDE = {
     "reason": "unverified runtime",
     "expires": "2099-01-01",
 }
-EXPIRED_OVERRIDE = dict(LEAN_OVERRIDE, expires="2020-01-01")
 
 
 def env(model="test-model", runtime="claude-code", fingerprint="fp-1"):
@@ -67,14 +68,6 @@ class TestPrecedenceTable(unittest.TestCase):
             profile_for([GUARDED_OVERRIDE], observation("pass"), "low"), "guarded"
         )
 
-    def test_06_expired_override_falls_through_to_qualification(self):
-        self.assertEqual(
-            profile_for([EXPIRED_OVERRIDE], observation("pass"), "low"), "lean"
-        )
-
-    def test_07_expired_override_without_qualification_is_standard(self):
-        self.assertEqual(profile_for([EXPIRED_OVERRIDE], None, "low"), "standard")
-
     def test_08_qualification_pass_is_lean(self):
         self.assertEqual(profile_for([], observation("pass"), "low"), "lean")
 
@@ -106,6 +99,23 @@ class TestPrecedenceTable(unittest.TestCase):
         self.assertEqual(
             profile_for([LEAN_OVERRIDE, GUARDED_OVERRIDE], None, "low"), "lean"
         )
+
+    def test_risk_floor_raises_above_the_qualification_result(self):
+        config = dict(CONFIG, risk_floors=dict(CONFIG["risk_floors"], normal="standard"))
+        decision = router.resolve(env(), task("normal"), config, [], observation("pass"))
+        self.assertEqual(decision.profile, "standard")
+        self.assertIn("floors the profile at standard", " ".join(decision.reasons))
+
+    def test_irreversible_guard_is_recorded_in_the_trace(self):
+        applied = router.resolve(env(), task("irreversible"), CONFIG, [], observation("pass"))
+        self.assertIn(("irreversible_guard", "applied"), applied.trace)
+        skipped = router.resolve(env(), task("low"), CONFIG, [], observation("pass"))
+        self.assertIn(("irreversible_guard", "not_applicable"), skipped.trace)
+
+    def test_override_matching_is_case_sensitive_on_every_platform(self):
+        entry = dict(LEAN_OVERRIDE, match={"model": "Test-Model", "runtime": "*"})
+        decision = router.resolve(env(), task("low"), CONFIG, [entry], observation("fail"))
+        self.assertEqual(decision.profile, "standard")
 
 
 class TestModelIdentityIsNotCapability(unittest.TestCase):
@@ -144,6 +154,51 @@ class TestConfigValidation(unittest.TestCase):
         broken = dict(CONFIG, risk_floors=dict(CONFIG["risk_floors"], high="lean"))
         with self.assertRaises(router.RouterError):
             router.resolve(env(), task("high"), broken, [], None)
+
+
+class TestOverrideLoading(unittest.TestCase):
+    def _root_with(self, filename, body):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        (root / ".agents/context").mkdir(parents=True, exist_ok=True)
+        (root / ".agents/context" / filename).write_text(body)
+        return root
+
+    def _entry(self, profile, expires):
+        return (
+            "version: 1\noverrides:\n"
+            "  - match:\n      model: test-model\n"
+            f"    profile: {profile}\n"
+            "    reason: recorded for the test suite\n"
+            f"    expires: {expires}\n"
+        )
+
+    def test_expired_override_is_dropped_on_load(self):
+        root = self._root_with("overrides.toon", self._entry("lean", "2020-01-01"))
+        self.assertEqual(router.load_overrides(root), [])
+
+    def test_expired_override_leaves_routing_to_qualification(self):
+        root = self._root_with("overrides.toon", self._entry("lean", "2020-01-01"))
+        loaded = router.load_overrides(root)
+        decision = router.resolve(env(), task("low"), CONFIG, loaded, None)
+        self.assertEqual(decision.profile, "standard")
+
+    def test_live_override_survives_load_and_routes(self):
+        root = self._root_with("overrides.toon", self._entry("lean", "2099-01-01"))
+        loaded = router.load_overrides(root)
+        self.assertEqual(len(loaded), 1)
+        self.assertEqual(loaded[0]["source"], ".agents/context/overrides.toon")
+        decision = router.resolve(env(), task("low"), CONFIG, loaded, None)
+        self.assertEqual(decision.profile, "lean")
+
+    def test_local_overrides_load_before_shared(self):
+        root = self._root_with("overrides.toon", self._entry("guarded", "2099-01-01"))
+        (root / ".agents/context/overrides.local.toon").write_text(
+            self._entry("lean", "2099-01-01")
+        )
+        loaded = router.load_overrides(root)
+        self.assertEqual([entry["profile"] for entry in loaded], ["lean", "guarded"])
 
 
 if __name__ == "__main__":
