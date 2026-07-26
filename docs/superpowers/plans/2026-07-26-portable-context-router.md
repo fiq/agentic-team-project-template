@@ -1976,14 +1976,26 @@ class TestDegradationLadder(ObservationTestCase):
         self.assertIsNone(outcome.escalated_profile)
 
     def test_reduction_is_refused_while_qualification_is_not_passing(self):
+        # Asserts on every iteration, not just the last: checking only the final
+        # action lets a missing `result == "pass"` guard hide, because reduction
+        # fires mid-loop and then falls back to "recorded" once the escalation
+        # has already been cleared.
         observations.record_qualification(self.root, self.env, "fail", {}, "2026-07-26")
         observations.record_event(self.root, self.env, "degraded", "unknown", CONFIG, "lean")
         observations.record_event(self.root, self.env, "degraded", "unknown", CONFIG, "lean")
-        for _ in range(CONFIG["degradation"]["reduce_after_successes"] + 2):
+        escalated = observations.lookup(self.root, self.env).observation["escalated_profile"]
+        self.assertIsNotNone(escalated, "two degradations must have escalated")
+        needed = CONFIG["degradation"]["reduce_after_successes"]
+        for index in range(needed + 2):
             outcome = observations.record_event(
                 self.root, self.env, "success", None, CONFIG, "standard"
             )
-        self.assertEqual(outcome.action, "recorded")
+            with self.subTest(success=index + 1):
+                self.assertEqual(outcome.action, "recorded")
+                self.assertEqual(
+                    observations.lookup(self.root, self.env).observation["escalated_profile"],
+                    escalated,
+                )
 
     def test_recorded_file_is_valid_toon(self):
         observations.record_event(self.root, self.env, "degraded", "unknown", CONFIG, "lean")
@@ -2055,8 +2067,11 @@ def _all(root):
 def _changed_contract_files(root, recorded):
     """Name the contract files whose hash no longer matches the recording."""
     changed = []
+    stored_by_path = {
+        entry["path"]: entry["digest"] for entry in recorded.get("contract_files") or []
+    }
     for relative in environment.CONTRACT_FILES:
-        stored = (recorded.get("contract_files") or {}).get(relative)
+        stored = stored_by_path.get(relative)
         current = environment.file_digest(Path(root) / relative)
         if stored and stored != current:
             changed.append(relative)
@@ -2087,10 +2102,12 @@ def _blank(root, env, today):
         "runtime": env.runtime,
         "tools": list(env.capabilities),
         "contract_fingerprint": env.contract_fingerprint,
-        "contract_files": {
-            relative: environment.file_digest(Path(root) / relative)
+        # A list of maps, not a dict: TOON keys match [A-Za-z_][A-Za-z0-9_.-]*,
+        # so repository paths can never be keys.
+        "contract_files": [
+            {"path": relative, "digest": environment.file_digest(Path(root) / relative)}
             for relative in environment.CONTRACT_FILES
-        },
+        ],
         "qualification_version": 0,
         "result": "uncertain",
         "probe_results": {},
