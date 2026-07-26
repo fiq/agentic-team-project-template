@@ -743,6 +743,20 @@ class TestToonErrors(unittest.TestCase):
             toon.loads("a:\n   b: 1\n")
         self.assertIn("line 2", str(caught.exception))
 
+    def test_tab_indent_is_rejected_with_line_number(self):
+        with self.assertRaises(toon.ToonError) as caught:
+            toon.loads("key:\n\tvalue: 1\n")
+        self.assertIn("line 2", str(caught.exception))
+        self.assertIn("tab", str(caught.exception).lower())
+
+
+class TestToonLenience(unittest.TestCase):
+    def test_duplicate_keys_resolve_last_wins(self):
+        self.assertEqual(toon.loads("a: 1\na: 2\n"), {"a": 2})
+
+    def test_unterminated_quote_is_treated_as_literal(self):
+        self.assertEqual(toon.loads('marker: "a: b\n'), {"marker": '"a: b'})
+
 
 class TestToonRoundTrip(unittest.TestCase):
     def test_dumps_then_loads_is_identity(self):
@@ -783,6 +797,12 @@ Supported:
         other: value
 
 Not supported: anchors, multi-line strings, inline maps with content, tabs.
+
+Lenient by design:
+    Duplicate keys resolve last-wins; earlier values with the same key are
+    silently overwritten.
+    Unterminated quotes are treated as literal characters (e.g., "a: b is
+    accepted as the string "a: b without raising an error).
 """
 import re
 
@@ -825,6 +845,9 @@ def _significant_lines(text):
         stripped = raw.strip()
         if not stripped or stripped.startswith("#"):
             continue
+        leading = raw[:len(raw) - len(raw.lstrip(" \t"))]
+        if "\t" in leading:
+            raise ToonError(f"line {number}: tabs are not supported; use spaces only")
         indent = len(raw) - len(raw.lstrip(" "))
         if indent % 2:
             raise ToonError(f"line {number}: indent {indent} is not a multiple of two")
@@ -959,7 +982,7 @@ def dumps(value):
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `python3 -m unittest discover -s .agentic-template/tests -t .agentic-template/tests -v`
-Expected: PASS, 9 tests
+Expected: PASS, 12 tests
 
 - [ ] **Step 5: Verify the parser reads the repository's real control files**
 
