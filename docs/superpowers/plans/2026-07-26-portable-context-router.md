@@ -1564,8 +1564,7 @@ detect:
 
 runtimes:
   claude-code:
-    capabilities:
-      [shell, repo_search, linked_references, native_skills, deferred_tools, subagents, structured_output]
+    capabilities: [shell, repo_search, linked_references, native_skills, deferred_tools, subagents, structured_output]
     entry_point: CLAUDE.md
     skill_loading: native
   codex:
@@ -1767,7 +1766,7 @@ def build(root, env_vars, model=None, runtime=None):
 - [ ] **Step 5: Run the tests to verify they pass**
 
 Run: `python3 -m unittest discover -s .agentic-template/tests -t .agentic-template/tests -v`
-Expected: PASS, 28 + 11 tests
+Expected: PASS, 49 tests
 
 - [ ] **Step 6: Commit**
 
@@ -2223,7 +2222,7 @@ def contract_fingerprint(root):
 - [ ] **Step 6: Run the tests to verify they pass**
 
 Run: `python3 -m unittest discover -s .agentic-template/tests -t .agentic-template/tests -v`
-Expected: PASS, 39 + 11 tests
+Expected: PASS, 61 tests
 
 - [ ] **Step 7: Ignore recorded observations in git for the template only**
 
@@ -2557,7 +2556,7 @@ Append to `.agents/skills/CATALOG.toon`:
 - [ ] **Step 6: Run the tests to verify they pass**
 
 Run: `python3 -m unittest discover -s .agentic-template/tests -t .agentic-template/tests -v`
-Expected: PASS, 50 + 11 tests
+Expected: PASS, 72 tests
 
 - [ ] **Step 7: Commit**
 
