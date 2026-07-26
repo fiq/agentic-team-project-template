@@ -12,6 +12,12 @@ Supported:
         other: value
 
 Not supported: anchors, multi-line strings, inline maps with content, tabs.
+
+Lenient by design:
+    Duplicate keys resolve last-wins; earlier values with the same key are
+    silently overwritten.
+    Unterminated quotes are treated as literal characters (e.g., "a: b is
+    accepted as the string "a: b without raising an error).
 """
 import re
 
@@ -54,6 +60,9 @@ def _significant_lines(text):
         stripped = raw.strip()
         if not stripped or stripped.startswith("#"):
             continue
+        leading = raw[:len(raw) - len(raw.lstrip(" \t"))]
+        if "\t" in leading:
+            raise ToonError(f"line {number}: tabs are not supported; use spaces only")
         indent = len(raw) - len(raw.lstrip(" "))
         if indent % 2:
             raise ToonError(f"line {number}: indent {indent} is not a multiple of two")

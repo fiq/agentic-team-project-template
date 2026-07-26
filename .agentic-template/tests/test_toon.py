@@ -75,6 +75,12 @@ class TestToonErrors(unittest.TestCase):
             toon.loads("a:\n   b: 1\n")
         self.assertIn("line 2", str(caught.exception))
 
+    def test_tab_indent_is_rejected_with_line_number(self):
+        with self.assertRaises(toon.ToonError) as caught:
+            toon.loads("key:\n\tvalue: 1\n")
+        self.assertIn("line 2", str(caught.exception))
+        self.assertIn("tab", str(caught.exception).lower())
+
 
 class TestToonRoundTrip(unittest.TestCase):
     def test_dumps_then_loads_is_identity(self):
@@ -85,6 +91,16 @@ class TestToonRoundTrip(unittest.TestCase):
             "runs": [{"date": "2026-07-26", "outcome": "success"}],
         }
         self.assertEqual(toon.loads(toon.dumps(value)), value)
+
+
+class TestToonLenience(unittest.TestCase):
+    def test_duplicate_keys_resolve_last_wins(self):
+        text = "a: 1\na: 2\n"
+        self.assertEqual(toon.loads(text), {"a": 2})
+
+    def test_unterminated_quote_is_treated_as_literal(self):
+        text = 'marker: "a: b\n'
+        self.assertEqual(toon.loads(text), {"marker": '"a: b'})
 
 
 if __name__ == "__main__":
