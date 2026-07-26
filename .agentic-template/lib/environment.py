@@ -53,9 +53,8 @@ def contract_fingerprint(root):
     """Hash the files whose change should invalidate recorded observations."""
     digest = hashlib.sha256()
     for relative in CONTRACT_FILES:
-        path = Path(root) / relative
         digest.update(relative.encode())
-        digest.update(path.read_bytes() if path.exists() else b"<absent>")
+        digest.update(file_digest(Path(root) / relative).encode())
     return digest.hexdigest()[:16]
 
 
@@ -76,3 +75,10 @@ def build(root, env_vars, model=None, runtime=None):
         fingerprint=digest.hexdigest()[:16],
         contract_fingerprint=contract,
     )
+
+
+def file_digest(path):
+    """Stable per-file hash used for observation invalidation reporting."""
+    path = Path(path)
+    data = path.read_bytes() if path.exists() else b"<absent>"
+    return hashlib.sha256(data).hexdigest()[:16]

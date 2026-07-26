@@ -1,0 +1,19 @@
+# template-owned: replace via .agentic-template/bin/project context scaffold
+# When execution degrades, reload the authoritative source before inflating the
+# prompt. One bounded retry follows. Escalate only if recovery and retry fail.
+version: 1
+
+symptoms:
+  skill_path_wrong: .agents/skills/CATALOG.toon
+  operating_rule_missed: AGENTS.md
+  behaviour_incorrect: specs/capabilities/
+  architecture_assumption_wrong: PROJECT_PROFILE.toon
+  verification_inadequate: docs/validation.md
+  command_misused: .agentic-template/bin/project help
+  knowledge_missing: .agents/knowledge/index.md
+  unknown: AGENTS.md
+
+stop_conditions:
+  - an irreversible action is requested without explicit authorisation
+  - a required verification command cannot be run and no alternative is recorded
+  - the authoritative source contradicts the working assumption

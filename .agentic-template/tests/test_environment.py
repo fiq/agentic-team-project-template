@@ -45,17 +45,14 @@ class TestFingerprint(unittest.TestCase):
         )
 
     def test_changes_when_a_contract_file_changes(self):
-        import shutil
-        import tempfile
-        from pathlib import Path
-
-        with tempfile.TemporaryDirectory() as tmp:
-            copy = Path(tmp) / "repo"
-            shutil.copytree(ROOT, copy, symlinks=True, ignore=shutil.ignore_patterns(".git"))
+        tmp, copy = _support.temp_repo()
+        try:
             before = environment.contract_fingerprint(copy)
             agents = copy / "AGENTS.md"
             agents.write_text(agents.read_text() + "\n<!-- drift -->\n")
             self.assertNotEqual(before, environment.contract_fingerprint(copy))
+        finally:
+            tmp.cleanup()
 
     def test_is_independent_of_model_and_runtime(self):
         first = environment.build(ROOT, {"CLAUDECODE": "1"}, model="a")
