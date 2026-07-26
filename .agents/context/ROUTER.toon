@@ -13,17 +13,14 @@ precedence:
 profiles:
   lean:
     preload_layers: [summary]
-    defer_layers: [core, procedure, verification, examples, failure_modes, references]
     always_preload: [invariants, gotchas, required_verification]
     independent_review: not_required
   standard:
     preload_layers: [summary, core]
-    defer_layers: [procedure, examples, failure_modes, references]
     always_preload: [invariants, gotchas, boundaries, required_verification]
     independent_review: not_required
   guarded:
     preload_layers: [summary, core, procedure, verification, failure_modes]
-    defer_layers: [examples, references]
     always_preload: [invariants, gotchas, boundaries, required_verification, stop_conditions, review_rubric]
     independent_review: required_when_project_policy_demands
 

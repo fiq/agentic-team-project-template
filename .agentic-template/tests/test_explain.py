@@ -179,6 +179,12 @@ class TestProvenanceAndShape(LayerTestCase):
         self.assertIn("lean", text)
         self.assertIn("qualification result is pass", text)
 
+    def test_plan_round_trips_with_an_all_digit_digest(self):
+        document = self.document_for("pass")
+        document["preload"][0]["sha"] = "0123456789012345"
+        parsed = toon.loads(plan.render_toon({"context_plan": document}))["context_plan"]
+        self.assertEqual(parsed["preload"][0]["sha"], "0123456789012345")
+
 
 if __name__ == "__main__":
     unittest.main()

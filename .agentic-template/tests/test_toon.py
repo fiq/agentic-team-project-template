@@ -92,6 +92,18 @@ class TestToonRoundTrip(unittest.TestCase):
         }
         self.assertEqual(toon.loads(toon.dumps(value)), value)
 
+    def test_all_digit_string_survives_the_round_trip(self):
+        value = {"sha": "0123456789012345"}
+        self.assertEqual(toon.loads(toon.dumps(value)), value)
+
+    def test_boolean_and_null_lookalike_strings_stay_strings(self):
+        value = {"a": "true", "b": "false", "c": "null", "d": "-12"}
+        self.assertEqual(toon.loads(toon.dumps(value)), value)
+
+    def test_bracket_leading_string_stays_a_string(self):
+        value = {"symptom": "[degraded]", "note": "{pending}"}
+        self.assertEqual(toon.loads(toon.dumps(value)), value)
+
 
 class TestToonLenience(unittest.TestCase):
     def test_duplicate_keys_resolve_last_wins(self):

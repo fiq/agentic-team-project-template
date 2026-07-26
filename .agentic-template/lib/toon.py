@@ -140,6 +140,15 @@ def loads(text):
     return value
 
 
+def _needs_quoting(text):
+    """True when emitting text bare would read back as something else."""
+    if text == "" or text.strip() != text or ":" in text:
+        return True
+    if text[0] in "[{\"'":
+        return True
+    return _scalar(text) != text
+
+
 def _emit_scalar(value):
     if value is None:
         return "null"
@@ -150,7 +159,7 @@ def _emit_scalar(value):
     if isinstance(value, int):
         return str(value)
     text = str(value)
-    if text == "" or ":" in text or text.strip() != text:
+    if _needs_quoting(text):
         return '"' + text.replace('"', "'") + '"'
     return text
 
