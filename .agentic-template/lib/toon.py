@@ -18,6 +18,9 @@ Lenient by design:
     silently overwritten.
     Unterminated quotes are treated as literal characters (e.g., "a: b is
     accepted as the string "a: b without raising an error).
+    Emitted strings that need quoting are backslash-escaped (backslashes and
+    double quotes), so a round trip through dumps() then loads() preserves
+    quote and backslash characters exactly.
 """
 import re
 
@@ -29,10 +32,24 @@ class ToonError(ValueError):
     """Raised with a line number whenever input leaves the supported subset."""
 
 
+def _unescape(text):
+    out = []
+    index = 0
+    while index < len(text):
+        char = text[index]
+        if char == "\\" and index + 1 < len(text):
+            out.append(text[index + 1])
+            index += 2
+            continue
+        out.append(char)
+        index += 1
+    return "".join(out)
+
+
 def _scalar(raw):
     text = raw.strip()
     if len(text) >= 2 and text[0] == text[-1] and text[0] in "\"'":
-        return text[1:-1]
+        return _unescape(text[1:-1])
     if text == "null":
         return None
     if text == "true":
@@ -149,6 +166,12 @@ def _needs_quoting(text):
     return _scalar(text) != text
 
 
+def _quote(text):
+    """Wrap in double quotes, escaping backslashes and quotes losslessly."""
+    escaped = text.replace("\\", "\\\\").replace('"', '\\"')
+    return '"' + escaped + '"'
+
+
 def _emit_scalar(value):
     if value is None:
         return "null"
@@ -160,7 +183,7 @@ def _emit_scalar(value):
         return str(value)
     text = str(value)
     if _needs_quoting(text):
-        return '"' + text.replace('"', "'") + '"'
+        return _quote(text)
     return text
 
 

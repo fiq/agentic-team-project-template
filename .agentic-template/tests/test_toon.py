@@ -104,6 +104,19 @@ class TestToonRoundTrip(unittest.TestCase):
         value = {"symptom": "[degraded]", "note": "{pending}"}
         self.assertEqual(toon.loads(toon.dumps(value)), value)
 
+    def test_awkward_scalars_survive_the_round_trip(self):
+        values = [
+            "0", "-0", "007", "1e5", "0123456789012345",
+            "true", "True", "false", "null", "None",
+            "[a]", "[]", "{}", "{a}", "- dash", "#comment",
+            '"quoted"', '"a', 'a"', 'a"b', '"a:b"', "'single'",
+            "she said \"hi\" to me", "back\\slash", "both\"and'quotes",
+            "a: b", " leading", "trailing ", "", "ordinary prose here",
+        ]
+        for value in values:
+            with self.subTest(value=value):
+                self.assertEqual(toon.loads(toon.dumps({"k": value}))["k"], value)
+
 
 class TestToonLenience(unittest.TestCase):
     def test_duplicate_keys_resolve_last_wins(self):
