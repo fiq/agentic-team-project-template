@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+"""Portable context router.
+
+Internal implementation. Invoke through:
+    .agentic-template/bin/project context <subcommand>
+"""
+import argparse
+import os
+import sys
+from pathlib import Path
+
+BIN = Path(__file__).resolve().parent
+sys.path.insert(0, str(BIN.parent / "lib"))
+
+import environment  # noqa: E402
+import observations  # noqa: E402
+import plan as plan_lib  # noqa: E402
+import router  # noqa: E402
+import skills  # noqa: E402
+
+ROOT = Path.cwd()
+
+
+def _fail(message):
+    print("ERROR")
+    print()
+    print(message)
+    return 2
+
+
+def cmd_explain(args):
+    config = router.load_config(ROOT)
+    env = environment.build(ROOT, os.environ, model=args.model, runtime=args.runtime)
+    found = observations.lookup(ROOT, env)
+    skill = None
+    if args.skill or args.trigger:
+        skill = skills.resolve(ROOT, skill_id=args.skill, trigger=args.trigger)
+    risk, risk_source = plan_lib.classify_risk(ROOT, args.paths, args.risk)
+    task = router.Task(
+        risk=risk,
+        effort=args.effort,
+        skill_id=skill.id if skill else None,
+        paths=list(args.paths),
+    )
+    decision = router.resolve(
+        env, task, config, router.load_overrides(ROOT), found.observation
+    )
+    decision.reasons.append(f"task risk {risk} determined by {risk_source}")
+    document = plan_lib.build(ROOT, env, task, config, decision, skill, found)
+    renderer = plan_lib.render_toon if args.format == "toon" else plan_lib.render_text
+    print(renderer(document))
+    return 0
+
+
+def cmd_observe(args):
+    config = router.load_config(ROOT)
+    env = environment.build(ROOT, os.environ, model=args.model, runtime=args.runtime)
+    outcome = observations.record_event(
+        ROOT, env, args.event, args.symptom, config, args.profile
+    )
+    print(f"OBSERVATION {outcome.action}")
+    print()
+    print(f"  {outcome.message}")
+    if outcome.reload_source:
+        print(f"  reload  {outcome.reload_source}")
+    if outcome.escalated_profile:
+        print(f"  profile floor now {outcome.escalated_profile}")
+    print(f"  record  {observations.path_for(ROOT, env)}")
+    return 0
+
+
+def build_parser():
+    parser = argparse.ArgumentParser(
+        prog=".agentic-template/bin/project context",
+        description="Resolve how much project context this task needs, and explain why.",
+    )
+    subparsers = parser.add_subparsers(dest="subcommand", required=True)
+
+    explain = subparsers.add_parser(
+        "explain", help="print the routing decision and the context plan"
+    )
+    explain.add_argument("--skill", help="skill id from .agents/skills/CATALOG.toon")
+    explain.add_argument("--trigger", help="resolve the skill by its catalog trigger")
+    explain.add_argument(
+        "--risk",
+        choices=router.RISKS,
+        help="override task risk; otherwise derived from --paths via risk-rules.toon",
+    )
+    explain.add_argument("--effort", choices=router.EFFORTS, default="standard")
+    explain.add_argument("--paths", nargs="*", default=[], help="paths this task touches")
+    explain.add_argument("--model", help="model identity for diagnostics and overrides")
+    explain.add_argument("--runtime", help="override runtime detection")
+    explain.add_argument("--format", choices=("text", "toon"), default="text")
+    explain.set_defaults(handler=cmd_explain)
+
+    observe = subparsers.add_parser(
+        "observe", help="record a degradation or a clean run for this environment"
+    )
+    observe.add_argument("--event", choices=("degraded", "success"), required=True)
+    observe.add_argument("--symptom", help="symptom key from .agents/context/RECOVERY.toon")
+    observe.add_argument("--profile", choices=("lean", "standard", "guarded"), default="lean")
+    observe.add_argument("--model")
+    observe.add_argument("--runtime")
+    observe.set_defaults(handler=cmd_observe)
+
+    return parser
+
+
+def main(argv):
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    try:
+        return args.handler(args)
+    except (router.RouterError, skills.SkillError) as error:
+        return _fail(str(error))
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

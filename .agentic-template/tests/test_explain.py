@@ -186,5 +186,44 @@ class TestProvenanceAndShape(LayerTestCase):
         self.assertEqual(parsed["preload"][0]["sha"], "0123456789012345")
 
 
+class TestCommandSurface(unittest.TestCase):
+    def _run(self, *args):
+        import subprocess
+
+        return subprocess.run(
+            [str(_support.BIN / "project"), "context", *args],
+            cwd=ROOT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+
+    def test_explain_exits_zero_and_names_a_profile(self):
+        result = self._run("explain", "--skill", "review_loop", "--risk", "low")
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("PROFILE", result.stdout)
+
+    def test_toon_output_parses(self):
+        result = self._run("explain", "--skill", "review_loop", "--format", "toon")
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("context_plan", toon.loads(result.stdout))
+
+    def test_invalid_risk_is_rejected_with_the_valid_values(self):
+        result = self._run("explain", "--risk", "apocalyptic")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("irreversible", result.stdout)
+
+    def test_unknown_skill_points_at_the_catalog(self):
+        result = self._run("explain", "--skill", "no-such-skill")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("CATALOG.toon", result.stdout)
+
+    def test_help_lists_the_registered_subcommands(self):
+        result = self._run("--help")
+        self.assertEqual(result.returncode, 0, result.stdout)
+        for name in ("explain", "observe"):
+            self.assertIn(name, result.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()

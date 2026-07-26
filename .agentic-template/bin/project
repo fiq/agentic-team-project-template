@@ -26,6 +26,7 @@ COMMANDS = {
     "check-knowledge": [[str(BIN / "check-knowledge")]],
     "check-changes": [[str(BIN / "check-changes")]],
     "check-wiki": [[str(BIN / "check-wiki")]],
+    "context": [[str(BIN / "context")]],
     "install-hooks": [[str(BIN / "install-hooks")]],
     "check-tooling": [[str(BIN / "check-tooling")]],
     "check-mcp": [[str(BIN / "check-mcp")]],
