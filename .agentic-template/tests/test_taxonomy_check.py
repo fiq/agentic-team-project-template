@@ -73,31 +73,32 @@ class TestTaxonomyValidation(CheckTestCase):
         self.assertIn("workflow/ghost/SKILL.md", result.stdout)
 
     def test_empty_layer_file_fails(self):
+        # review-loop declares core: core.md. Empty the file and confirm the
+        # check reports it as empty.
         directory = self.root / ".agents/skills/workflow/review-loop"
         (directory / "core.md").write_text("\n\n")
-        skill_file = directory / "SKILL.md"
-        skill_file.write_text(
-            skill_file.read_text().replace(
-                "---\n\n# Review Loop", "layers:\n  core: core.md\n---\n\n# Review Loop", 1
-            )
-        )
         result = run_check(self.root)
         self.assertEqual(result.returncode, 1)
         self.assertIn("empty", result.stdout.lower())
 
     def test_undeclared_layer_file_on_disk_fails(self):
-        (self.root / ".agents/skills/workflow/review-loop/procedure.md").write_text(
-            "# Stray procedure layer\n\nNot declared in frontmatter.\n"
+        # review-loop now declares core/procedure/verification/failure_modes.
+        # Write a file that looks like a layer but is not declared: examples.md
+        # is a known layer kind, and review-loop does not declare it.
+        (self.root / ".agents/skills/workflow/review-loop/examples.md").write_text(
+            "# Stray examples layer\n\nNot declared in frontmatter.\n"
         )
         result = run_check(self.root)
         self.assertEqual(result.returncode, 1)
-        self.assertIn("procedure.md", result.stdout)
+        self.assertIn("examples.md", result.stdout)
 
     def test_unknown_layer_name_fails(self):
+        # review-loop declares core/procedure/verification/failure_modes.
+        # Replace a known layer with an unknown one to trigger the check.
         skill_file = self.root / ".agents/skills/workflow/review-loop/SKILL.md"
         skill_file.write_text(
             skill_file.read_text().replace(
-                "---\n\n# Review Loop", "layers:\n  epilogue: epilogue.md\n---\n\n# Review Loop", 1
+                "  core: core.md", "  epilogue: epilogue.md", 1
             )
         )
         result = run_check(self.root)
@@ -116,14 +117,10 @@ class TestTaxonomyValidation(CheckTestCase):
         self.assertIn("declares no trigger", result.stdout)
 
     def test_declared_layer_file_missing_fails(self):
-        skill_file = self.root / ".agents/skills/workflow/review-loop/SKILL.md"
-        skill_file.write_text(
-            skill_file.read_text().replace(
-                "---\n\n# Review Loop",
-                "layers:\n  verification: verification.md\n---\n\n# Review Loop",
-                1,
-            )
-        )
+        # review-loop declares verification: verification.md. Delete the file
+        # and confirm the check reports it as missing.
+        verification = self.root / ".agents/skills/workflow/review-loop/verification.md"
+        verification.unlink()
         result = run_check(self.root)
         self.assertEqual(result.returncode, 1)
         self.assertIn("workflow/review-loop/SKILL.md", result.stdout)
