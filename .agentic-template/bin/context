@@ -15,6 +15,7 @@ sys.path.insert(0, str(BIN.parent / "lib"))
 import environment  # noqa: E402
 import observations  # noqa: E402
 import plan as plan_lib  # noqa: E402
+import qualification  # noqa: E402
 import router  # noqa: E402
 import skills  # noqa: E402
 import toon  # noqa: E402
@@ -68,6 +69,26 @@ def cmd_observe(args):
         print(f"  profile floor now {outcome.escalated_profile}")
     print(f"  record  {observations.path_for(ROOT, env)}")
     return 0
+
+
+def cmd_qualify(args):
+    if not args.score:
+        print(qualification.render_pack(qualification.pack(ROOT)))
+        return 0
+    answers = toon.loads(Path(args.score).read_text())
+    outcome = qualification.score(ROOT, answers)
+    print(f"QUALIFICATION {outcome.result}")
+    print()
+    for probe_id, verdict in outcome.probes.items():
+        print(f"  {verdict:<10} {probe_id}")
+    for note in outcome.notes:
+        print(f"  note  {note}")
+    if args.record:
+        env = environment.build(ROOT, os.environ, model=args.model, runtime=args.runtime)
+        observations.record_qualification(ROOT, env, outcome.result, outcome.probes)
+        print()
+        print(f"  recorded  {observations.path_for(ROOT, env)}")
+    return 0 if outcome.result == "pass" else 1
 
 
 MIN_MARKER = 20
@@ -286,6 +307,18 @@ def build_parser():
         "check", help="validate router config, taxonomy and canonical sources"
     )
     check.set_defaults(handler=cmd_check)
+
+    qualify = subparsers.add_parser(
+        "qualify",
+        help="emit the probe pack, or score an answers file against the fixture",
+    )
+    qualify.add_argument("--score", help="path to a completed answers.toon")
+    qualify.add_argument(
+        "--record", action="store_true", help="store the scored result as an observation"
+    )
+    qualify.add_argument("--model")
+    qualify.add_argument("--runtime")
+    qualify.set_defaults(handler=cmd_qualify)
 
     return parser
 

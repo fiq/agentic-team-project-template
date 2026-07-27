@@ -1,0 +1,10 @@
+#!/usr/bin/env python3
+"""Fixture facade. Only `check` is implemented."""
+import sys
+
+if __name__ == "__main__":
+    if sys.argv[1:2] == ["check"]:
+        print("FIXTURE OK")
+        sys.exit(0)
+    print("Usage: bin/project check")
+    sys.exit(2)

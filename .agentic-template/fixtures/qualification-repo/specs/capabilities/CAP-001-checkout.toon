@@ -1,0 +1,7 @@
+capability:
+  id: CAP-001
+  title: Checkout
+  acceptance_command: bin/project contract-test
+  scenarios:
+    - when: a basket has one item
+      then: checkout returns a receipt

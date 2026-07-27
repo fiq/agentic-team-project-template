@@ -1,0 +1,4 @@
+skills:
+  release_gate:
+    path: workflow/release-gate/SKILL.md
+    trigger: release_gate_required

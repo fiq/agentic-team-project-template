@@ -222,6 +222,10 @@ skills:
       - acceptance_criteria
       - relevant_source_refs
 
+  context_qualification:
+    path: tooling/context-qualification/SKILL.md
+    trigger: no_observation_for_this_environment
+
   discover:
     path: workflow/discover/SKILL.md
     trigger: evidence_needed_before_decision
