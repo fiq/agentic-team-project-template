@@ -4,6 +4,10 @@ axis: method
 
 # Portable Context Router
 
+The portable context router decides how much context to load for a given task —
+not by guessing from a model's name, but by measuring what the model can actually
+do. This page explains why that matters and how it works.
+
 ## Why this exists
 
 Anthropic removed over 80% of Claude Code's system prompt for Claude 5 generation models

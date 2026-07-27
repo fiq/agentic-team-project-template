@@ -1,8 +1,16 @@
 # Wiki
 
-Durable project understanding, split by axis. **Method** pages describe how work is done
-here and are inherited from the template. **Product** pages describe what is being built
-and are written by this project.
+This wiki is the project's durable knowledge base. It is organised into two
+sections so you can quickly find what you need:
+
+- **Method** — how we work here. These pages are inherited from the template and
+  describe practices, roles and tooling. They change when practice changes.
+- **Product** — what we are building. These pages are written by this project and
+  describe the domain, architecture and operations. They change when the product
+  changes.
+
+New here? Start with [Agents](method/agents.md) for startup and roles, or
+[Development](method/development.md) for the day-to-day command sequence.
 
 ## Method — how we work
 
