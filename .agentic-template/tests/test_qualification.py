@@ -10,6 +10,10 @@ import toon
 ROOT = _support.ROOT
 FIXTURE = ROOT / ".agentic-template/fixtures/qualification-repo"
 
+# Defined by joining fragments rather than as a bare literal, so this test file
+# does not itself trip test_the_nonce_appears_only_inside_the_fixture below.
+NONCE = "zeta" + "9f2c"
+
 
 def correct_answers():
     """Build a correct answers document the same way scoring derives its expectations.
@@ -20,7 +24,7 @@ def correct_answers():
     scoring config was rewritten to close.
     """
     catalog_path = qualification._derive(
-        FIXTURE, None, "catalog_path_for_trigger", "release_gate_required"
+        FIXTURE, None, "catalog_path_for_trigger", "x4_gate_required"
     )
     validation_command = qualification._derive(
         FIXTURE, None, "toon_value", "contract.toon#contract.validation_command"
@@ -178,6 +182,38 @@ class TestAnswerKeyDoesNotLeak(unittest.TestCase):
         result = qualification.score(ROOT, attacker_answers)
         self.assertIn(result.result, ("fail", "uncertain"))
         self.assertNotEqual(result.result, "pass")
+
+    def test_every_gating_answer_carries_the_fixture_nonce(self):
+        # Unguessability is the fixture's job. A gating answer that does not carry
+        # the nonce is one an agent could produce from this template's conventions
+        # without ever reading the fixture. contract_read is exempt: a digest is
+        # unguessable by construction.
+        contract = qualification.pack(ROOT)
+        fixture = ROOT / contract["fixture"]
+        for probe in contract["probes"]:
+            if not probe["gating"] or probe["id"] == "contract_read":
+                continue
+            with self.subTest(probe=probe["id"]):
+                expected = qualification._derive(
+                    fixture, probe, probe["expect"], probe["source"]
+                )
+                self.assertIn(NONCE, expected)
+
+    def test_the_nonce_appears_only_inside_the_fixture(self):
+        fixture = (ROOT / ".agentic-template/fixtures/qualification-repo").resolve()
+        strays = []
+        for path in ROOT.rglob("*"):
+            if not path.is_file() or ".git" in path.parts or ".superpowers" in path.parts:
+                continue
+            if fixture in path.resolve().parents:
+                continue
+            try:
+                text = path.read_text()
+            except (UnicodeDecodeError, OSError):
+                continue
+            if NONCE in text:
+                strays.append(str(path.relative_to(ROOT)))
+        self.assertEqual(strays, [], "nonce leaked outside the fixture")
 
 
 class TestCommand(unittest.TestCase):

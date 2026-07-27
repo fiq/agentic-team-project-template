@@ -1,3 +1,3 @@
 contract:
-  validation_command: bin/project check
-  stop_token: stop_and_request_authorisation
+  validation_command: tools/verify --gate zeta9f2c
+  stop_token: halt-zeta9f2c-authorise

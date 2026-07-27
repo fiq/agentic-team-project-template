@@ -1,4 +1,4 @@
 skills:
   release_gate:
-    path: workflow/release-gate/SKILL.md
-    trigger: release_gate_required
+    path: gates/g7-zeta9f2c/SKILL.md
+    trigger: x4_gate_required

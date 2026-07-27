@@ -1,0 +1,10 @@
+#!/usr/bin/env python3
+"""Fixture verifier. Only `--gate zeta9f2c` is implemented."""
+import sys
+
+if __name__ == "__main__":
+    if sys.argv[1:] == ["--gate", "zeta9f2c"]:
+        print("FIXTURE GATE OK")
+        sys.exit(0)
+    print("Usage: tools/verify --gate zeta9f2c")
+    sys.exit(2)

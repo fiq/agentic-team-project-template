@@ -3,7 +3,7 @@ name: release-gate
 description: Fixture skill used to test catalog path resolution.
 layers:
   verification: verification.md
-verification: [bin/project check]
+verification: [tools/verify --gate zeta9f2c]
 ---
 
 # Release Gate

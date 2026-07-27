@@ -1,7 +1,7 @@
 capability:
   id: CAP-001
   title: Checkout
-  acceptance_command: bin/project contract-test
+  acceptance_command: tools/acceptance --suite zeta9f2c-checkout
   scenarios:
     - when: a basket has one item
       then: checkout returns a receipt
