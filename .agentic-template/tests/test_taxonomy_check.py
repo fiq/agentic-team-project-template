@@ -107,6 +107,31 @@ class TestTaxonomyValidation(CheckTestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("epilogue", result.stdout)
 
+    def test_catalog_entry_without_a_trigger_fails(self):
+        catalog = self.root / ".agents/skills/CATALOG.toon"
+        catalog.write_text(
+            catalog.read_text()
+            + "\n  triggerless:\n    path: workflow/review-loop/SKILL.md\n"
+        )
+        result = run_check(self.root)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("triggerless", result.stdout)
+        self.assertIn("declares no trigger", result.stdout)
+
+    def test_declared_layer_file_missing_fails(self):
+        skill_file = self.root / ".agents/skills/workflow/review-loop/SKILL.md"
+        skill_file.write_text(
+            skill_file.read_text().replace(
+                "---\n\n# Review Loop",
+                "layers:\n  verification: verification.md\n---\n\n# Review Loop",
+                1,
+            )
+        )
+        result = run_check(self.root)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("workflow/review-loop/SKILL.md", result.stdout)
+        self.assertIn("verification.md", result.stdout)
+
 
 class TestCanonicalSourceUniqueness(CheckTestCase):
     MARKER = "This synthetic sentence has exactly one canonical home"
@@ -148,6 +173,17 @@ class TestCanonicalSourceUniqueness(CheckTestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("20 characters", result.stdout)
 
+    def test_canonical_home_under_an_excluded_directory_is_still_found(self):
+        # Excluding a directory from the duplicate scan must not make a marker
+        # living there report as absent from its own home.
+        self.add_topic(
+            "excluded_home_topic",
+            ".agents/context/RECOVERY.toon",
+            "This synthetic marker lives in an excluded configuration directory",
+        )
+        result = run_check(self.root)
+        self.assertEqual(result.returncode, 0, result.stdout)
+
 
 class TestRouterConfigValidation(CheckTestCase):
     def test_duplicate_trigger_fails(self):
@@ -182,6 +218,21 @@ class TestRouterConfigValidation(CheckTestCase):
         result = run_check(self.root)
         self.assertEqual(result.returncode, 1)
         self.assertIn("feral", result.stdout)
+
+    def test_profile_absent_from_order_fails(self):
+        config = self.root / ".agents/context/ROUTER.toon"
+        config.write_text(
+            config.read_text().replace(
+                "\nrisk_floors:",
+                "\n  feral:\n    preload_layers: [summary]\n    always_preload: []\n"
+                "    independent_review: not_required\n\nrisk_floors:",
+                1,
+            )
+        )
+        result = run_check(self.root)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("feral", result.stdout)
+        self.assertIn("absent from order", result.stdout)
 
     def test_high_risk_floor_below_guarded_fails(self):
         config = self.root / ".agents/context/ROUTER.toon"

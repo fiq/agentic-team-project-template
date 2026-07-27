@@ -3,6 +3,9 @@
 # (20 characters or more) that must appear in the canonical file and nowhere
 # else under `scan_roots`. Entries under `candidates` are known duplications
 # awaiting migration; they warn instead of failing.
+# A marker shorter than 20 characters is a hard error even under `candidates`:
+# short markers produce false matches in both directions, so an unreliable marker
+# is a configuration defect rather than a duplication warning.
 version: 1
 
 scan_roots: [AGENTS.md, .agents/, docs/]
