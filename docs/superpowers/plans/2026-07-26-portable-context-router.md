@@ -3444,6 +3444,10 @@ duplication it names.
 # (20 characters or more) that must appear in the canonical file and nowhere
 # else under `scan_roots`. Entries under `candidates` are known duplications
 # awaiting migration; they warn instead of failing.
+#
+# A marker shorter than 20 characters is a hard error even under `candidates`:
+# short markers produce false matches in both directions, so an unreliable marker
+# is a configuration defect rather than a duplication warning.
 version: 1
 
 scan_roots: [AGENTS.md, .agents/, docs/]
@@ -3768,7 +3772,12 @@ def _check_markers(root, group, files, errors, sink):
             relative for relative, path in files if needle in path.read_text().lower()
         ]
         label = topic["id"] + (f" [{topic['finding']}]" if topic.get("finding") else "")
-        if topic["canonical"] not in hits:
+        # Two different questions. "Is it in its home?" must read the canonical file
+        # directly, because scan_roots legitimately excludes configuration directories;
+        # looking it up in `hits` would report a present marker as absent.
+        canonical_path = Path(root) / topic["canonical"]
+        in_home = canonical_path.is_file() and needle in canonical_path.read_text().lower()
+        if not in_home:
             sink.append(
                 f"{label}: marker absent from its canonical home {topic['canonical']}"
             )
