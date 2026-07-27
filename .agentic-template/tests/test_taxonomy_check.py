@@ -25,6 +25,8 @@ class CheckTestCase(unittest.TestCase):
 
     def add_topic(self, topic_id, canonical, marker):
         """Register an enforced topic and plant its marker in the canonical file."""
+        import toon
+
         canonical_path = self.root / canonical
         canonical_path.parent.mkdir(parents=True, exist_ok=True)
         canonical_path.write_text(
@@ -32,16 +34,11 @@ class CheckTestCase(unittest.TestCase):
         )
         canonical_path.write_text(canonical_path.read_text() + f"\n{marker}.\n")
         topics = self.root / ".agents/context/TOPICS.toon"
-        topics.write_text(
-            topics.read_text().replace(
-                "topics: []",
-                "topics:\n"
-                f"  - id: {topic_id}\n"
-                f"    canonical: {canonical}\n"
-                f"    marker: {marker}\n",
-                1,
-            )
+        data = toon.loads(topics.read_text())
+        data.setdefault("topics", []).append(
+            {"id": topic_id, "canonical": canonical, "marker": marker}
         )
+        topics.write_text(toon.dumps(data))
 
 
 class TestBaseline(unittest.TestCase):

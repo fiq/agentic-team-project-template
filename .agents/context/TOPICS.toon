@@ -16,7 +16,10 @@ exclude: [.agentic-template/, .agents/context/, docs/superpowers/]
 
 # Enforced: a marker here must appear in its canonical file and nowhere else.
 # Each entry arrives with the change that removes its duplication.
-topics: []
+topics:
+  - id: context_packet_transport
+    canonical: .agents/skills/tooling/context-packet/core.md
+    marker: Do not encode semantic context into opaque transport blobs
 
 # Known duplications awaiting migration. These warn; they do not fail.
 candidates:

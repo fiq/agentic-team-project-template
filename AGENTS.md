@@ -268,9 +268,7 @@ validation run, and the knowledge update or no-record rationale.
 - Use stronger models only where added capability is likely to matter.
 - Required roles are selected by risk; do not activate every role
   automatically.
-- Respect context windows with `context-packet`: send semantic summaries,
-  source refs and only necessary snippets; do not encode semantic context into
-  opaque transport blobs.
+- Respect context windows with `context-packet`; its core layer holds the packet rules.
 
 ## Team and model fallback
 
