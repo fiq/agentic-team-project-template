@@ -75,7 +75,13 @@ def cmd_qualify(args):
     if not args.score:
         print(qualification.render_pack(qualification.pack(ROOT)))
         return 0
-    answers = toon.loads(Path(args.score).read_text())
+    try:
+        answers = toon.loads(Path(args.score).read_text())
+    except (OSError, toon.ToonError) as error:
+        print("QUALIFICATION uncertain")
+        print()
+        print(f"  note  could not read or parse {args.score}: {error}")
+        return 1
     outcome = qualification.score(ROOT, answers)
     print(f"QUALIFICATION {outcome.result}")
     print()
