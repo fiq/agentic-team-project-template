@@ -104,6 +104,7 @@ layer: the axis says who owns a page, the layer says how much of it to load now.
 
 ## Related
 
+- [Wiki index](../index.md) — all durable project docs, split by axis.
 - `docs/context-store.md` — the four repository layers the router draws sources from.
 - `.agents/context/README.md` — configuration reference.
 - `.agents/skills/tooling/context-qualification/SKILL.md` — running qualification.

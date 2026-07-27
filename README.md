@@ -333,6 +333,7 @@ This is **not**:
 - **Architecture:** see `docs/architecture/` (ADRs)
 - **Decisions:** see `docs/decisions/` (ADR index)
 - **Docs map:** see `docs/README.md`
+- **Wiki:** see `docs/wiki/index.md` (method pages inherited from the template, product pages written by the project)
 - **Context store:** see `docs/context-store.md`
 - **Validation:** see `docs/validation.md`
 - **Runbooks:** see `docs/runbooks/` for optional repeatable operations
