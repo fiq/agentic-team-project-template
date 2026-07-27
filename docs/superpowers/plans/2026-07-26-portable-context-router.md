@@ -3447,7 +3447,10 @@ duplication it names.
 version: 1
 
 scan_roots: [AGENTS.md, .agents/, docs/]
-exclude: [.agentic-template/, .agents/context/observations/, docs/superpowers/]
+# .agents/context/ is excluded wholesale: it is configuration, not documentation, and
+# TOPICS.toon necessarily contains every marker's literal text, so scanning it would make
+# each marker self-match as its own duplicate.
+exclude: [.agentic-template/, .agents/context/, docs/superpowers/]
 
 # Enforced: a marker here must appear in its canonical file and nowhere else.
 # Each entry arrives with the change that removes its duplication.
@@ -3469,7 +3472,7 @@ candidates:
     finding: D4
   - id: quality_boy_scout
     canonical: .agents/skills/workflow/review-loop/core.md
-    marker: boy-scout rule
+    marker: leave code in the path of a change cleaner
     finding: D8
   - id: boundary_test_fidelity
     canonical: .agents/skills/workflow/outside-in-tdd/core.md
@@ -5688,7 +5691,7 @@ SCAFFOLD_STARTER = {
         "# Project-owned. One canonical home per topic; markers must be 20+ characters.\n"
         "version: 1\n"
         "scan_roots: [AGENTS.md, .agents/, docs/]\n"
-        "exclude: [.agentic-template/, .agents/context/observations/]\n"
+        "exclude: [.agentic-template/, .agents/context/]\n"
         "topics: []\n"
         "candidates: []\n"
     ),
