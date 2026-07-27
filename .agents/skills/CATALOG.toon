@@ -164,7 +164,7 @@ skills:
 
   sql_migrations:
     path: specialise/sql-migrations/SKILL.md
-    trigger: persistent_relational_database
+    trigger: relational_schema_requires_migration_policy
 
   test_harness:
     path: specialise/test-harness/SKILL.md

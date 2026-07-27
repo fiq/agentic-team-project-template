@@ -19,6 +19,7 @@ COMMANDS = {
         [str(BIN / "check-changes")],
         [str(BIN / "check-tooling")],
         [str(BIN / "check-mcp")],
+        [str(BIN / "context"), "check"],
     ],
     "repo-check": [[str(BIN / "check-repo-contract")]],
     "check-profile": [[str(BIN / "check-project-profile")]],

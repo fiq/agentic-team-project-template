@@ -17,6 +17,7 @@ import observations  # noqa: E402
 import plan as plan_lib  # noqa: E402
 import router  # noqa: E402
 import skills  # noqa: E402
+import toon  # noqa: E402
 
 ROOT = Path.cwd()
 
@@ -69,6 +70,182 @@ def cmd_observe(args):
     return 0
 
 
+MIN_MARKER = 20
+
+REQUIRED_FRONTMATTER = ("name", "description")
+
+
+def _scan_files(root, topics):
+    """Every Markdown or TOON file a topic marker may legitimately appear in."""
+    excluded = tuple(topics.get("exclude") or [])
+    found = []
+    for start in topics["scan_roots"]:
+        base = Path(root) / start
+        candidates = [base] if base.is_file() else sorted(base.rglob("*"))
+        for path in candidates:
+            if not path.is_file() or path.suffix not in (".md", ".toon"):
+                continue
+            relative = str(path.relative_to(root))
+            if any(relative.startswith(prefix) for prefix in excluded):
+                continue
+            found.append((relative, path))
+    return found
+
+
+def _check_markers(root, group, files, errors, sink):
+    for topic in group:
+        marker = str(topic["marker"])
+        if len(marker) < MIN_MARKER:
+            errors.append(
+                f"TOPICS.toon {topic['id']}: marker must be at least {MIN_MARKER} "
+                f"characters to be reliable, got {len(marker)}"
+            )
+            continue
+        needle = marker.lower()
+        hits = [
+            relative for relative, path in files if needle in path.read_text().lower()
+        ]
+        label = topic["id"] + (f" [{topic['finding']}]" if topic.get("finding") else "")
+        if topic["canonical"] not in hits:
+            sink.append(
+                f"{label}: marker absent from its canonical home {topic['canonical']}"
+            )
+        extra = [hit for hit in hits if hit != topic["canonical"]]
+        if extra:
+            sink.append(
+                f"{label}: canonical content duplicated in {', '.join(extra)}; "
+                f"canonical home is {topic['canonical']}"
+            )
+
+
+def _check_router_config(root, errors):
+    config = router.load_config(root)
+    order = config["order"]
+    for name in order:
+        if name not in config["profiles"]:
+            errors.append(f"ROUTER.toon order lists '{name}' with no profile definition")
+    for name, settings in config["profiles"].items():
+        if name not in order:
+            errors.append(f"ROUTER.toon profile '{name}' is absent from order")
+        for layer in settings["preload_layers"]:
+            if layer not in skills.LAYERS:
+                errors.append(f"ROUTER.toon profile '{name}' uses unknown layer '{layer}'")
+        if "defer_layers" in settings:
+            errors.append(
+                f"ROUTER.toon profile '{name}' declares defer_layers; the deferred set is "
+                f"derived as the complement of preload_layers and must not be duplicated"
+            )
+    for risk in router.RISKS:
+        floor = config["risk_floors"].get(risk)
+        if floor not in order:
+            errors.append(f"ROUTER.toon risk_floors.{risk} is '{floor}', not a known profile")
+        elif risk in router.HIGH_RISKS and order.index(floor) < order.index("guarded"):
+            errors.append(f"ROUTER.toon risk_floors.{risk} is '{floor}'; must be guarded")
+    for effort in router.EFFORTS:
+        if effort not in config["effort"]:
+            errors.append(f"ROUTER.toon effort.{effort} is missing")
+    return config
+
+
+def _check_overrides(root, config, errors):
+    for name in ("overrides.toon", "overrides.local.toon"):
+        path = Path(root) / ".agents/context" / name
+        if not path.exists():
+            continue
+        for index, entry in enumerate(toon.loads(path.read_text()).get("overrides") or []):
+            label = f"{name}[{index}]"
+            if entry.get("profile") not in config["order"]:
+                errors.append(f"{label}: unknown profile '{entry.get('profile')}'")
+            if not entry.get("reason"):
+                errors.append(f"{label}: overrides must record a reason")
+            if not entry.get("expires") and not entry.get("review_after"):
+                errors.append(f"{label}: overrides must record expires or review_after")
+
+
+def _check_skills(root, errors):
+    catalog = skills.load_catalog(root)
+    base = Path(root) / skills.SKILL_ROOT
+    catalogued = {entry["path"] for entry in catalog.values()}
+    seen_triggers = {}
+    for skill_id, entry in sorted(catalog.items()):
+        trigger = entry.get("trigger")
+        if not trigger:
+            errors.append(f"{skills.CATALOG}: {skill_id} declares no trigger")
+        elif trigger in seen_triggers:
+            errors.append(
+                f"{skills.CATALOG}: {skill_id} and {seen_triggers[trigger]} share trigger "
+                f"'{trigger}'; resolve(trigger=...) would silently return only one of them"
+            )
+        else:
+            seen_triggers[trigger] = skill_id
+    for relative in sorted(catalogued):
+        if not (base / relative).exists():
+            errors.append(f"{skills.CATALOG} points at missing file: {relative}")
+    for path in sorted(base.rglob("SKILL.md")):
+        relative = str(path.relative_to(base))
+        if relative not in catalogued:
+            errors.append(f"{relative} is not listed in {skills.CATALOG}")
+            continue
+        try:
+            meta, _ = skills.parse_frontmatter(path.read_text())
+        except skills.SkillError as error:
+            errors.append(f"{relative}: {error}")
+            continue
+        for field in REQUIRED_FRONTMATTER:
+            if not meta.get(field):
+                errors.append(f"{relative}: frontmatter missing {field}")
+        declared = dict(meta.get("layers") or {})
+        for layer, filename in declared.items():
+            if layer not in skills.LAYERS:
+                errors.append(f"{relative}: unknown taxonomy layer '{layer}'")
+                continue
+            candidate = path.parent / filename
+            if not candidate.exists():
+                errors.append(f"{relative}: declares layer '{layer}' but {filename} is missing")
+            elif len(candidate.read_text().strip()) < 40:
+                errors.append(
+                    f"{relative}: layer '{layer}' file {filename} is empty; "
+                    f"delete it rather than satisfying the taxonomy with a stub"
+                )
+        declared_files = set(declared.values()) | {"SKILL.md"}
+        for sibling in sorted(path.parent.glob("*.md")):
+            if sibling.name not in declared_files and sibling.name in skills.LAYER_FILES.values():
+                errors.append(
+                    f"{relative}: {sibling.name} looks like a taxonomy layer "
+                    f"but is not declared in frontmatter"
+                )
+
+
+def validate(root):
+    """Return (errors, warnings) for the router configuration and taxonomy."""
+    errors = []
+    warnings = []
+    config = _check_router_config(root, errors)
+    _check_overrides(root, config, errors)
+    _check_skills(root, errors)
+    topics = toon.loads((Path(root) / ".agents/context/TOPICS.toon").read_text())
+    files = _scan_files(root, topics)
+    _check_markers(root, topics.get("topics") or [], files, errors, errors)
+    _check_markers(root, topics.get("candidates") or [], files, errors, warnings)
+    return errors, warnings
+
+
+def cmd_check(args):
+    errors, warnings = validate(ROOT)
+    for warning in warnings:
+        print(f"warning  {warning}")
+    if warnings:
+        print()
+    if errors:
+        print("CONTEXT ROUTER FAILED")
+        print()
+        for error in errors:
+            print(f"- {error}")
+        return 1
+    print("CONTEXT ROUTER OK")
+    return 0
+
+
 def build_parser():
     parser = argparse.ArgumentParser(
         prog=".agentic-template/bin/project context",
@@ -102,6 +279,11 @@ def build_parser():
     observe.add_argument("--model")
     observe.add_argument("--runtime")
     observe.set_defaults(handler=cmd_observe)
+
+    check = subparsers.add_parser(
+        "check", help="validate router config, taxonomy and canonical sources"
+    )
+    check.set_defaults(handler=cmd_check)
 
     return parser
 

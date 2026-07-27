@@ -1,0 +1,39 @@
+# template-owned: replace via .agentic-template/bin/project context scaffold
+# Each topic has exactly one canonical home. `marker` is a distinctive phrase
+# (20 characters or more) that must appear in the canonical file and nowhere
+# else under `scan_roots`. Entries under `candidates` are known duplications
+# awaiting migration; they warn instead of failing.
+version: 1
+
+scan_roots: [AGENTS.md, .agents/, docs/]
+# .agents/context/ is excluded wholesale: it is configuration, not documentation, and
+# TOPICS.toon necessarily contains every marker's literal text, so scanning it would make
+# each marker self-match as its own duplicate.
+exclude: [.agentic-template/, .agents/context/, docs/superpowers/]
+
+# Enforced: a marker here must appear in its canonical file and nowhere else.
+# Each entry arrives with the change that removes its duplication.
+topics: []
+
+# Known duplications awaiting migration. These warn; they do not fail.
+candidates:
+  - id: model_classes
+    canonical: .agents/skills/tooling/model-routing/SKILL.md
+    marker: "Lesser or local model:"
+    finding: D1
+  - id: model_handoff_protocol
+    canonical: .agents/schemas/handoff.schema.md
+    marker: preserve bounded context with
+    finding: D2
+  - id: fitness_function_candidates
+    canonical: docs/validation.md
+    marker: dependency direction and forbidden imports
+    finding: D4
+  - id: quality_boy_scout
+    canonical: .agents/skills/workflow/review-loop/core.md
+    marker: leave code in the path of a change cleaner
+    finding: D8
+  - id: boundary_test_fidelity
+    canonical: .agents/skills/workflow/outside-in-tdd/core.md
+    marker: component-integration
+    finding: D9
