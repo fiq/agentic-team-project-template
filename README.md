@@ -338,7 +338,7 @@ This is **not**:
 - **Runbooks:** see `docs/runbooks/` for optional repeatable operations
 - **Knowledge:** see `.agents/knowledge/` (taxonomy, domains, systems, risks, questions)
 - **Durable rules:** see `AGENTS.md` (operating contract)
-- **Development lifecycle:** see `docs/wiki/development.md`
+- **Development lifecycle:** see `docs/wiki/method/development.md`
 
 ## AI-assisted delivery statement
 

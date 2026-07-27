@@ -138,16 +138,16 @@ class TestCanonicalSourceUniqueness(CheckTestCase):
 
     def test_duplicated_marker_fails_and_names_both_files(self):
         self.add_topic("synthetic_topic", self.CANONICAL, self.MARKER)
-        stray = self.root / "docs/wiki/development.md"
+        stray = self.root / "docs/wiki/method/development.md"
         stray.write_text(stray.read_text() + f"\n\n{self.MARKER}.\n")
         result = run_check(self.root)
         self.assertEqual(result.returncode, 1)
         self.assertIn("synthetic_topic", result.stdout)
-        self.assertIn("docs/wiki/development.md", result.stdout)
+        self.assertIn("docs/wiki/method/development.md", result.stdout)
 
     def test_marker_matching_ignores_case(self):
         self.add_topic("synthetic_topic", self.CANONICAL, self.MARKER)
-        stray = self.root / "docs/wiki/development.md"
+        stray = self.root / "docs/wiki/method/development.md"
         stray.write_text(stray.read_text() + f"\n\n{self.MARKER.lower()}.\n")
         result = run_check(self.root)
         self.assertEqual(result.returncode, 1)
@@ -274,6 +274,51 @@ class TestIntegrationWithProjectCheck(unittest.TestCase):
             text=True,
         )
         self.assertIn("CONTEXT ROUTER", result.stdout)
+
+
+class TestWikiAxis(CheckTestCase):
+    def test_every_wiki_page_declares_an_axis(self):
+        result = run_check(ROOT)
+        self.assertEqual(result.returncode, 0, result.stdout)
+
+    def test_missing_axis_fails(self):
+        page = self.root / "docs/wiki/method/development.md"
+        page.write_text(page.read_text().replace("axis: method\n", "", 1))
+        result = run_check(self.root)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("axis", result.stdout)
+        self.assertIn("development.md", result.stdout)
+
+    def test_axis_disagreeing_with_the_directory_fails(self):
+        page = self.root / "docs/wiki/product/domain.md"
+        page.write_text(page.read_text().replace("axis: product", "axis: method", 1))
+        result = run_check(self.root)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("domain.md", result.stdout)
+        self.assertIn("product/", result.stdout)
+
+    def test_page_outside_both_axes_fails(self):
+        stray = self.root / "docs/wiki/stray.md"
+        stray.write_text("---\naxis: method\n---\n\n# Stray\n")
+        result = run_check(self.root)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("stray.md", result.stdout)
+
+    def test_index_is_exempt(self):
+        self.assertNotIn("index.md", run_check(ROOT).stdout)
+
+
+class TestReasoningIsRecorded(unittest.TestCase):
+    def test_the_router_page_exists_and_states_the_principle(self):
+        page = (ROOT / "docs/wiki/method/context-router.md").read_text()
+        self.assertIn("portable context router", page.lower())
+        self.assertIn("depth and timing", page.lower())
+        self.assertIn("not", page.lower())
+
+    def test_the_router_page_cites_the_source_article(self):
+        page = (ROOT / "docs/wiki/method/context-router.md").read_text()
+        self.assertIn("context engineering", page.lower())
+        self.assertIn("2026-07-24", page)
 
 
 if __name__ == "__main__":

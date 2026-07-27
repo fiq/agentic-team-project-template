@@ -1,3 +1,7 @@
+---
+axis: method
+---
+
 # Testing
 
 Drive design outside-in, from the boundary in (ATDD-aligned): a structured

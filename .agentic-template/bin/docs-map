@@ -48,7 +48,7 @@ DOC_GROUPS = [
     (
         "Delivery Workflow",
         [
-            ("Development", "docs/wiki/development.md", "lifecycle and command sequence"),
+            ("Development", "docs/wiki/method/development.md", "lifecycle and command sequence"),
             ("Specs", "specs/README.md", "capabilities and change proposals"),
             ("Validation", "docs/validation.md", "what checks prove and record"),
             ("Runbooks", "docs/runbooks/README.md", "optional repeatable operating procedures"),

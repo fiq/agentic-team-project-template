@@ -1,3 +1,7 @@
+---
+axis: method
+---
+
 # Agents
 
 `AGENTS.md` is canonical. Claude, Codex, Copilot and other model instructions

@@ -64,11 +64,11 @@ files_changed:
   - docs/context-store.md
   - docs/README.md
   - docs/validation.md
-  - docs/wiki/agents.md
-  - docs/wiki/architecture.md
-  - docs/wiki/development.md
+  - docs/wiki/method/agents.md
+  - docs/wiki/product/architecture.md
+  - docs/wiki/method/development.md
   - docs/wiki/index.md
-  - docs/wiki/testing.md
+  - docs/wiki/method/testing.md
   - HANDOFF.toon
   - PROJECT_PROFILE.toon
   - README.md

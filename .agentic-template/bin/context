@@ -245,6 +245,39 @@ def _check_skills(root, errors):
                 )
 
 
+WIKI_AXES = ("method", "product")
+
+
+def _check_wiki_axis(root, errors):
+    wiki = Path(root) / "docs/wiki"
+    if not wiki.exists():
+        return
+    for path in sorted(wiki.rglob("*.md")):
+        relative = str(path.relative_to(root))
+        if path.parent == wiki:
+            if path.name != "index.md":
+                errors.append(
+                    f"{relative}: wiki pages live under docs/wiki/method/ or "
+                    f"docs/wiki/product/; only index.md sits at the root"
+                )
+            continue
+        axis = path.relative_to(wiki).parts[0]
+        if axis not in WIKI_AXES:
+            errors.append(f"{relative}: unknown wiki axis directory '{axis}'")
+            continue
+        try:
+            meta, _ = skills.parse_frontmatter(path.read_text())
+        except skills.SkillError:
+            errors.append(f"{relative}: wiki pages must declare 'axis: {axis}' in frontmatter")
+            continue
+        declared = meta.get("axis")
+        if declared != axis:
+            errors.append(
+                f"{relative}: frontmatter says axis '{declared}' but the page is in "
+                f"{axis}/; the directory and the frontmatter must agree"
+            )
+
+
 def validate(root):
     """Return (errors, warnings) for the router configuration and taxonomy."""
     errors = []
@@ -252,6 +285,7 @@ def validate(root):
     config = _check_router_config(root, errors)
     _check_overrides(root, config, errors)
     _check_skills(root, errors)
+    _check_wiki_axis(root, errors)
     topics = toon.loads((Path(root) / ".agents/context/TOPICS.toon").read_text())
     files = _scan_files(root, topics)
     _check_markers(root, topics.get("topics") or [], files, errors, errors)
