@@ -385,6 +385,25 @@ def _scaffold_actions(target):
     return actions
 
 
+_MINIMAL_PROJECT_FACADE = """#!/usr/bin/env python3
+\"\"\"Minimal project facade. Dispatches 'context' to the scaffolded context bin.
+
+Extend this with additional commands as your project grows.
+\"\"\"
+import subprocess
+import sys
+from pathlib import Path
+
+BIN = Path(__file__).resolve().parent
+
+if len(sys.argv) > 1 and sys.argv[1] == "context":
+    sys.exit(subprocess.run([str(BIN / "context")] + sys.argv[2:]).returncode)
+
+print("project: only 'context' is available")
+sys.exit(1)
+"""
+
+
 def cmd_scaffold(args):
     target = Path(args.into).resolve()
     if not target.is_dir():
@@ -394,8 +413,21 @@ def cmd_scaffold(args):
     actions = _scaffold_actions(target)
     print("SCAFFOLD " + ("apply" if args.apply else "dry run"))
     print()
-    for verb, relative, kind in actions:
-        print(f"  {verb:<10} {kind:<9} {relative}")
+
+    # Summarise by default; print the full list only with --verbose.
+    counts = {}
+    for verb, _, kind in actions:
+        counts[(verb, kind)] = counts.get((verb, kind), 0) + 1
+    parts = []
+    for (verb, kind), count in sorted(counts.items()):
+        parts.append(f"{count} {verb}")
+    print(f"  summary: {', '.join(parts)}")
+
+    if args.verbose:
+        print()
+        for verb, relative, kind in actions:
+            print(f"  {verb:<10} {kind:<9} {relative}")
+
     if any(verb == "missing" for verb, _, _ in actions):
         print()
         return _fail("template is incomplete; run project check before scaffolding")
@@ -417,14 +449,25 @@ def cmd_scaffold(args):
             destination.parent.mkdir(parents=True, exist_ok=True)
             destination.write_text(SCAFFOLD_STARTER[relative])
     (target / ".agents/context/observations").mkdir(parents=True, exist_ok=True)
-    # Warn if the target's project facade does not dispatch 'context'.
+
+    # D4: install a minimal project facade when one doesn't exist.
+    # B2: when one exists but doesn't dispatch 'context', print the exact line.
     project_facade = target / ".agentic-template/bin/project"
-    if project_facade.exists():
+    if not project_facade.exists():
+        project_facade.parent.mkdir(parents=True, exist_ok=True)
+        project_facade.write_text(_MINIMAL_PROJECT_FACADE)
+        project_facade.chmod(0o755)
+        print()
+        print("  created: .agentic-template/bin/project (minimal facade)")
+        print("          extend it with additional commands as your project grows.")
+    else:
         facade_text = project_facade.read_text()
         if '"context"' not in facade_text and "context" not in facade_text:
             print()
-            print("  note: .agentic-template/bin/project does not dispatch 'context';")
-            print("        add a 'context' entry to its COMMANDS table.")
+            print("  note: .agentic-template/bin/project does not dispatch 'context'.")
+            print("        Add this line to its COMMANDS table:")
+            print('          "context": [[str(BIN / "context")]],')
+
     print()
     print("  next: .agentic-template/bin/project context check")
     return 0
@@ -487,6 +530,9 @@ def build_parser():
     scaffold.add_argument("--into", required=True, help="target project directory")
     scaffold.add_argument(
         "--apply", action="store_true", help="write files; omit for a dry run"
+    )
+    scaffold.add_argument(
+        "--verbose", action="store_true", help="print every file action; omit for a summary"
     )
     scaffold.set_defaults(handler=cmd_scaffold)
 
