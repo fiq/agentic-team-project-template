@@ -101,6 +101,10 @@ layer: the axis says who owns a page, the layer says how much of it to load now.
   with its reasons and precedence trace.
 - Not host auto-memory. It is portable, versioned and reviewable in a pull request,
   which host-managed memory is not.
+- Not an MCP server. The router is a file-based resolver that runs as a shell
+  command; an agent runs `project context explain` and reads the output. Wrapping
+  it in an MCP server would add a runtime dependency and a network boundary for
+  no gain — the agent still needs filesystem access to read the preloaded files.
 
 ## Related
 

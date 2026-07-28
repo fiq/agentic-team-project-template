@@ -23,6 +23,10 @@ import toon  # noqa: E402
 
 ROOT = Path.cwd()
 
+# The template root is where the scaffold's source files live. Resolved from
+# the script's own location so the scaffold works regardless of cwd.
+TEMPLATE_ROOT = Path(__file__).resolve().parents[2]
+
 
 def _fail(message):
     print("ERROR")
@@ -363,7 +367,7 @@ SCAFFOLD_NEVER = (
 def _scaffold_actions(target):
     actions = []
     for relative in SCAFFOLD_COPY:
-        source = ROOT / relative
+        source = TEMPLATE_ROOT / relative
         destination = target / relative
         if not source.exists():
             actions.append(("missing", relative, "source absent from this template"))
@@ -385,7 +389,7 @@ def cmd_scaffold(args):
     target = Path(args.into).resolve()
     if not target.is_dir():
         return _fail(f"--into must be an existing directory: {target}")
-    if target == ROOT:
+    if target == TEMPLATE_ROOT:
         return _fail("refusing to scaffold the template into itself")
     actions = _scaffold_actions(target)
     print("SCAFFOLD " + ("apply" if args.apply else "dry run"))
@@ -401,7 +405,7 @@ def cmd_scaffold(args):
         return 0
     for verb, relative, kind in actions:
         if kind == "copy" and verb in ("create", "update"):
-            source = ROOT / relative
+            source = TEMPLATE_ROOT / relative
             destination = target / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             if source.is_dir():

@@ -85,6 +85,51 @@ The agent will:
 - Rewrite the README and operating contract for your project
 - Hand off to `HANDOFF.toon` so the next work continues from here
 
+## Using the context router in an existing project
+
+If you already have a project and want the portable context router without
+adopting the full template:
+
+1. **Clone this template** somewhere outside your project.
+2. **Run the scaffold** (dry-run first, then apply):
+
+   ```bash
+   /path/to/template/.agentic-template/bin/project context scaffold \
+     --into /your/project --apply
+   ```
+
+   This copies the router library, the `context` command, the portable tests,
+   the qualification fixture, and the router configuration (`ROUTER.toon`,
+   `RECOVERY.toon`, `runtimes.toon`, `overrides.toon`) into your project. It
+   also writes starter files (`TOPICS.toon`, `risk-rules.toon`) only if they
+   don't already exist, and never touches project-owned files
+   (`overrides.local.toon`, `observations/`).
+
+3. **Wire up the `project` facade.** If your project doesn't already have
+   `.agentic-template/bin/project`, create a minimal one that dispatches
+   `context`:
+
+   ```python
+   #!/usr/bin/env python3
+   import subprocess, sys
+   from pathlib import Path
+   BIN = Path(__file__).resolve().parent
+   if len(sys.argv) > 1 and sys.argv[1] == "context":
+       sys.exit(subprocess.run([str(BIN / "context")] + sys.argv[2:]).returncode)
+   print("project: only 'context' is available")
+   sys.exit(1)
+   ```
+
+4. **Verify:** run `.agentic-template/bin/project context check` — it should
+   print `CONTEXT ROUTER OK`.
+
+5. **Catalogue your skills** in `.agents/skills/CATALOG.toon` and layer them
+   following the taxonomy conventions (see
+   [the method glossary](docs/wiki/method/glossary.md)).
+
+See [the portable context router page](docs/wiki/method/context-router.md) for
+why context depth is routed rather than fixed.
+
 ## Documentation IA
 
 Start from the route that matches your intent:
