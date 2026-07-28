@@ -70,6 +70,8 @@ A generated project AGENTS.md must include:
 19. **Handoff requirements** — what HANDOFF.toon must contain, including
     knowledge consulted, proposals created and no-record rationale.
 20. **Git provenance** — real commit dates, no history rewriting.
+21. **Context routing** — the profile ladder, that profiles never change required
+    outcomes, and the recover-then-retry rule before escalating context.
 
 ## CLAUDE.md
 

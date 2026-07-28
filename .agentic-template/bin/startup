@@ -48,6 +48,10 @@ START_PATHS = [
         "Validate before handoff",
         "Run .agentic-template/bin/project check, then .agentic-template/bin/project ready.",
     ),
+    (
+        "Size the context for a task",
+        "Run .agentic-template/bin/project context explain --skill <id> --paths <files>.",
+    ),
 ]
 
 OPTIONS = [

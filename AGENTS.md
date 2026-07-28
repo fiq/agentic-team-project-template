@@ -60,6 +60,20 @@ Unspecialised commands (`test`, `lint`, `run`, `image`, `image-test`,
 clearly until specialised during `/specialise`. Generated projects may mark
 non-applicable commands explicitly rather than leaving them unspecialised.
 
+## Context routing
+
+Before non-trivial work, run
+`.agentic-template/bin/project context explain --skill <id> --paths <files>` and load
+what it lists. It reports the profile (`lean`, `standard`, `guarded`), what to preload,
+what to defer, the required verification and where to recover from.
+
+Profiles change how much context is loaded. They never change acceptance criteria,
+safety boundaries, validation or approval points. High-risk and irreversible work is
+always `guarded`.
+
+When output degrades, reload the source named in `.agents/context/RECOVERY.toon` and
+retry once before adding context.
+
 ## Architecture and dependency rules
 
 - Infer from repository evidence before asking preference questions.

@@ -51,6 +51,7 @@ output.
 |---|---|---|
 | Knowledge | `.agents/knowledge/` | Searchable graph of durable knowledge |
 | Context store | `docs/context-store.md` | Repo-native structure, lineage, behavior and conformance map |
+| Context router | `docs/wiki/method/context-router.md` | Why and how context depth is routed; config reference in `.agents/context/README.md` |
 | Wiki | `docs/wiki/` | Human-facing durable docs, split by axis (method/product) |
 | Decisions | `docs/decisions/` | ADRs and decision records |
 | Structured data | `docs/structured-data.md` | TOON/S-expression policy |

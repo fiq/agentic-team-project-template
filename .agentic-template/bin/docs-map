@@ -59,7 +59,8 @@ DOC_GROUPS = [
         [
             ("Knowledge", ".agents/knowledge/index.md", "searchable graph index"),
             ("Context Store", "docs/context-store.md", "repo-native structure, lineage, behavior and conformance map"),
-            ("Wiki", "docs/wiki/index.md", "human-facing durable docs"),
+            ("Context Router", "docs/wiki/method/context-router.md", "why and how context depth is routed"),
+            ("Wiki", "docs/wiki/index.md", "human-facing durable docs, split by axis (method/product)"),
             ("Decisions", "docs/decisions/README.md", "ADR index"),
             ("Structured data", "docs/structured-data.md", "TOON/S-expression policy"),
         ],

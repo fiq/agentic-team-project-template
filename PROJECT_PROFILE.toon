@@ -137,6 +137,53 @@ decisions:
       - docs/context-store.md
       - .agentic-template/bin/project ready
     consequence_if_changed: architecture drift remains dependent on reviewer recall
+  - id: portable_context_router
+    decision: route context depth and timing by profile, never required behaviour
+    reason:
+      - capable models lose reasoning to duplicated and contradictory guidance
+      - unfamiliar runtimes and high-risk work still need explicit scaffolding
+      - a template cannot know which model or runtime will read it
+    confidence: medium
+    status: active
+    validation:
+      - .agentic-template/bin/project context check
+      - .agentic-template/bin/project context test
+      - docs/wiki/method/context-router.md
+    consequence_if_changed: context size becomes a fixed guess that is wrong for some readers
+  - id: capability_by_observation_not_registry
+    decision: license lean context from fixture-scored behaviour, never from model identity
+    reason:
+      - self-reported identity can be absent or wrong
+      - the same model behaves differently across runtimes
+      - a model registry is stale the week after it is written
+    confidence: medium
+    status: active
+    validation:
+      - .agents/context/qualification/QUALIFICATION.toon
+      - .agentic-template/fixtures/qualification-repo
+    consequence_if_changed: routing becomes a reputation judgement rather than evidence
+  - id: wiki_method_product_axis
+    decision: every wiki page declares axis method or product, matching its directory
+    reason:
+      - methodology is inherited from the template; product documentation is written by the project
+      - generated-project users should not read template procedure beside their domain model
+      - agents need to know which pages they rewrite after /specialise
+    confidence: high
+    status: active
+    validation:
+      - .agentic-template/bin/project context check
+      - docs/wiki/index.md
+    consequence_if_changed: generated wikis interleave inherited procedure with project knowledge
+  - id: yaml_skill_frontmatter_deviation
+    decision: keep skill frontmatter in YAML despite the TOON default for state
+    reason:
+      - native skill loaders in supported hosts parse YAML
+      - the parsed subset is identical, so one parser serves both
+    confidence: high
+    status: active
+    validation:
+      - .agentic-template/lib/skills.py
+    consequence_if_changed: skills stop loading natively in at least one supported runtime
 
 unknowns:
   - id: target_project_domain
@@ -192,6 +239,22 @@ rejected_options:
       - .agentic-template/bin/project is explicit and directly testable
     evidence:
       - .agentic-template/bin/project
+  - id: model_capability_registry
+    option: maintain a table of models and their context capabilities
+    reason_rejected:
+      - stale within weeks of being written
+      - self-reported identity is unreliable
+      - the same model differs by runtime
+    evidence:
+      - .agents/context/qualification/QUALIFICATION.toon
+  - id: host_auto_memory_for_project_facts
+    option: rely on host-managed automatic memory instead of repository state
+    reason_rejected:
+      - not portable across Claude Code, Codex, OpenCode and Roo
+      - unversioned, unreviewable and invisible to CI
+      - becomes a second source of truth beside the repo-native context store
+    evidence:
+      - docs/context-store.md
 
 architecture:
   application_shape: unknown
@@ -268,6 +331,15 @@ tooling:
       - conformance
     guide: docs/context-store.md
     validator: .agentic-template/bin/project check
+  context_router:
+    scaffold_version: 1
+    profiles: [lean, standard, guarded]
+    default_on_uncertainty: standard
+    qualification: fixture_scored
+    observations: gitignored_in_template
+    guide: docs/wiki/method/context-router.md
+    config: .agents/context/README.md
+    validator: .agentic-template/bin/project context check
   knowledge:
     location: .agents/knowledge
     validator: .agentic-template/bin/check-knowledge
