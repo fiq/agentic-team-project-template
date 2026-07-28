@@ -29,6 +29,20 @@
               .agentic-template/bin/project check
               touch $out
             '';
+        context-router-tests =
+          let
+            pkgs = nixpkgs.legacyPackages.${system};
+          in
+            pkgs.runCommand "context-router-tests" {
+              nativeBuildInputs = [ pkgs.python3 ];
+            } ''
+              cp -r ${self} source
+              chmod -R u+w source
+              cd source
+              patchShebangs .agentic-template/bin
+              .agentic-template/bin/project context test
+              touch $out
+            '';
       });
 
       devShells = forAllSystems (system: {
