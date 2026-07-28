@@ -73,11 +73,16 @@ REQUIRED_FILES = [
     ".agentic-template/bin/worktree-status",
     ".agentic-template/bin/self-test",
     ".agentic-template/bin/context",
+    ".agentic-template/bin/context-test",
     ".agents/context/ROUTER.toon",
     ".agents/context/RECOVERY.toon",
     ".agents/context/runtimes.toon",
     ".agents/context/risk-rules.toon",
     ".agents/context/overrides.toon",
+    ".agents/context/TOPICS.toon",
+    ".agents/context/qualification/QUALIFICATION.toon",
+    "docs/wiki/method/context-router.md",
+    "docs/wiki/index.md",
 ]
 
 REQUIRED_EXECUTABLES = [

@@ -741,6 +741,9 @@ def main():
             print("failed  active spec not found")
             failures += 1
 
+        if not expect(work, "context router suite passes", PROJECT + ["context", "test"], 0):
+            failures += 1
+
     if failures:
         print()
         print(f"SELF TEST FAILED: {failures} failure(s)")

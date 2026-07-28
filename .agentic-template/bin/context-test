@@ -1,0 +1,19 @@
+#!/usr/bin/env python3
+"""Run the portable context router test suite. Internal; use `project context test`."""
+import subprocess
+import sys
+from pathlib import Path
+
+TESTS = Path.cwd() / ".agentic-template/tests"
+
+if __name__ == "__main__":
+    if not TESTS.is_dir():
+        print("ERROR")
+        print()
+        print(f"no test directory at {TESTS}")
+        sys.exit(2)
+    sys.exit(
+        subprocess.run(
+            [sys.executable, "-m", "unittest", "discover", "-s", str(TESTS), "-t", str(TESTS)]
+        ).returncode
+    )

@@ -7,6 +7,7 @@ Internal implementation. Invoke through:
 import argparse
 import os
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -323,6 +324,7 @@ SCAFFOLD_COPY = (
     ".agentic-template/lib/plan.py",
     ".agentic-template/lib/qualification.py",
     ".agentic-template/bin/context",
+    ".agentic-template/bin/context-test",
     ".agentic-template/tests/_support.py",
     ".agentic-template/tests/test_toon.py",
     ".agentic-template/tests/test_router_precedence.py",
@@ -535,6 +537,9 @@ def build_parser():
         "--verbose", action="store_true", help="print every file action; omit for a summary"
     )
     scaffold.set_defaults(handler=cmd_scaffold)
+
+    tests = subparsers.add_parser("test", help="run the context router test suite")
+    tests.set_defaults(handler=lambda args: subprocess.call([str(BIN / "context-test")]))
 
     return parser
 

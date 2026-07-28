@@ -100,5 +100,155 @@ class TestAC2ProjectValidates(ScaffoldTestCase):
         self.assertIn("pricing_rules", catalog["skills"])
 
 
+class TestAC3toAC5Profiles(ScaffoldTestCase):
+    def setUp(self):
+        super().setUp()
+        scaffold_into(self.project)
+
+    def _plan(self, *args):
+        result = project_run(self.project, "explain", "--format", "toon", *args)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        return toon.loads(result.stdout)["context_plan"]
+
+    def _qualify(self):
+        # Record a passing observation for the fixture environment.
+        project_run(self.project, "observe", "--event", "success", "--model", "m1")
+        path = next((self.project / ".agents/context/observations").glob("*.toon"))
+        data = toon.loads(path.read_text())
+        data["observation"]["result"] = "pass"
+        path.write_text(toon.dumps(data))
+
+    def test_ac3_lean_preloads_only_the_summary(self):
+        self._qualify()
+        plan = self._plan("--skill", "ship_slice", "--risk", "low", "--model", "m1")
+        self.assertEqual(plan["decision"]["profile"], "lean")
+        self.assertEqual(
+            {e["layer"] for e in plan["preload"] if e.get("skill")}, {"summary"}
+        )
+
+    def test_ac4_standard_adds_core_and_defers_procedure(self):
+        plan = self._plan("--skill", "ship_slice", "--risk", "low")
+        self.assertEqual(plan["decision"]["profile"], "standard")
+        self.assertIn("core", {e["layer"] for e in plan["preload"] if e.get("skill")})
+        self.assertIn("procedure", {e["layer"] for e in plan["defer"]})
+
+    def test_ac5_guarded_adds_procedure_verification_failure_modes_and_review(self):
+        plan = self._plan("--skill", "ship_slice", "--risk", "high")
+        self.assertEqual(plan["decision"]["profile"], "guarded")
+        layers = {e["layer"] for e in plan["preload"] if e.get("skill")}
+        self.assertTrue({"procedure", "verification", "failure_modes"} <= layers)
+        self.assertNotEqual(plan["independent_review"], "not_required")
+
+
+class TestAC6LocalOverride(ScaffoldTestCase):
+    def test_local_override_selects_lean_and_names_its_file(self):
+        scaffold_into(self.project)
+        result = project_run(
+            self.project, "explain", "--skill", "ship_slice", "--risk", "low",
+            "--model", "fixture-qualified-model",
+        )
+        self.assertIn("lean", result.stdout)
+        self.assertIn("overrides.local.toon", result.stdout)
+
+
+class TestAC7andAC8Qualification(ScaffoldTestCase):
+    def test_pack_and_scoring_run_inside_the_generated_project(self):
+        scaffold_into(self.project)
+        pack = project_run(self.project, "qualify")
+        self.assertEqual(pack.returncode, 0, pack.stdout)
+        self.assertIn("contract_read", pack.stdout)
+
+    def test_wrong_contract_sha_fails_inside_the_generated_project(self):
+        scaffold_into(self.project)
+        answers = self.project / "answers.toon"
+        answers.write_text(
+            toon.dumps(
+                {
+                    "answers": {
+                        "qualification_version": 1,
+                        "probes": [{"id": "contract_read", "sha": "0" * 16}],
+                    }
+                }
+            )
+        )
+        result = project_run(self.project, "qualify", "--score", str(answers))
+        self.assertEqual(result.returncode, 1)
+
+
+class TestAC9RiskFloorFromPaths(ScaffoldTestCase):
+    def test_touching_a_published_rule_forces_guarded_without_a_flag(self):
+        scaffold_into(self.project)
+        result = project_run(
+            self.project, "explain", "--skill", "pricing_rules",
+            "--paths", "specs/capabilities/CAP-001-pricing.toon",
+        )
+        self.assertIn("guarded", result.stdout)
+        self.assertIn("published_price_rule", result.stdout)
+
+
+class TestAC10toAC12RecoveryAndInvalidation(ScaffoldTestCase):
+    def setUp(self):
+        super().setUp()
+        scaffold_into(self.project)
+
+    def test_ac10_first_degradation_reloads_the_authoritative_source(self):
+        recorded = project_run(
+            self.project, "observe", "--event", "degraded", "--symptom", "skill_path_wrong"
+        )
+        self.assertIn("CATALOG.toon", recorded.stdout)
+        plan = project_run(self.project, "explain", "--skill", "ship_slice")
+        self.assertIn("RECOVER FIRST", plan.stdout)
+        self.assertIn("CATALOG.toon", plan.stdout)
+
+    def test_ac11_second_degradation_escalates_one_step(self):
+        project_run(self.project, "observe", "--event", "degraded", "--symptom", "unknown")
+        second = project_run(
+            self.project, "observe", "--event", "degraded", "--symptom", "unknown",
+            "--profile", "lean",
+        )
+        self.assertIn("escalate", second.stdout)
+        self.assertIn("standard", second.stdout)
+
+    def test_ac12_editing_the_contract_invalidates_the_observation(self):
+        project_run(self.project, "observe", "--event", "success")
+        agents = self.project / "AGENTS.md"
+        agents.write_text(agents.read_text() + "\n<!-- drift -->\n")
+        result = project_run(self.project, "explain", "--skill", "ship_slice", "--risk", "low")
+        self.assertIn("invalidated", result.stdout)
+        self.assertIn("standard", result.stdout)
+
+
+class TestAC13andAC14Explainability(ScaffoldTestCase):
+    def setUp(self):
+        super().setUp()
+        scaffold_into(self.project)
+
+    def test_ac13_toon_output_has_every_section(self):
+        result = project_run(self.project, "explain", "--skill", "ship_slice", "--format", "toon")
+        plan = toon.loads(result.stdout)["context_plan"]
+        for section in (
+            "decision", "environment", "task", "preload", "defer",
+            "verification", "recovery", "effort_directives",
+        ):
+            self.assertIn(section, plan)
+
+    def test_ac14_required_verification_is_identical_across_profiles(self):
+        required = []
+        for risk in ("low", "normal", "high"):
+            result = project_run(
+                self.project, "explain", "--skill", "ship_slice", "--risk", risk, "--format", "toon"
+            )
+            required.append(toon.loads(result.stdout)["context_plan"]["verification"]["required"])
+        self.assertEqual(required[0], required[1])
+        self.assertEqual(required[1], required[2])
+        self.assertTrue(required[0])
+
+    def test_every_decision_states_its_reasons_and_precedence(self):
+        result = project_run(self.project, "explain", "--skill", "ship_slice", "--format", "toon")
+        decision = toon.loads(result.stdout)["context_plan"]["decision"]
+        self.assertTrue(decision["reasons"])
+        self.assertEqual(len(decision["precedence_applied"]), 5)
+
+
 if __name__ == "__main__":
     unittest.main()
