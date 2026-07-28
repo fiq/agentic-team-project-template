@@ -1,0 +1,12 @@
+capability:
+  id: CAP-001
+  name: pricing
+  description: Compose discount, tax and rounding rules into a final price.
+  requirements:
+    - id: R1
+      text: A base price is discounted, then taxed, then rounded half-up.
+      scenarios:
+        - id: S1
+          when: a $10.00 item has a 10% discount and 15% tax
+          then: the final price is $9.18
+  acceptance_command: .agentic-template/bin/project contract-test

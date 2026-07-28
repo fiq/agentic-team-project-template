@@ -1,0 +1,6 @@
+project:
+  state: specialised
+  confidence: high
+context_router:
+  scaffold_version: 1
+  profile_policy: template_default

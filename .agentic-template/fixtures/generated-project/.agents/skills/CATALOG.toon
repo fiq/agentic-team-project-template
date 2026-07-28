@@ -1,0 +1,10 @@
+skills:
+  ship_slice:
+    path: workflow/ship-slice/SKILL.md
+    trigger: thin_slice_ready_to_ship
+  pricing_rules:
+    path: domain/pricing-rules/SKILL.md
+    trigger: price_rule_change_requested
+  context_qualification:
+    path: tooling/context-qualification/SKILL.md
+    trigger: no_observation_for_this_environment

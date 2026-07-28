@@ -6,6 +6,7 @@ Internal implementation. Invoke through:
 """
 import argparse
 import os
+import shutil
 import sys
 from pathlib import Path
 
@@ -309,6 +310,122 @@ def cmd_check(args):
     return 0
 
 
+SCAFFOLD_COPY = (
+    ".agentic-template/lib/toon.py",
+    ".agentic-template/lib/environment.py",
+    ".agentic-template/lib/router.py",
+    ".agentic-template/lib/observations.py",
+    ".agentic-template/lib/skills.py",
+    ".agentic-template/lib/plan.py",
+    ".agentic-template/lib/qualification.py",
+    ".agentic-template/bin/context",
+    ".agentic-template/tests/_support.py",
+    ".agentic-template/tests/test_toon.py",
+    ".agentic-template/tests/test_router_precedence.py",
+    ".agentic-template/tests/test_environment.py",
+    ".agentic-template/tests/test_observations.py",
+    ".agentic-template/tests/test_qualification.py",
+    ".agentic-template/fixtures/qualification-repo",
+    ".agents/context/ROUTER.toon",
+    ".agents/context/RECOVERY.toon",
+    ".agents/context/runtimes.toon",
+    ".agents/context/overrides.toon",
+    ".agents/context/qualification",
+    ".agents/skills/tooling/context-qualification/SKILL.md",
+)
+
+SCAFFOLD_STARTER = {
+    ".agents/context/TOPICS.toon": (
+        "# Project-owned. One canonical home per topic; markers must be 20+ characters.\n"
+        "version: 1\n"
+        "scan_roots: [AGENTS.md, .agents/, docs/]\n"
+        "exclude: [.agentic-template/, .agents/context/]\n"
+        "topics: []\n"
+        "candidates: []\n"
+    ),
+    ".agents/context/risk-rules.toon": (
+        "# Project-owned. First matching rule per path; highest risk across paths wins.\n"
+        "version: 1\n"
+        "default: normal\n"
+        "rules:\n"
+        "  - id: documentation\n"
+        '    paths: [docs/*, "*.md"]\n'
+        "    risk: low\n"
+    ),
+}
+
+SCAFFOLD_NEVER = (
+    ".agents/context/overrides.local.toon",
+    ".agents/context/observations",
+)
+
+
+def _scaffold_actions(target):
+    actions = []
+    for relative in SCAFFOLD_COPY:
+        source = ROOT / relative
+        destination = target / relative
+        if not source.exists():
+            actions.append(("missing", relative, "source absent from this template"))
+        elif not destination.exists():
+            actions.append(("create", relative, "copy"))
+        elif source.is_dir() or destination.read_bytes() != source.read_bytes():
+            actions.append(("update", relative, "copy"))
+        else:
+            actions.append(("unchanged", relative, "copy"))
+    for relative in SCAFFOLD_STARTER:
+        exists = (target / relative).exists()
+        actions.append(("keep" if exists else "create", relative, "starter"))
+    for relative in SCAFFOLD_NEVER:
+        actions.append(("skip", relative, "project-owned"))
+    return actions
+
+
+def cmd_scaffold(args):
+    target = Path(args.into).resolve()
+    if not target.is_dir():
+        return _fail(f"--into must be an existing directory: {target}")
+    if target == ROOT:
+        return _fail("refusing to scaffold the template into itself")
+    actions = _scaffold_actions(target)
+    print("SCAFFOLD " + ("apply" if args.apply else "dry run"))
+    print()
+    for verb, relative, kind in actions:
+        print(f"  {verb:<10} {kind:<9} {relative}")
+    if any(verb == "missing" for verb, _, _ in actions):
+        print()
+        return _fail("template is incomplete; run project check before scaffolding")
+    if not args.apply:
+        print()
+        print("  dry run: nothing written. Re-run with --apply.")
+        return 0
+    for verb, relative, kind in actions:
+        if kind == "copy" and verb in ("create", "update"):
+            source = ROOT / relative
+            destination = target / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            if source.is_dir():
+                shutil.copytree(source, destination, dirs_exist_ok=True)
+            else:
+                shutil.copy2(source, destination)
+        elif kind == "starter" and verb == "create":
+            destination = target / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_text(SCAFFOLD_STARTER[relative])
+    (target / ".agents/context/observations").mkdir(parents=True, exist_ok=True)
+    # Warn if the target's project facade does not dispatch 'context'.
+    project_facade = target / ".agentic-template/bin/project"
+    if project_facade.exists():
+        facade_text = project_facade.read_text()
+        if '"context"' not in facade_text and "context" not in facade_text:
+            print()
+            print("  note: .agentic-template/bin/project does not dispatch 'context';")
+            print("        add a 'context' entry to its COMMANDS table.")
+    print()
+    print("  next: .agentic-template/bin/project context check")
+    return 0
+
+
 def build_parser():
     parser = argparse.ArgumentParser(
         prog=".agentic-template/bin/project context",
@@ -359,6 +476,15 @@ def build_parser():
     qualify.add_argument("--model")
     qualify.add_argument("--runtime")
     qualify.set_defaults(handler=cmd_qualify)
+
+    scaffold = subparsers.add_parser(
+        "scaffold", help="install the portable context router into a project"
+    )
+    scaffold.add_argument("--into", required=True, help="target project directory")
+    scaffold.add_argument(
+        "--apply", action="store_true", help="write files; omit for a dry run"
+    )
+    scaffold.set_defaults(handler=cmd_scaffold)
 
     return parser
 

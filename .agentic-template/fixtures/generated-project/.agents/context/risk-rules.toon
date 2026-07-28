@@ -1,0 +1,9 @@
+version: 1
+default: normal
+rules:
+  - id: published_price_rule
+    paths: [specs/capabilities/*, src/pricing/rules/*]
+    risk: high
+  - id: documentation
+    paths: [docs/*, "*.md"]
+    risk: low
