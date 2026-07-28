@@ -4,6 +4,7 @@
 Self-contained: resolves the repo root from this script's own location, puts
 the library on sys.path, and runs unittest discover. No PYTHONPATH needed.
 """
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -20,7 +21,7 @@ if __name__ == "__main__":
         print()
         print(f"no test directory at {TESTS}")
         sys.exit(2)
-    env = dict(__import__("os").environ)
+    env = dict(os.environ)
     # Put lib on PYTHONPATH so test modules can import toon, router, etc.
     existing = env.get("PYTHONPATH", "")
     env["PYTHONPATH"] = f"{LIB}:{existing}" if existing else str(LIB)

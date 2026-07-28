@@ -8,6 +8,10 @@ proposal_type: pattern
 relates_to:
   - INBOX-003
   - INBOX-008
+  - PROJECT_PROFILE.toon#decisions.portable_context_router
+  - PROJECT_PROFILE.toon#decisions.capability_by_observation_not_registry
+  - PROJECT_PROFILE.toon#decisions.wiki_method_product_axis
+  - PROJECT_PROFILE.toon#decisions.yaml_skill_frontmatter_deviation
 evidence:
   - https://www.infoq.com/articles/ai-speed-context-store-architecture/
   - docs/wiki/method/context-router.md
