@@ -97,8 +97,10 @@ knowledge:
   consulted:
     - .agents/knowledge/index.md
     - .agents/knowledge/TAXONOMY.md
-  proposals: []
-  no_record: template-level change; no new domain knowledge entry needed
+    - .agents/knowledge/inbox/INBOX-009-portable-context-router.md
+  proposals:
+    - .agents/knowledge/patterns/PAT-001-portable-context-router.md
+  no_record: null
 
 team_fallback:
   current: single lead agent using explicit review checklist

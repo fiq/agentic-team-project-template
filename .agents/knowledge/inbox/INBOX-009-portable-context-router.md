@@ -2,12 +2,14 @@
 id: INBOX-009
 type: inbox
 title: Route context depth by observed capability and task risk
-status: proposed
-summary: A portable context router with three profiles (lean, standard, guarded) chosen by override, fixture-scored qualification, degradation state and task-risk floors. Profiles change how much context is loaded, never required behaviour.
+status: superseded
+superseded_by: PAT-001-portable-context-router
+summary: A portable context router with three profiles (lean, standard, guarded) chosen by override, fixture-scored qualification, degradation state and task-risk floors. Profiles change how much context is loaded, never required behaviour. Promoted to PAT-001.
 proposal_type: pattern
 relates_to:
   - INBOX-003
   - INBOX-008
+  - PAT-001-portable-context-router
   - PROJECT_PROFILE.toon#decisions.portable_context_router
   - PROJECT_PROFILE.toon#decisions.capability_by_observation_not_registry
   - PROJECT_PROFILE.toon#decisions.wiki_method_product_axis
@@ -21,8 +23,9 @@ evidence:
   - .agentic-template/fixtures/generated-project
   - .agentic-template/bin/context
   - .agentic-template/tests/test_scaffold_acceptance.py
+  - /tmp/vrunnable-scaffold-test (real-project scaffold verification)
 created_during: portable context router thin slice
-recommended_action: promote to PAT after a real generated project uses the router and reports that profile-based preloading improves startup, review or handoff quality without excess ceremony
+recommended_action: promoted to PAT-001 after a real VRunnable clone scaffold verified the router works end-to-end
 expires_after: 2026-10-28
 ---
 
