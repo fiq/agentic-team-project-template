@@ -81,6 +81,25 @@ discover
 6. Specialise CI through repository commands.
 7. Make non-applicable commands explicit and recorded as such.
 8. Inspect tooling, Superpowers and MCP expectations.
+9. Remove template-only artefacts that are not needed by the specialised
+   project. Record the decision in `PROJECT_PROFILE.toon`. Candidates:
+
+   - `.agentic-template/fixtures/` — template test fixtures (qualification-repo,
+     generated-project, rust-sample-project). Remove unless the project uses
+     the qualification system.
+   - `.agentic-template/bin/self-test` — tests the template, not the project.
+     Remove unless the project wants to verify the router after specialisation.
+   - `plans/` and `docs/superpowers/plans/` — template review plans. Remove.
+   - `.agentic-template/tests/test_static_analysis.py` — tests the template's
+     own harness. Remove; the project should have its own tests.
+
+   Keep unless there is a reason to remove:
+
+   - `.agentic-template/tests/test_toon.py`, `test_router_precedence.py`,
+     `test_environment.py`, `test_observations.py`, `test_qualification.py` —
+     these test the context router infrastructure the project depends on.
+   - `.agentic-template/bin/context-test` — runs the router test suite.
+   - `.agentic-template/bin/check-secrets` — useful for any project.
 
 ### 4. Rewrite top-level project identity
 
