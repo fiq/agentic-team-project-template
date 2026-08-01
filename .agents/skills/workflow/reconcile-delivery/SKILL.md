@@ -1,6 +1,22 @@
 ---
 name: reconcile-delivery
 description: Reconcile planned architecture and acceptance criteria against what was actually delivered.
+id: SKILL-reconcile-delivery
+triggers: [before_delivery_pr, material_scope_change, project_delivery, documentation_drift]
+default_task_risk: normal
+required_runtime: [shell, repo_search]
+layers:
+  core: core.md
+  procedure: procedure.md
+  verification: verification.md
+  failure_modes: failure-modes.md
+verification:
+  - .agentic-template/bin/project ready
+  - .agentic-template/bin/project check
+recovery_sources:
+  - .agents/skills/CATALOG.toon
+  - HANDOFF.toon
+status: active
 ---
 
 # Reconcile Delivery
@@ -9,61 +25,3 @@ description: Reconcile planned architecture and acceptance criteria against what
 
 Ensure documentation, specs, profiles and handoff state truthfully reflect
 the delivered repository, not stale intentions.
-
-## When to trigger
-
-- before a delivery PR;
-- after material scope changes;
-- before declaring the project delivered;
-- when `project ready` reports documentation drift.
-
-## Procedure
-
-1. Read `PROJECT_PROFILE.toon`, `HANDOFF.toon`, `README.md`, `AGENTS.md`.
-2. Read in-flight change proposals under `specs/changes/` and living
-   requirements under `specs/capabilities/`.
-3. Read architecture overview under `docs/architecture/`.
-4. Read ADR summaries under `docs/decisions/`.
-5. Walk the repository structure and compare against documented claims.
-6. Classify each acceptance item:
-
-   | classification | meaning                                                |
-   |----------------|--------------------------------------------------------|
-   | `delivered`    | present, tested, documented                            |
-   | `changed`      | delivered but differs from the original spec           |
-   | `deferred`     | intentionally postponed with a recorded revisit       |
-   | `removed`      | intentionally dropped with a recorded reason           |
-   | `missing`      | expected by a spec or README but absent without reason |
-
-7. For each `missing` item, either implement it, move it to `deferred`, or
-   update the spec to `removed` with a reason.
-8. Update:
-
-   - `README.md` runtime architecture, repository structure and delivery state;
-   - `AGENTS.md` canonical commands and architecture rules;
-   - `PROJECT_PROFILE.toon` facts, inferences and decisions;
-   - `HANDOFF.toon` current objective and next actions;
-   - architecture overview under `docs/architecture/`;
-   - ADR links under `docs/decisions/`;
-   - in-flight change status under `specs/changes/`.
-
-9. Archive delivered changes: move `specs/changes/<id>/` to `specs/archive/`
-   and fold their deltas into `specs/capabilities/`, or mark delivered in
-   place.
-
-## Ready gate
-
-`project ready` must fail when:
-
-- README or AGENTS still describes the project as a template;
-- documentation references missing services or files;
-- active specs claim major components that are not delivered or explicitly
-  deferred;
-- commands documented in README do not exist.
-
-## Do not
-
-- Leave stale architecture claims in the README.
-- Keep delivered changes in `specs/changes/` without archiving or a delivered
-  marker.
-- Pretend a deferred component is delivered.

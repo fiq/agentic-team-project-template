@@ -24,7 +24,7 @@ topics:
 # Known duplications awaiting migration. These warn; they do not fail.
 candidates:
   - id: model_classes
-    canonical: .agents/skills/tooling/model-routing/SKILL.md
+    canonical: .agents/skills/tooling/model-routing/core.md
     marker: "Lesser or local model:"
     finding: D1
   - id: model_handoff_protocol
