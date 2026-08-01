@@ -461,19 +461,28 @@ def cmd_scaffold(args):
     (target / ".agents/context/observations").mkdir(parents=True, exist_ok=True)
 
     # P1: ensure the scaffolded qualification skill is catalogued so
-    # `context check` does not fail on a router-only adoption path.
+    # `context check` does not fail on a router-only adoption path. When the
+    # target has no catalog at all, create a starter one.
     catalog_path = target / ".agents/skills/CATALOG.toon"
-    if catalog_path.exists():
-        catalog_text = catalog_path.read_text()
-        if "context_qualification" not in catalog_text:
-            catalog_path.write_text(
-                catalog_text.rstrip()
-                + "\n\n  context_qualification:\n"
-                "    path: tooling/context-qualification/SKILL.md\n"
-                "    trigger: no_observation_for_this_environment\n"
-            )
-            print()
-            print("  updated: .agents/skills/CATALOG.toon (added context_qualification)")
+    if not catalog_path.exists():
+        catalog_path.parent.mkdir(parents=True, exist_ok=True)
+        catalog_path.write_text(
+            "skills:\n"
+            "  context_qualification:\n"
+            "    path: tooling/context-qualification/SKILL.md\n"
+            "    trigger: no_observation_for_this_environment\n"
+        )
+        print()
+        print("  created: .agents/skills/CATALOG.toon (starter catalog)")
+    elif "context_qualification" not in catalog_path.read_text():
+        catalog_path.write_text(
+            catalog_path.read_text().rstrip()
+            + "\n\n  context_qualification:\n"
+            "    path: tooling/context-qualification/SKILL.md\n"
+            "    trigger: no_observation_for_this_environment\n"
+        )
+        print()
+        print("  updated: .agents/skills/CATALOG.toon (added context_qualification)")
 
     # D4: install a minimal project facade when one doesn't exist.
     # B2: when one exists but doesn't dispatch 'context', print the exact line.
