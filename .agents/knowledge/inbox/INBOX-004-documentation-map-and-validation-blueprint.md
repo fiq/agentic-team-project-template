@@ -11,7 +11,7 @@ evidence:
   - docs/README.md
   - docs/validation.md
   - .agentic-template/bin/docs-map
-created_during: import vrunnable documentation patterns
+created_during: import documentation patterns from an existing project
 recommended_action: promote to PAT if generated projects keep docs easier to navigate after specialisation
 expires_after: 2026-10-26
 ---
@@ -26,6 +26,6 @@ map points agents and humans to deeper operating material.
 
 ## Rationale
 
-This imports the useful part of `vrunnable`'s operational documentation style:
+This imports the useful part of an existing project's operational documentation style:
 clear navigation, explicit validation limits and handoff recording, without
 copying domain-specific VR runbooks into unrelated projects.

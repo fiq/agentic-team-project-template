@@ -12,7 +12,7 @@ evidence:
   - .agentic-template/bin/worktree-status
   - .agents/skills/coordination/backlog-status/SKILL.md
   - .agents/skills/coordination/worktree-status/SKILL.md
-created_during: import vrunnable workflow status patterns
+created_during: import workflow status patterns from an existing project
 recommended_action: promote to PAT if these commands reduce coordination drift in generated projects
 expires_after: 2026-10-26
 ---
@@ -29,6 +29,6 @@ Expose current work and worktree state through read-only repository commands:
 
 ## Rationale
 
-This imports the useful part of `vrunnable`'s `feature-backlog` and
+This imports the useful part of an existing project's `feature-backlog` and
 `worktree-status` skills while avoiding merge automation or destructive cleanup
 in the generic template.

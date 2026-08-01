@@ -10,8 +10,8 @@ relates_to:
 evidence:
   - docs/runbooks/README.md
   - docs/runbooks/RUNBOOK_TEMPLATE.md
-  - vrunnable docs/runbooks pattern
-created_during: import vrunnable documentation patterns
+  - existing project docs/runbooks pattern
+created_during: import documentation patterns from an existing project
 recommended_action: promote to PAT if generated projects use runbooks without accumulating generic provider clutter
 expires_after: 2026-10-26
 ---
@@ -26,6 +26,6 @@ secrets, release, provisioning or manual validation.
 
 ## Rationale
 
-This preserves the useful operational discipline from `vrunnable` while
+This preserves the useful operational discipline from an existing project while
 avoiding generic cloud or provider instructions in specialised projects that do
 not need them.
