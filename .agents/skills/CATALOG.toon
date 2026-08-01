@@ -160,6 +160,10 @@ skills:
     path: specialise/runtime-perl/SKILL.md
     trigger: perl_or_raku_detected
 
+  runtime_ruby:
+    path: specialise/runtime-ruby/SKILL.md
+    trigger: ruby_detected
+
   runtime_godot:
     path: specialise/runtime-godot/SKILL.md
     trigger: godot_detected
