@@ -1,9 +1,65 @@
 """Tests for the static-analysis skill and CI pipeline shape."""
+import subprocess
+import tempfile
 import unittest
+from pathlib import Path
 
 import _support  # noqa: F401
 
 ROOT = _support.ROOT
+BIN = _support.BIN
+
+
+class TestCheckSecrets(unittest.TestCase):
+    def test_clean_repo_passes(self):
+        result = subprocess.run(
+            [str(BIN / "check-secrets")],
+            cwd=ROOT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("SECRETS CHECK OK", result.stdout)
+
+    def test_planted_secret_is_detected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "leak.txt").write_text("api key: sk-abcdefghijklmnopqrstuvwxyz1234567890\n")
+            result = subprocess.run(
+                [str(BIN / "check-secrets")],
+                cwd=root,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 1, result.stdout)
+            self.assertIn("SECRETS CHECK FAILED", result.stdout)
+            self.assertIn("leak.txt", result.stdout)
+
+    def test_private_key_block_is_detected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "key.pem").write_text(
+                "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA\n-----END RSA PRIVATE KEY-----\n"
+            )
+            result = subprocess.run(
+                [str(BIN / "check-secrets")],
+                cwd=root,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 1, result.stdout)
+            self.assertIn("private key", result.stdout.lower())
+
+    def test_check_secrets_is_in_project_check(self):
+        text = (ROOT / ".agentic-template/bin/project").read_text()
+        self.assertIn("check-secrets", text)
+
+    def test_check_secrets_is_in_repo_contract(self):
+        text = (ROOT / ".agentic-template/bin/check-repo-contract").read_text()
+        self.assertIn("check-secrets", text)
 
 
 class TestStaticAnalysisSkill(unittest.TestCase):
