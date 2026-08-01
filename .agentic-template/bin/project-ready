@@ -6,6 +6,8 @@ PASS / NOT APPLICABLE / FAIL summary.
 
 A skipped unresolved decision is FAIL, not NOT APPLICABLE.
 """
+import importlib.machinery
+import importlib.util
 from pathlib import Path
 import subprocess
 import sys
@@ -13,6 +15,48 @@ import sys
 ROOT = Path.cwd()
 BIN = Path(__file__).resolve().parent
 COMMAND_NAME = ".agentic-template/bin/project"
+
+
+def _load_project_dispatcher():
+    """Import the `project` dispatcher module to read its UNSPECIALISED set.
+
+    `project --list` cannot be used for this: it always prints the union of
+    COMMANDS and UNSPECIALISED (every command name appears either way), so it
+    cannot distinguish a specialised command from one that still fails
+    clearly with "harness not specialised".
+    """
+    loader = importlib.machinery.SourceFileLoader("_project_dispatcher", str(BIN / "project"))
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+# Runtime commands in shift-left order: static analysis gates the build, the
+# build gates the tests. Kept as data so the selection logic below stays
+# directly testable without running the whole readiness suite.
+RUNTIME_COMMANDS = (
+    ("lint", "lint"),
+    ("build", "build"),
+    ("test", "unit tests"),
+    ("integration-test", "integration tests"),
+    ("contract-test", "contract tests"),
+)
+
+
+def select_runtime_commands(is_template, unspecialised):
+    """Return the (command, label) pairs `ready` should run for this project.
+
+    A command is run only once /specialise has actually moved it out of the
+    dispatcher's UNSPECIALISED set. Template state runs none of them.
+    """
+    if is_template:
+        return []
+    return [
+        (command, label)
+        for command, label in RUNTIME_COMMANDS
+        if command not in unspecialised
+    ]
 
 
 def read_profile():
@@ -77,38 +121,21 @@ def main():
         ([str(BIN / "check-readme")], "documentation"),
     ]
 
-    # Tests and lint are unspecialised in template state; only run if
-    # specialised. We detect specialisation by checking whether the
-    # `project` dispatcher still treats them as unspecialised.
+    # Lint and build are unspecialised in template state; only run them once
+    # /specialise has actually moved them out of UNSPECIALISED. Order matches
+    # the shift-left contract: lint, then build, then test.
     project_script = str(BIN / "project")
-    specialised_commands = set()
-    list_result = subprocess.run(
-        [project_script, "--list"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-    )
-    if list_result.returncode == 0:
-        specialised_commands = set(list_result.stdout.split())
+    unspecialised = _load_project_dispatcher().UNSPECIALISED
 
-    if not is_template:
-        if "test" in specialised_commands:
-            steps.append(([project_script, "test"], "unit tests"))
-        if "lint" in specialised_commands:
-            steps.append(([project_script, "lint"], "lint"))
-        if "integration-test" in specialised_commands:
-            steps.append(([project_script, "integration-test"], "integration tests"))
-        if "contract-test" in specialised_commands:
-            steps.append(([project_script, "contract-test"], "contract tests"))
+    for command, label in select_runtime_commands(is_template, unspecialised):
+        steps.append(([project_script, command], label))
 
     # Container checks.
     if is_template:
         pass
     elif dockerfile_present and docker_available:
-        if "image-test" in specialised_commands:
+        if "image-test" not in unspecialised:
             steps.append(([project_script, "image-test"], "container image test"))
-        elif "image" in specialised_commands:
-            steps.append(([project_script, "image"], "container image build"))
         else:
             steps.append(([project_script, "image"], "container image build"))
     elif dockerfile_present and not docker_available:
@@ -117,11 +144,11 @@ def main():
     # Compose checks.
     if not is_template and compose_present and docker_available:
         steps.append(([project_script, "compose-config"], "compose config"))
-        if "compose-test" in specialised_commands:
+        if "compose-test" not in unspecialised:
             steps.append(([project_script, "compose-test"], "compose test"))
 
     # Infra checks.
-    if not is_template and "infra-check" in specialised_commands:
+    if not is_template and "infra-check" not in unspecialised:
         steps.append(([project_script, "infra-check"], "infra check"))
 
     passed = []
