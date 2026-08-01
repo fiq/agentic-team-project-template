@@ -62,6 +62,26 @@ Use real dependencies where semantics matter and cost is reasonable. Do not let
 mocked tests overclaim confidence. See
 `.agents/skills/workflow/outside-in-tdd/SKILL.md`.
 
+## Proving a test is valid
+
+A green test proves nothing until you have seen it fail. Vacuous tests —
+asserting something always true, never reaching the path they claim to cover,
+or passing with the implementation deleted — are easy to write and impossible
+to spot in a passing run.
+
+```
+red first     the test fails BEFORE the implementation exists
+green         the smallest change makes it pass
+prove it      break the code again; the SAME test must fail, then restore
+```
+
+The third step is what separates a test that guards behaviour from one that
+decorates it. It applies to tests written after the code, to regression tests
+(which must fail against the unfixed code), and to tooling checks (break the
+input the check exists to catch). The full procedure, including what to do
+when a test refuses to fail, is in
+`.agents/skills/workflow/outside-in-tdd/verification.md`.
+
 ## Static analysis
 
 Static analysis is a shift-left gate that runs before tests in CI. It catches

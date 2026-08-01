@@ -32,3 +32,10 @@ Vocabulary for how this repository works. Domain vocabulary lives in
 | Deployment pipeline | The CD flow: how built artefacts are promoted to environments; evolvable target (container, Lambda, etc.) |
 | Build pipeline | Nix-first reproducible build producing deployable artefacts; evolvable build targets |
 | Nix-first build | Nix owns the developer toolchain; `project build` runs inside the Nix shell for reproducibility |
+| Knowledge ontology | The declared node types, ID prefixes and edge types in `TAXONOMY.md`; extensible per project |
+| Knowledge edge | A typed relation between graph nodes (`depends_on`, `consumes`, `decisions`, `supersedes`, …), validated by `check-knowledge` |
+| Entry status | Trust level of a knowledge entry: `canonical`, `proposed`, `experimental`, `deprecated`, `superseded` or `stale` |
+| Promotion | Moving a discovery from an `INBOX-` proposal to canonical knowledge, on evidence, repetition or review |
+| Bounded subagent | A delegate with a declared task boundary, context budget, expected output and completion condition |
+| Agent topology | How agents coordinate: persistent team, independent subagents, sequential role passes, or a single lead with a checklist |
+| Tooling detection | Recording whether Superpowers or MCP servers are available, without assuming, vendoring or mutating global state |

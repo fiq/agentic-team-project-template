@@ -19,6 +19,13 @@ A framework for AI agents and humans to collaborate on principal-level engineeri
   see the startup sequence and options before executing shell commands. That is
   it.
 
+> **"I already have a CLAUDE.md and some skill files — why this?"**
+> Because these rules fail. `project check` runs nine deterministic gates, so
+> an agent that skips a required handoff section, invents a knowledge edge, or
+> leaves a credential in a committable file is caught — not trusted to have
+> read the prose. See
+> [Why this, not just a skill file](docs/wiki/method/why-this-not-a-skill.md).
+
 ## How it works (for engineers)
 
 1. **You provide project intent** - briefs, constraints, user stories, artifacts.
@@ -198,7 +205,7 @@ archive -------> specs/capabilities/ + wiki keeps docs and knowledge graph curre
 - **Quality is standing, not a phase.** Boy-scout rule, reuse over duplication, pay in-path debt, docs land in the change, no silent TODOs.
 - **Right-sizing is conscious.** The smallest sufficient architecture is chosen, explicitly. What is excluded and why are recorded. Revisit conditions are named.
 - **Use the right framework.** Don't build from first principles when a mature, well-supported framework solves the problem. Hand-rolling what a framework provides is a smell.
-- **Knowledge forms one graph.** `AGENTS.md` + `PROJECT_PROFILE.toon` + specs + `HANDOFF.toon` + `.agents/knowledge/` + wiki all connect via `TAXONOMY.md`. Agents search before acting.
+- **Knowledge is a typed, checked graph.** `.agents/knowledge/` is closer to a small git-native knowledge base than a folder of notes. Nodes are typed and addressable (`DOM-`, `SYS-`, `CON-`, `ARCH-`, `ADR-`, `PAT-`, `RISK-`, `Q-`, `LRN-`) and connect through declared edges (`depends_on`, `consumes`, `produces`, `decisions`, `risks`, `supersedes`). Edges are validated: a dangling reference fails `check-knowledge`, and a spec citing a non-existent node fails `check-changes`. That makes "which risks touch this capability, and which decision accepted them?" a traversal rather than a grep — answerable without the session that produced it. Specs, ADRs and wiki pages join the same graph via `TAXONOMY.md`.
 - **Context is repo-native.** Structure, lineage, behavior and conformance live
   in versioned files and checks, with external memory added only when evidence
   justifies it.

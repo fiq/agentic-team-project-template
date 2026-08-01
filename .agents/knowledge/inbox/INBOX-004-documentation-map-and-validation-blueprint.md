@@ -28,4 +28,4 @@ map points agents and humans to deeper operating material.
 
 This imports the useful part of an existing project's operational documentation style:
 clear navigation, explicit validation limits and handoff recording, without
-copying domain-specific VR runbooks into unrelated projects.
+copying domain-specific runbooks into unrelated projects.

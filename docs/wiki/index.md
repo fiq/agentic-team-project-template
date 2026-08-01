@@ -20,6 +20,7 @@ New here? Start with [Agents](method/agents.md) for startup and roles, or
 | [Development](method/development.md) | Day-to-day lifecycle and command sequence |
 | [Testing](method/testing.md) | Validation strategy, static analysis and layer selection |
 | [Portable context router](method/context-router.md) | Why and how context depth is routed |
+| [Why this, not just a skill file](method/why-this-not-a-skill.md) | What the template buys over a hand-written contract |
 | [Method glossary](method/glossary.md) | Vocabulary for the way we work |
 
 ## Product — what we are building

@@ -46,7 +46,8 @@ invoke them through `project <command>`.
 | `project check-changes` | Validate structured change proposals and capabilities |
 | `project check-wiki` | Warn on wiki drift from the knowledge graph and specs |
 | `project check-readme` | Validate README is not template-facing and has required sections |
-| `project install-hooks` | Opt-in: install a non-blocking wiki-drift pre-commit hook |
+| `project install-hooks` | Opt-in: install the pre-commit gate declared in `.agents/hooks.toon` |
+| `project hooks` | Run the pre-commit checks now, without committing |
 | `project docs` | Print compact documentation navigation |
 | `project backlog` | Print current in-progress and next work from HANDOFF.toon |
 | `project worktree-status` | Print read-only agent worktree status |
@@ -110,8 +111,17 @@ design for prod   observability recorded from the start, not bolted on
 - `project lint` runs before `project test` in CI. It covers the full static
   analysis spectrum: lint, type-check, SAST, dependency scanning, complexity
   and DAST where applicable — not just style linting.
-- A pre-commit hook (opt-in via `project install-hooks`) runs a fast subset
-  of `project lint` before a commit is created.
+- A pre-commit gate (opt-in via `project install-hooks`) runs the checks
+  declared in `.agents/hooks.toon` before a commit is created. Checks run
+  concurrently and each carries a timeout, so the gate costs about as long as
+  its slowest check. Each check is `blocking` (a failure stops the commit) or
+  advisory (a failure is reported and the commit proceeds). Secret scanning
+  blocks by default; wiki drift is advisory.
+- Keep the gate to a couple of seconds. Slow analysis — full SAST, dependency
+  scanning, DAST, e2e — belongs in CI, not in the commit path. A gate that
+  makes people reach for `--no-verify` has failed.
+- `.agents/hooks.toon` is project-owned and editable directly by agents;
+  changes take effect without reinstalling the hook.
 - `project build` produces reproducible artefacts (Nix-first).
 - Deployment pipeline and observability decisions are recorded at
   `/specialise`, even when deferred.
@@ -154,6 +164,16 @@ This keeps YAGNI deliberate and revisitable rather than unexamined.
 ## Testing expectations
 
 - Default to test-first for meaningful behaviour.
+- Prove every test can fail. A test that has only ever been observed passing
+  is not evidence: it may assert something always true, never reach the path
+  it claims to cover, or pass with the implementation deleted. Watch it fail
+  before the implementation exists, and for a test written after the code,
+  break what it guards and confirm it goes red — then restore and rerun. The
+  procedure, including bug fixes and tooling checks, is in
+  [`workflow/outside-in-tdd/verification.md`](.agents/skills/workflow/outside-in-tdd/verification.md).
+- Never weaken an assertion to make a suite green; that turns a real failure
+  into a permanent blind spot. Record in `HANDOFF.toon.tests_run` what was
+  actually verified, including tests not yet proven and why.
 - Static analysis is a shift-left gate: `project lint` runs before tests in CI
   and catches defects, type errors, security issues and complexity drift
   before review. Generated projects must specialise `lint` at `/specialise`.

@@ -51,7 +51,25 @@ archive change → specs/capabilities/  +  wiki-tidy keeps docs and the
 - Quality is standing, not a phase: reuse over duplication, pay in-path debt,
   docs land in the change, no silent TODOs.
 - `project check-changes` validates specs; `project check-wiki` warns on wiki
-  drift; `project install-hooks` opts into a non-blocking pre-commit.
+  drift; `project install-hooks` opts into the pre-commit gate.
+
+## Pre-commit gate
+
+`project install-hooks` installs a gate that runs the checks declared in
+`.agents/hooks.toon`. Run them any time with `project hooks`.
+
+```
+commit ──► secrets    (blocking)   ┐
+           lint       (blocking)   ├─ concurrent, each with a timeout
+           wiki-drift (advisory)   ┘
+```
+
+- checks run concurrently, so the gate costs its slowest check, not the sum;
+- `blocking: true` stops the commit; `blocking: false` reports and continues;
+- an unspecialised `project` target is skipped, not failed;
+- edit `.agents/hooks.toon` to add or unblock a check — no reinstall needed;
+- keep it to a couple of seconds. Slow analysis belongs in CI. A gate people
+  bypass with `--no-verify` is worse than no gate.
 - Non-trivial handoff notes include the spec reference or no-spec rationale,
   fitness-function delta or no-change rationale, validation and knowledge
   update.
