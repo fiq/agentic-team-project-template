@@ -23,9 +23,9 @@ evidence:
   - .agentic-template/fixtures/generated-project
   - .agentic-template/bin/context
   - .agentic-template/tests/test_scaffold_acceptance.py
-  - /tmp/vrunnable-scaffold-test (real-project scaffold verification)
+  - real-project scaffold verification (fresh clone of an existing project)
 created_during: portable context router thin slice
-recommended_action: promoted to PAT-001 after a real VRunnable clone scaffold verified the router works end-to-end
+recommended_action: promoted to PAT-001 after a real-project scaffold verified the router works end-to-end
 expires_after: 2026-10-28
 ---
 

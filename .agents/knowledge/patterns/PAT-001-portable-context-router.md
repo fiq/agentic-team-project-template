@@ -25,7 +25,7 @@ evidence:
   - .agentic-template/tests/test_scaffold_acceptance.py
   - .agentic-template/tests/test_taxonomy_check.py
   - docs/wiki/method/context-router.md
-  - /tmp/vrunnable-scaffold-test (real-project scaffold verification)
+  - real-project scaffold verification (fresh clone of an existing project)
 reviewed_at: 2026-08-01
 review_after: 2026-10-28
 ---
@@ -64,9 +64,10 @@ review_after: 2026-10-28
 ## Evidence
 
 The pattern is validated by the template's own acceptance suite (239 tests,
-22 acceptance scenarios) and by a real-project scaffold into a fresh VRunnable
-clone: `context check` passes (`CONTEXT ROUTER OK`) and `context explain`
-resolves a skill and routes to `standard` for an unqualified environment.
+22 acceptance scenarios) and by a real-project scaffold into a fresh clone of
+an existing project: `context check` passes (`CONTEXT ROUTER OK`) and
+`context explain` resolves a skill and routes to `standard` for an
+unqualified environment.
 
 The real-project test surfaced one adoption gap — the scaffold did not create
 a `CATALOG.toon` when the target had none — which was fixed so the router-only
