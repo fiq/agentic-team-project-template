@@ -1,0 +1,14 @@
+project:
+  name: orbit
+  state: specialised
+  confidence: high
+
+audience:
+  skill_level: developer
+  app_shape: desktop_game
+
+architecture:
+  language: rust
+  framework: none
+  build: cargo
+  deployment: not_applicable

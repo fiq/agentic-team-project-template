@@ -1,0 +1,4 @@
+skills:
+  orbital_physics:
+    path: domain/orbital-physics/SKILL.md
+    trigger: physics_change_or_orbit_tuning

@@ -250,5 +250,69 @@ class TestAC13andAC14Explainability(ScaffoldTestCase):
         self.assertEqual(len(decision["precedence_applied"]), 5)
 
 
+RUST_FIXTURE = ROOT / ".agentic-template/fixtures/rust-sample-project"
+
+
+class RustFixtureTestCase(unittest.TestCase):
+    """Scaffold the router into the synthetic Rust sample project.
+
+    The fixture deliberately stresses the scaffold outside its comfort zone:
+    a Rust runtime (not specialised by the template), no existing
+    .agents/context/, an existing domain skill + catalog, and a flat legacy
+    wiki page that must not fail the axis check.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.project = Path(self.tmp.name) / "orbit"
+        shutil.copytree(RUST_FIXTURE, self.project)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+
+class TestRustFixtureScaffold(RustFixtureTestCase):
+    def test_scaffold_into_rust_project_passes_context_check(self):
+        result = scaffold_into(self.project)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        check = project_run(self.project, "check")
+        self.assertEqual(check.returncode, 0, check.stdout)
+        self.assertIn("CONTEXT ROUTER OK", check.stdout)
+
+    def test_existing_catalog_is_merged_not_clobbered(self):
+        scaffold_into(self.project)
+        catalog = toon.loads((self.project / ".agents/skills/CATALOG.toon").read_text())
+        self.assertIn("orbital_physics", catalog["skills"])
+        self.assertIn("context_qualification", catalog["skills"])
+
+    def test_domain_skill_layers_are_preserved(self):
+        scaffold_into(self.project)
+        for relative in (
+            ".agents/skills/domain/orbital-physics/SKILL.md",
+            ".agents/skills/domain/orbital-physics/core.md",
+            ".agents/skills/domain/orbital-physics/failure-modes.md",
+        ):
+            with self.subTest(file=relative):
+                self.assertTrue((self.project / relative).exists())
+
+    def test_legacy_flat_wiki_does_not_fail_the_axis_check(self):
+        scaffold_into(self.project)
+        self.assertTrue((self.project / "docs/wiki/operations.md").exists())
+        check = project_run(self.project, "check")
+        self.assertEqual(check.returncode, 0, check.stdout)
+        self.assertNotIn("wiki axis", check.stdout.lower())
+
+    def test_domain_skill_resolves_after_scaffold(self):
+        scaffold_into(self.project)
+        result = project_run(self.project, "explain", "--skill", "orbital_physics")
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("standard", result.stdout)
+
+    def test_rust_source_is_untouched(self):
+        original = (self.project / "src/main.rs").read_text()
+        scaffold_into(self.project)
+        self.assertEqual((self.project / "src/main.rs").read_text(), original)
+
+
 if __name__ == "__main__":
     unittest.main()

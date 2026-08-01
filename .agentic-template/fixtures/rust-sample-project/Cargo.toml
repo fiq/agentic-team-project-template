@@ -1,0 +1,12 @@
+[package]
+name = "orbit"
+version = "0.1.0"
+edition = "2021"
+description = "A tiny 2D orbital physics sandbox — a simple, visual, space-themed game."
+
+[dependencies]
+# No external dependencies: the game is intentionally dependency-free so the
+# fixture builds anywhere without network access.
+
+[profile.release]
+opt-level = 2
