@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+"""Fixture facade. Decoy: this is not the command the contract requires."""
+import sys
+
+if __name__ == "__main__":
+    print("Usage: bin/project check")
+    sys.exit(2)

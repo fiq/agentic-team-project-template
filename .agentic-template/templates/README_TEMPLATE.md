@@ -41,6 +41,9 @@ A generated project README must include:
     docs map and structured-data policy where relevant.
 17. **AI-assisted delivery statement** — where relevant, state that AI agents
     assisted delivery and where the operating contract lives.
+18. **Context routing** — state that the project carries a portable context router,
+    show `project context explain`, and note that method and product documentation are
+    separated by wiki axis.
 
 ## Template markers that must not remain
 

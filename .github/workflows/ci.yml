@@ -15,3 +15,5 @@ jobs:
         run: .agentic-template/bin/project check-readme
       - name: Readiness
         run: .agentic-template/bin/project ready
+      - name: Self test
+        run: .agentic-template/bin/project self-test

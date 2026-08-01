@@ -1,3 +1,7 @@
+---
+axis: product
+---
+
 # Architecture
 
 Use the smallest architecture that satisfies evidence and intent.

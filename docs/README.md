@@ -40,7 +40,7 @@ output.
 
 | Area | Path | Purpose |
 |---|---|---|
-| Development | `docs/wiki/development.md` | Lifecycle and command sequence |
+| Development | `docs/wiki/method/development.md` | Lifecycle and command sequence |
 | Specs | `specs/README.md` | Capabilities and change proposals |
 | Validation | `docs/validation.md` | What checks prove and where to record them |
 | Runbooks | `docs/runbooks/` | Optional repeatable operating procedures |
@@ -51,7 +51,8 @@ output.
 |---|---|---|
 | Knowledge | `.agents/knowledge/` | Searchable graph of durable knowledge |
 | Context store | `docs/context-store.md` | Repo-native structure, lineage, behavior and conformance map |
-| Wiki | `docs/wiki/` | Human-facing durable docs |
+| Context router | `docs/wiki/method/context-router.md` | Why and how context depth is routed; config reference in `.agents/context/README.md` |
+| Wiki | `docs/wiki/` | Human-facing durable docs, split by axis (method/product) |
 | Decisions | `docs/decisions/` | ADRs and decision records |
 | Structured data | `docs/structured-data.md` | TOON/S-expression policy |
 

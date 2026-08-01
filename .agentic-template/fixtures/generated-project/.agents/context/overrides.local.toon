@@ -1,0 +1,8 @@
+version: 1
+overrides:
+  - match:
+      model: fixture-qualified-model
+      runtime: "*"
+    profile: lean
+    reason: qualified against this project's fixture on 2026-07-26
+    expires: 2099-01-01

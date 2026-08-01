@@ -1,0 +1,605 @@
+#!/usr/bin/env python3
+"""Portable context router.
+
+Internal implementation. Invoke through:
+    .agentic-template/bin/project context <subcommand>
+"""
+import argparse
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+BIN = Path(__file__).resolve().parent
+sys.path.insert(0, str(BIN.parent / "lib"))
+
+import environment  # noqa: E402
+import observations  # noqa: E402
+import plan as plan_lib  # noqa: E402
+import qualification  # noqa: E402
+import router  # noqa: E402
+import skills  # noqa: E402
+import toon  # noqa: E402
+
+ROOT = Path.cwd()
+
+# The template root is where the scaffold's source files live. Resolved from
+# the script's own location so the scaffold works regardless of cwd.
+TEMPLATE_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _fail(message):
+    print("ERROR")
+    print()
+    print(message)
+    return 2
+
+
+def cmd_explain(args):
+    config = router.load_config(ROOT)
+    env = environment.build(ROOT, os.environ, model=args.model, runtime=args.runtime)
+    found = observations.lookup(ROOT, env)
+    skill = None
+    if args.skill or args.trigger:
+        skill = skills.resolve(ROOT, skill_id=args.skill, trigger=args.trigger)
+    risk, risk_source = plan_lib.classify_risk(ROOT, args.paths, args.risk)
+    task = router.Task(
+        risk=risk,
+        effort=args.effort,
+        skill_id=skill.id if skill else None,
+        paths=list(args.paths),
+    )
+    decision = router.resolve(
+        env, task, config, router.load_overrides(ROOT), found.observation
+    )
+    decision.reasons.append(f"task risk {risk} determined by {risk_source}")
+    document = plan_lib.build(ROOT, env, task, config, decision, skill, found)
+    renderer = plan_lib.render_toon if args.format == "toon" else plan_lib.render_text
+    print(renderer(document))
+    return 0
+
+
+def cmd_observe(args):
+    config = router.load_config(ROOT)
+    env = environment.build(ROOT, os.environ, model=args.model, runtime=args.runtime)
+    outcome = observations.record_event(
+        ROOT, env, args.event, args.symptom, config, args.profile
+    )
+    print(f"OBSERVATION {outcome.action}")
+    print()
+    print(f"  {outcome.message}")
+    if outcome.reload_source:
+        print(f"  reload  {outcome.reload_source}")
+    if outcome.escalated_profile:
+        print(f"  profile floor now {outcome.escalated_profile}")
+    print(f"  record  {observations.path_for(ROOT, env)}")
+    return 0
+
+
+def cmd_qualify(args):
+    if not args.score:
+        print(qualification.render_pack(qualification.pack(ROOT)))
+        return 0
+    try:
+        answers = toon.loads(Path(args.score).read_text())
+    except (OSError, toon.ToonError) as error:
+        print("QUALIFICATION uncertain")
+        print()
+        print(f"  note  could not read or parse {args.score}: {error}")
+        return 1
+    outcome = qualification.score(ROOT, answers)
+    print(f"QUALIFICATION {outcome.result}")
+    print()
+    for probe_id, verdict in outcome.probes.items():
+        print(f"  {verdict:<10} {probe_id}")
+    for note in outcome.notes:
+        print(f"  note  {note}")
+    if args.record:
+        env = environment.build(ROOT, os.environ, model=args.model, runtime=args.runtime)
+        observations.record_qualification(ROOT, env, outcome.result, outcome.probes)
+        print()
+        print(f"  recorded  {observations.path_for(ROOT, env)}")
+    return 0 if outcome.result == "pass" else 1
+
+
+MIN_MARKER = 20
+
+REQUIRED_FRONTMATTER = ("name", "description")
+
+
+def _scan_files(root, topics):
+    """Every Markdown or TOON file a topic marker may legitimately appear in."""
+    excluded = tuple(topics.get("exclude") or [])
+    found = []
+    for start in topics["scan_roots"]:
+        base = Path(root) / start
+        candidates = [base] if base.is_file() else sorted(base.rglob("*"))
+        for path in candidates:
+            if not path.is_file() or path.suffix not in (".md", ".toon"):
+                continue
+            relative = str(path.relative_to(root))
+            if any(relative.startswith(prefix) for prefix in excluded):
+                continue
+            found.append((relative, path))
+    return found
+
+
+def _check_markers(root, group, files, errors, sink):
+    for topic in group:
+        marker = str(topic["marker"])
+        if len(marker) < MIN_MARKER:
+            errors.append(
+                f"TOPICS.toon {topic['id']}: marker must be at least {MIN_MARKER} "
+                f"characters to be reliable, got {len(marker)}"
+            )
+            continue
+        needle = marker.lower()
+        hits = [
+            relative for relative, path in files if needle in path.read_text().lower()
+        ]
+        label = topic["id"] + (f" [{topic['finding']}]" if topic.get("finding") else "")
+        canonical_path = Path(root) / topic["canonical"]
+        in_home = canonical_path.exists() and needle in canonical_path.read_text().lower()
+        if not in_home:
+            sink.append(
+                f"{label}: marker absent from its canonical home {topic['canonical']}"
+            )
+        extra = [hit for hit in hits if hit != topic["canonical"]]
+        if extra:
+            sink.append(
+                f"{label}: canonical content duplicated in {', '.join(extra)}; "
+                f"canonical home is {topic['canonical']}"
+            )
+
+
+def _check_router_config(root, errors):
+    config = router.load_config(root)
+    order = config["order"]
+    for name in order:
+        if name not in config["profiles"]:
+            errors.append(f"ROUTER.toon order lists '{name}' with no profile definition")
+    for name, settings in config["profiles"].items():
+        if name not in order:
+            errors.append(f"ROUTER.toon profile '{name}' is absent from order")
+        for layer in settings["preload_layers"]:
+            if layer not in skills.LAYERS:
+                errors.append(f"ROUTER.toon profile '{name}' uses unknown layer '{layer}'")
+        if "defer_layers" in settings:
+            errors.append(
+                f"ROUTER.toon profile '{name}' declares defer_layers; the deferred set is "
+                f"derived as the complement of preload_layers and must not be duplicated"
+            )
+    for risk in router.RISKS:
+        floor = config["risk_floors"].get(risk)
+        if floor not in order:
+            errors.append(f"ROUTER.toon risk_floors.{risk} is '{floor}', not a known profile")
+        elif risk in router.HIGH_RISKS and order.index(floor) < order.index("guarded"):
+            errors.append(f"ROUTER.toon risk_floors.{risk} is '{floor}'; must be guarded")
+    for effort in router.EFFORTS:
+        if effort not in config["effort"]:
+            errors.append(f"ROUTER.toon effort.{effort} is missing")
+    return config
+
+
+def _check_overrides(root, config, errors):
+    for name in ("overrides.toon", "overrides.local.toon"):
+        path = Path(root) / ".agents/context" / name
+        if not path.exists():
+            continue
+        for index, entry in enumerate(toon.loads(path.read_text()).get("overrides") or []):
+            label = f"{name}[{index}]"
+            if entry.get("profile") not in config["order"]:
+                errors.append(f"{label}: unknown profile '{entry.get('profile')}'")
+            if not entry.get("reason"):
+                errors.append(f"{label}: overrides must record a reason")
+            if not entry.get("expires") and not entry.get("review_after"):
+                errors.append(f"{label}: overrides must record expires or review_after")
+
+
+def _check_skills(root, errors):
+    catalog = skills.load_catalog(root)
+    base = Path(root) / skills.SKILL_ROOT
+    catalogued = {entry["path"] for entry in catalog.values()}
+    seen_triggers = {}
+    for skill_id, entry in sorted(catalog.items()):
+        trigger = entry.get("trigger")
+        if not trigger:
+            errors.append(f"{skills.CATALOG}: {skill_id} declares no trigger")
+        elif trigger in seen_triggers:
+            errors.append(
+                f"{skills.CATALOG}: {skill_id} and {seen_triggers[trigger]} share trigger "
+                f"'{trigger}'; resolve(trigger=...) would silently return only one of them"
+            )
+        else:
+            seen_triggers[trigger] = skill_id
+    for relative in sorted(catalogued):
+        if not (base / relative).exists():
+            errors.append(f"{skills.CATALOG} points at missing file: {relative}")
+    for path in sorted(base.rglob("SKILL.md")):
+        relative = str(path.relative_to(base))
+        if relative not in catalogued:
+            errors.append(f"{relative} is not listed in {skills.CATALOG}")
+            continue
+        try:
+            meta, _ = skills.parse_frontmatter(path.read_text())
+        except skills.SkillError as error:
+            errors.append(f"{relative}: {error}")
+            continue
+        for field in REQUIRED_FRONTMATTER:
+            if not meta.get(field):
+                errors.append(f"{relative}: frontmatter missing {field}")
+        declared = dict(meta.get("layers") or {})
+        for layer, filename in declared.items():
+            if layer not in skills.LAYERS:
+                errors.append(f"{relative}: unknown taxonomy layer '{layer}'")
+                continue
+            candidate = path.parent / filename
+            if not candidate.exists():
+                errors.append(f"{relative}: declares layer '{layer}' but {filename} is missing")
+            elif len(candidate.read_text().strip()) < 40:
+                errors.append(
+                    f"{relative}: layer '{layer}' file {filename} is empty; "
+                    f"delete it rather than satisfying the taxonomy with a stub"
+                )
+        declared_files = set(declared.values()) | {"SKILL.md"}
+        for sibling in sorted(path.parent.glob("*.md")):
+            if sibling.name not in declared_files and sibling.name in skills.LAYER_FILES.values():
+                errors.append(
+                    f"{relative}: {sibling.name} looks like a taxonomy layer "
+                    f"but is not declared in frontmatter"
+                )
+
+
+WIKI_AXES = ("method", "product")
+
+
+def _check_wiki_axis(root, errors):
+    wiki = Path(root) / "docs/wiki"
+    if not wiki.exists():
+        return
+    # P2: only enforce axis layout when the project has adopted the
+    # method/product directory structure. Legacy wikis with flat pages
+    # should not fail the check.
+    has_axis_dirs = any(
+        (wiki / axis).is_dir() for axis in WIKI_AXES
+    )
+    if not has_axis_dirs:
+        return
+    for path in sorted(wiki.rglob("*.md")):
+        relative = str(path.relative_to(root))
+        if path.parent == wiki:
+            if path.name != "index.md":
+                errors.append(
+                    f"{relative}: wiki pages live under docs/wiki/method/ or "
+                    f"docs/wiki/product/; only index.md sits at the root"
+                )
+            continue
+        axis = path.relative_to(wiki).parts[0]
+        if axis not in WIKI_AXES:
+            errors.append(f"{relative}: unknown wiki axis directory '{axis}'")
+            continue
+        try:
+            meta, _ = skills.parse_frontmatter(path.read_text())
+        except skills.SkillError:
+            errors.append(f"{relative}: wiki pages must declare 'axis: {axis}' in frontmatter")
+            continue
+        declared = meta.get("axis")
+        if declared != axis:
+            errors.append(
+                f"{relative}: frontmatter says axis '{declared}' but the page is in "
+                f"{axis}/; the directory and the frontmatter must agree"
+            )
+
+
+def validate(root):
+    """Return (errors, warnings) for the router configuration and taxonomy."""
+    errors = []
+    warnings = []
+    config = _check_router_config(root, errors)
+    _check_overrides(root, config, errors)
+    _check_skills(root, errors)
+    _check_wiki_axis(root, errors)
+    topics = toon.loads((Path(root) / ".agents/context/TOPICS.toon").read_text())
+    files = _scan_files(root, topics)
+    _check_markers(root, topics.get("topics") or [], files, errors, errors)
+    _check_markers(root, topics.get("candidates") or [], files, errors, warnings)
+    return errors, warnings
+
+
+def cmd_check(args):
+    errors, warnings = validate(ROOT)
+    for warning in warnings:
+        print(f"warning  {warning}")
+    if warnings:
+        print()
+    if errors:
+        print("CONTEXT ROUTER FAILED")
+        print()
+        for error in errors:
+            print(f"- {error}")
+        return 1
+    print("CONTEXT ROUTER OK")
+    return 0
+
+
+SCAFFOLD_COPY = (
+    ".agentic-template/lib/toon.py",
+    ".agentic-template/lib/environment.py",
+    ".agentic-template/lib/router.py",
+    ".agentic-template/lib/observations.py",
+    ".agentic-template/lib/skills.py",
+    ".agentic-template/lib/plan.py",
+    ".agentic-template/lib/qualification.py",
+    ".agentic-template/bin/context",
+    ".agentic-template/bin/context-test",
+    ".agentic-template/tests/_support.py",
+    ".agentic-template/tests/test_toon.py",
+    ".agentic-template/tests/test_router_precedence.py",
+    ".agentic-template/tests/test_environment.py",
+    ".agentic-template/tests/test_observations.py",
+    ".agentic-template/tests/test_qualification.py",
+    ".agentic-template/fixtures/qualification-repo",
+    ".agents/context/ROUTER.toon",
+    ".agents/context/RECOVERY.toon",
+    ".agents/context/runtimes.toon",
+    ".agents/context/overrides.toon",
+    ".agents/context/qualification",
+    ".agents/skills/tooling/context-qualification/SKILL.md",
+)
+
+SCAFFOLD_STARTER = {
+    ".agents/context/TOPICS.toon": (
+        "# Project-owned. One canonical home per topic; markers must be 20+ characters.\n"
+        "version: 1\n"
+        "scan_roots: [AGENTS.md, .agents/, docs/]\n"
+        "exclude: [.agentic-template/, .agents/context/]\n"
+        "topics: []\n"
+        "candidates: []\n"
+    ),
+    ".agents/context/risk-rules.toon": (
+        "# Project-owned. First matching rule per path; highest risk across paths wins.\n"
+        "version: 1\n"
+        "default: normal\n"
+        "rules:\n"
+        "  - id: documentation\n"
+        '    paths: [docs/*, "*.md"]\n'
+        "    risk: low\n"
+    ),
+}
+
+SCAFFOLD_NEVER = (
+    ".agents/context/overrides.local.toon",
+    ".agents/context/observations",
+)
+
+
+def _scaffold_actions(target):
+    actions = []
+    for relative in SCAFFOLD_COPY:
+        source = TEMPLATE_ROOT / relative
+        destination = target / relative
+        if not source.exists():
+            actions.append(("missing", relative, "source absent from this template"))
+        elif not destination.exists():
+            actions.append(("create", relative, "copy"))
+        elif source.is_dir() or destination.read_bytes() != source.read_bytes():
+            actions.append(("update", relative, "copy"))
+        else:
+            actions.append(("unchanged", relative, "copy"))
+    for relative in SCAFFOLD_STARTER:
+        exists = (target / relative).exists()
+        actions.append(("keep" if exists else "create", relative, "starter"))
+    for relative in SCAFFOLD_NEVER:
+        actions.append(("skip", relative, "project-owned"))
+    return actions
+
+
+_MINIMAL_PROJECT_FACADE = """#!/usr/bin/env python3
+\"\"\"Minimal project facade. Dispatches 'context' to the scaffolded context bin.
+
+Extend this with additional commands as your project grows.
+\"\"\"
+import subprocess
+import sys
+from pathlib import Path
+
+BIN = Path(__file__).resolve().parent
+
+if len(sys.argv) > 1 and sys.argv[1] == "context":
+    sys.exit(subprocess.run([str(BIN / "context")] + sys.argv[2:]).returncode)
+
+print("project: only 'context' is available")
+sys.exit(1)
+"""
+
+
+def cmd_scaffold(args):
+    target = Path(args.into).resolve()
+    if not target.is_dir():
+        return _fail(f"--into must be an existing directory: {target}")
+    if target == TEMPLATE_ROOT:
+        return _fail("refusing to scaffold the template into itself")
+    actions = _scaffold_actions(target)
+    print("SCAFFOLD " + ("apply" if args.apply else "dry run"))
+    print()
+
+    # Summarise by default; print the full list only with --verbose.
+    counts = {}
+    for verb, _, kind in actions:
+        counts[(verb, kind)] = counts.get((verb, kind), 0) + 1
+    parts = []
+    for (verb, kind), count in sorted(counts.items()):
+        parts.append(f"{count} {verb}")
+    print(f"  summary: {', '.join(parts)}")
+
+    if args.verbose:
+        print()
+        for verb, relative, kind in actions:
+            print(f"  {verb:<10} {kind:<9} {relative}")
+
+    if any(verb == "missing" for verb, _, _ in actions):
+        print()
+        return _fail("template is incomplete; run project check before scaffolding")
+    if not args.apply:
+        print()
+        print("  dry run: nothing written. Re-run with --apply.")
+        return 0
+    for verb, relative, kind in actions:
+        if kind == "copy" and verb in ("create", "update"):
+            source = TEMPLATE_ROOT / relative
+            destination = target / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            if source.is_dir():
+                shutil.copytree(source, destination, dirs_exist_ok=True)
+            else:
+                shutil.copy2(source, destination)
+        elif kind == "starter" and verb == "create":
+            destination = target / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_text(SCAFFOLD_STARTER[relative])
+    (target / ".agents/context/observations").mkdir(parents=True, exist_ok=True)
+
+    # P1: ensure the scaffolded qualification skill is catalogued so
+    # `context check` does not fail on a router-only adoption path.
+    catalog_path = target / ".agents/skills/CATALOG.toon"
+    if catalog_path.exists():
+        catalog_text = catalog_path.read_text()
+        if "context_qualification" not in catalog_text:
+            catalog_path.write_text(
+                catalog_text.rstrip()
+                + "\n\n  context_qualification:\n"
+                "    path: tooling/context-qualification/SKILL.md\n"
+                "    trigger: no_observation_for_this_environment\n"
+            )
+            print()
+            print("  updated: .agents/skills/CATALOG.toon (added context_qualification)")
+
+    # D4: install a minimal project facade when one doesn't exist.
+    # B2: when one exists but doesn't dispatch 'context', print the exact line.
+    project_facade = target / ".agentic-template/bin/project"
+    if not project_facade.exists():
+        project_facade.parent.mkdir(parents=True, exist_ok=True)
+        project_facade.write_text(_MINIMAL_PROJECT_FACADE)
+        project_facade.chmod(0o755)
+        print()
+        print("  created: .agentic-template/bin/project (minimal facade)")
+        print("          extend it with additional commands as your project grows.")
+    else:
+        facade_text = project_facade.read_text()
+        # P2: verify actual dispatch, not just a substring match that could
+        # match "context-packet" or a comment.
+        dispatches_context = False
+        try:
+            import ast
+            tree = ast.parse(facade_text)
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Dict):
+                    for key in node.keys:
+                        if isinstance(key, ast.Constant) and key.value == "context":
+                            dispatches_context = True
+                            break
+                    if dispatches_context:
+                        break
+                if isinstance(node, (ast.If,)) and isinstance(node.test, ast.Compare):
+                    # Check for `sys.argv[1] == "context"` pattern
+                    for comp in node.test.comparators:
+                        if isinstance(comp, ast.Constant) and comp.value == "context":
+                            dispatches_context = True
+                            break
+                    if dispatches_context:
+                        break
+        except SyntaxError:
+            # Not Python; fall back to substring check
+            dispatches_context = "context" in facade_text
+        if not dispatches_context:
+            print()
+            print("  note: .agentic-template/bin/project does not dispatch 'context'.")
+            print("        Add this line to its COMMANDS table:")
+            print('          "context": [[str(BIN / "context")]],')
+
+    print()
+    print("  next: .agentic-template/bin/project context check")
+    return 0
+
+
+def build_parser():
+    parser = argparse.ArgumentParser(
+        prog=".agentic-template/bin/project context",
+        description="Resolve how much project context this task needs, and explain why.",
+    )
+    subparsers = parser.add_subparsers(dest="subcommand", required=True)
+
+    explain = subparsers.add_parser(
+        "explain", help="print the routing decision and the context plan"
+    )
+    explain.add_argument("--skill", help="skill id from .agents/skills/CATALOG.toon")
+    explain.add_argument("--trigger", help="resolve the skill by its catalog trigger")
+    explain.add_argument(
+        "--risk",
+        choices=router.RISKS,
+        help="override task risk; otherwise derived from --paths via risk-rules.toon",
+    )
+    explain.add_argument("--effort", choices=router.EFFORTS, default="standard")
+    explain.add_argument("--paths", nargs="*", default=[], help="paths this task touches")
+    explain.add_argument("--model", help="model identity for diagnostics and overrides")
+    explain.add_argument("--runtime", help="override runtime detection")
+    explain.add_argument("--format", choices=("text", "toon"), default="text")
+    explain.set_defaults(handler=cmd_explain)
+
+    observe = subparsers.add_parser(
+        "observe", help="record a degradation or a clean run for this environment"
+    )
+    observe.add_argument("--event", choices=("degraded", "success"), required=True)
+    observe.add_argument("--symptom", help="symptom key from .agents/context/RECOVERY.toon")
+    observe.add_argument("--profile", choices=("lean", "standard", "guarded"), default="standard")
+    observe.add_argument("--model")
+    observe.add_argument("--runtime")
+    observe.set_defaults(handler=cmd_observe)
+
+    check = subparsers.add_parser(
+        "check", help="validate router config, taxonomy and canonical sources"
+    )
+    check.set_defaults(handler=cmd_check)
+
+    qualify = subparsers.add_parser(
+        "qualify",
+        help="emit the probe pack, or score an answers file against the fixture",
+    )
+    qualify.add_argument("--score", help="path to a completed answers.toon")
+    qualify.add_argument(
+        "--record", action="store_true", help="store the scored result as an observation"
+    )
+    qualify.add_argument("--model")
+    qualify.add_argument("--runtime")
+    qualify.set_defaults(handler=cmd_qualify)
+
+    scaffold = subparsers.add_parser(
+        "scaffold", help="install the portable context router into a project"
+    )
+    scaffold.add_argument("--into", required=True, help="target project directory")
+    scaffold.add_argument(
+        "--apply", action="store_true", help="write files; omit for a dry run"
+    )
+    scaffold.add_argument(
+        "--verbose", action="store_true", help="print every file action; omit for a summary"
+    )
+    scaffold.set_defaults(handler=cmd_scaffold)
+
+    tests = subparsers.add_parser("test", help="run the context router test suite")
+    tests.set_defaults(handler=lambda args: subprocess.call([str(BIN / "context-test")]))
+
+    return parser
+
+
+def main(argv):
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    try:
+        return args.handler(args)
+    except (router.RouterError, skills.SkillError) as error:
+        return _fail(str(error))
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

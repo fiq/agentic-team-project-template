@@ -1,0 +1,42 @@
+# template-owned: replace via .agentic-template/bin/project context scaffold
+# Capability is a property of the host, not of the model. Unknown hosts get the
+# minimal set, which routes to standard because qualification cannot be trusted.
+version: 1
+
+detect:
+  - runtime: claude-code
+    env: CLAUDECODE
+  - runtime: codex
+    env: CODEX_HOME
+  - runtime: codex
+    env: CODEX_SANDBOX
+  - runtime: opencode
+    env: OPENCODE
+  - runtime: roo
+    env: ROO_CODE_IPC_SOCKET_PATH
+
+runtimes:
+  claude-code:
+    capabilities: [shell, repo_search, linked_references, native_skills, deferred_tools, subagents, structured_output]
+    entry_point: CLAUDE.md
+    skill_loading: native
+  codex:
+    capabilities: [shell, repo_search, linked_references, structured_output]
+    entry_point: AGENTS.md
+    skill_loading: filesystem
+  opencode:
+    capabilities: [shell, repo_search, linked_references, structured_output]
+    entry_point: AGENTS.md
+    skill_loading: filesystem
+  roo:
+    capabilities: [shell, repo_search, linked_references]
+    entry_point: AGENTS.md
+    skill_loading: filesystem
+  shell:
+    capabilities: [shell, repo_search]
+    entry_point: AGENTS.md
+    skill_loading: filesystem
+  unknown:
+    capabilities: [repo_search]
+    entry_point: AGENTS.md
+    skill_loading: filesystem

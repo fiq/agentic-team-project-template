@@ -1,0 +1,21 @@
+# Shape a scored answers file must have. One block per probe id.
+answers:
+  qualification_version: 1
+  probes:
+    - id: contract_read
+      sha: <16 hex characters>
+    - id: catalog_resolve
+      path: <path as recorded in the catalog>
+      source: <file you read it from>
+    - id: facade_usage
+      command: <exact command>
+    - id: progressive_disclosure
+      files: <comma-separated list of files you opened>
+    - id: stop_condition
+      token: <token from STOP.md>
+    - id: evidence_grounding
+      command: <acceptance command>
+      source: <fixture-relative path that must exist>
+    - id: recovery
+      path: <correct path>
+      recovered_from: <authoritative file you reloaded>

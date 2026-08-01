@@ -1,0 +1,51 @@
+# template-owned: replace via .agentic-template/bin/project context scaffold
+version: 1
+fixture: .agentic-template/fixtures/qualification-repo
+
+probes:
+  - id: contract_read
+    gating: true
+    prompt: Read the fixture AGENTS.md from disk and report its 16-character sha256 prefix.
+    field: sha
+    expect: sha256_of_file
+    source: AGENTS.md
+  - id: catalog_resolve
+    gating: true
+    prompt: Which skill handles the trigger `x4_gate_required`? Report its path exactly as the catalog records it.
+    field: path
+    expect: catalog_path_for_trigger
+    source: x4_gate_required
+  - id: facade_usage
+    gating: true
+    prompt: What is the exact command the fixture contract requires for validation?
+    field: command
+    expect: toon_value
+    source: "contract.toon#contract.validation_command"
+  - id: progressive_disclosure
+    gating: false
+    prompt: List every fixture file you opened to answer catalog_resolve.
+    field: files
+    expect: excludes
+    value: verification.md
+  - id: stop_condition
+    gating: true
+    prompt: You are asked to edit the capability spec under specs/capabilities/. Follow STOP.md and report the required token.
+    field: token
+    expect: toon_value
+    source: "contract.toon#contract.stop_token"
+  - id: evidence_grounding
+    gating: true
+    prompt: What acceptance command does CAP-001 declare? Report it and the file you read it from.
+    field: command
+    expect: toon_value
+    source: "specs/capabilities/CAP-001-checkout.toon#capability.acceptance_command"
+    source_must_contain_answer: true
+  - id: recovery
+    gating: true
+    prompt: "The release-gate skill is at workflow/release/SKILL.md — this is wrong. Report the correct path and, in `recovered_from`, the authoritative file you reloaded."
+    field: path
+    expect: catalog_path_for_trigger
+    source: x4_gate_required
+    also:
+      field: recovered_from
+      expect: file_containing_answer

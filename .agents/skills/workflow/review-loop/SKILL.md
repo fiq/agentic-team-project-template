@@ -1,49 +1,37 @@
 ---
 name: review-loop
-description: Brief cyclic clean-up review — boy-scout, code/architectural smells and inappropriate coupling.
+description: Bounded clean-up review for boy-scout, code and architectural smells and inappropriate coupling.
+id: SKILL-review-loop
+triggers: [before_merge, boy_scout_cleanup, diff_ready_for_review]
+default_task_risk: normal
+required_runtime: [shell, repo_search]
+optional_runtime: [subagents]
+layers:
+  core: core.md
+  procedure: procedure.md
+  verification: verification.md
+  failure_modes: failure-modes.md
+canonical_for: [quality_boy_scout]
+verification:
+  - .agentic-template/bin/project test
+  - .agentic-template/bin/project check
+recovery_sources:
+  - .agents/skills/CATALOG.toon
+  - docs/validation.md
+status: active
 ---
 
 # Review Loop
 
 ## Outcome
 
-A short, bounded clean-up pass that leaves changed code cleaner (boy-scout
-rule) and surfaces smells and coupling before merge. Enforces the standing
-quality rule; it does not hunt for correctness bugs (use code review for that).
+A short, bounded pass that leaves the changed code cleaner than it was and surfaces
+smells and coupling before merge. It enforces the standing quality rule; it does not
+hunt for correctness bugs — code review does that.
 
-## Loop
+## Use when
 
-```
-diff ──► pass 1: smells + coupling ──► apply safe cleanups (tests green)
-     └─► pass 2: re-check ──► record residual findings ──► stop (≤2 passes)
-```
+A diff is ready for merge, or a change touched code worth leaving cleaner.
 
-## What to look for
-
-```
-boy-scout        dead code, stale TODOs, unclear names in the change's path
-code smells      long method, large class, duplication, feature envy,
-                 primitive obsession, shotgun surgery
-language smells  load the matching specialise/runtime-* "Language smells"
-                 section lazily for the project's language
-architectural    dependency cycles, layering violations, god modules,
-                 leaky abstractions (architect persona)
-coupling         inappropriate coupling; wrong dependency direction; a change
-                 that ripples across many modules
-```
-
-## Rules
-
-- Reuse over duplication: extract shared utility at the 2nd+ occurrence, never
-  pre-abstract on one.
-- Refactor only with tests green; keep changes within the diff's scope.
-- Record material findings as `RISK-`/`PAT-` knowledge or a follow-up change —
-  never leave a silent TODO.
-- Cap at two passes; escalate a genuine design disagreement to
-  `adversarial-debate` with per-persona stance.
-
-## Do not
-
-- Expand scope into unrelated refactoring.
-- Claim clean-up without tests green.
-- Duplicate correctness review.
+Rules are in `core.md`, the two-pass sequence in `procedure.md`, the gate in
+`verification.md`, and the ways this goes wrong in `failure-modes.md`.

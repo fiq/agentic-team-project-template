@@ -1,0 +1,20 @@
+# template-owned: replace via .agentic-template/bin/project context scaffold
+# Path globs use fnmatch semantics, where * crosses directory separators.
+# Every touched path is matched against the first rule that accepts it; the
+# highest risk across all touched paths wins.
+version: 1
+default: normal
+
+rules:
+  - id: operating_contract
+    paths: [AGENTS.md, .agents/context/*, .agents/skills/CATALOG.toon]
+    risk: high
+  - id: released_capability
+    paths: [specs/capabilities/*]
+    risk: high
+  - id: infrastructure
+    paths: [compose.yaml, infra/*, .github/workflows/*, flake.nix, flake.lock]
+    risk: high
+  - id: documentation
+    paths: [docs/*, "*.md"]
+    risk: low

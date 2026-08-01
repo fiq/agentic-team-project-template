@@ -12,7 +12,7 @@ records the decision, risks and validation path.
 
 | Layer | Repository sources | What it answers |
 |---|---|---|
-| Structure | `AGENTS.md`, `README.md`, `PROJECT_PROFILE.toon.architecture`, `docs/wiki/architecture.md` | What exists, where boundaries are, and how commands are shaped |
+| Structure | `AGENTS.md`, `README.md`, `PROJECT_PROFILE.toon.architecture`, `docs/wiki/product/architecture.md` | What exists, where boundaries are, and how commands are shaped |
 | Lineage | `PROJECT_PROFILE.toon.decisions`, `PROJECT_PROFILE.toon.rejected_options`, `HANDOFF.toon`, `docs/decisions/`, `.agents/knowledge/` | Why choices were made, what changed, and what remains unresolved |
 | Behavior | `specs/capabilities/`, `specs/changes/`, tests selected from `docs/validation.md` | What the system promises and how those promises are verified |
 | Conformance | `.agentic-template/bin/project check`, `project ready`, CI, specialised architecture fitness functions | Whether current code still respects important constraints |

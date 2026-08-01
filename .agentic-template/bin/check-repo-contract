@@ -72,6 +72,17 @@ REQUIRED_FILES = [
     ".agentic-template/bin/docs-map",
     ".agentic-template/bin/worktree-status",
     ".agentic-template/bin/self-test",
+    ".agentic-template/bin/context",
+    ".agentic-template/bin/context-test",
+    ".agents/context/ROUTER.toon",
+    ".agents/context/RECOVERY.toon",
+    ".agents/context/runtimes.toon",
+    ".agents/context/risk-rules.toon",
+    ".agents/context/overrides.toon",
+    ".agents/context/TOPICS.toon",
+    ".agents/context/qualification/QUALIFICATION.toon",
+    "docs/wiki/method/context-router.md",
+    "docs/wiki/index.md",
 ]
 
 REQUIRED_EXECUTABLES = [
@@ -92,9 +103,13 @@ REQUIRED_SKILLS = [
     "specialise/messaging-kafka",
     "specialise/sql-migrations",
     "specialise/test-harness",
+    "specialise/static-analysis",
+    "specialise/build-pipeline",
     "specialise/container-build",
     "specialise/infra-local-compose",
     "specialise/infra-decision",
+    "specialise/deployment-pipeline",
+    "specialise/observability",
     "specialise/ci",
     "workflow/test-first",
     "workflow/reassess-project-profile",
@@ -117,10 +132,10 @@ REQUIRED_SKILLS = [
 PROJECT_COMMANDS = [
     "help", "startup", "init", "inspect", "check", "backlog", "test",
     "contract-test", "integration-test", "component-test", "e2e-test",
-    "lint", "run", "image", "image-test", "repo-check", "check-profile",
+    "lint", "build", "run", "image", "image-test", "repo-check", "check-profile",
     "check-handoff", "check-knowledge", "check-tooling", "check-mcp",
     "check-readme", "ready", "compose-config", "compose-test", "infra-check",
-    "docs", "doctor", "self-test", "worktree-status",
+    "docs", "doctor", "self-test", "worktree-status", "context",
 ]
 
 def fail(lines):

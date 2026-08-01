@@ -1,0 +1,4 @@
+skills:
+  release_gate:
+    path: gates/g7-zeta9f2c/SKILL.md
+    trigger: x4_gate_required
