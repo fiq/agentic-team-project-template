@@ -41,5 +41,5 @@ candidates:
     finding: D8
   - id: boundary_test_fidelity
     canonical: .agents/skills/workflow/outside-in-tdd/core.md
-    marker: component-integration
+    marker: collaborators appear as needed; mock at boundaries
     finding: D9

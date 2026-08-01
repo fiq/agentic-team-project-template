@@ -124,19 +124,13 @@ design for prod   observability recorded from the start, not bolted on
 Quality is a standing obligation on all work, re-checked explicitly inside
 `/ideate` and `/review`, not a separate phase.
 
-- Follow the boy-scout rule: leave code in the path of a change cleaner than
-  you found it.
-- Prefer reuse over duplication. Extract shared utility at the second or later
-  occurrence, never on a single occurrence. Do not pre-abstract.
-- Pay down technical debt encountered directly in the work's path. Record
-  out-of-scope debt as a spec follow-up or a `RISK-`/`Q-` knowledge entry
-  instead of leaving it silent.
-- Documentation updates land in the same change as the behaviour they
-  describe. Do not defer them.
+- Follow the standing quality rules in
+  [`workflow/review-loop/core.md`](.agents/skills/workflow/review-loop/core.md):
+  boy-scout rule, reuse over duplication at the second or later occurrence,
+  pay in-path debt / record out-of-scope debt, docs land in the same change,
+  no silent TODOs.
 - Check non-trivial design choices against boundaries, dependency direction,
   coupling and reversibility before implementing.
-- Do not leave silent `TODO`s or dead code. Convert them into recorded
-  changes, tasks or knowledge entries.
 - Static analysis is a standing obligation, not a phase. `project lint`
   enforces it deterministically. Generated projects must specialise `lint` at
   `/specialise`; see `specialise/static-analysis`.
@@ -174,9 +168,10 @@ This keeps YAGNI deliberate and revisitable rather than unexamined.
   scenarios (see the spec system) drive tests before implementation
   (ATDD-aligned).
 - Choose the boundary test's fidelity by risk and known architectural
-  direction: acceptance, component-integration or subcutaneous. Keep a thin
-  real-dependency confirmation layer where it is cheap and materially
-  important.
+  direction (acceptance, component-integration or subcutaneous — see
+  [`workflow/outside-in-tdd/core.md`](.agents/skills/workflow/outside-in-tdd/core.md)).
+  Keep a thin real-dependency confirmation layer where it is cheap and
+  materially important.
 - Unspecialised test targets must fail clearly and point to
   `.agentic-template/bin/project init`.
 - Real dependency semantics should be tested when cheap and materially
@@ -345,15 +340,10 @@ When degrading:
 
 ### Model and quota fallback
 
-Before changing model or provider:
-
-1. update `HANDOFF.toon`;
-2. record fixed decisions;
-3. record unresolved ambiguity;
-4. preserve test results;
-5. record branch, worktree and commit state;
-6. preserve bounded context with `context-packet`;
-7. identify safe bounded next work.
+Before changing model or provider, follow the handoff protocol in
+[`.agents/schemas/handoff.schema.md`](.agents/schemas/handoff.schema.md) and
+the model-class guidance in
+[`tooling/model-routing/core.md`](.agents/skills/tooling/model-routing/core.md).
 
 Use stronger models for ambiguity, architecture, risk and conflict. Use
 midrange models for bounded implementation, testing and documentation. Use

@@ -47,10 +47,13 @@ class TestBaseline(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assertIn("CONTEXT ROUTER OK", result.stdout)
 
-    def test_known_duplications_are_reported_as_warnings(self):
+    def test_dedupe_ledger_is_resolved(self):
+        # The D1/D2/D4/D8/D9 duplication candidates were migrated to canonical
+        # homes. The check should now pass with no duplication warnings.
         result = run_check(ROOT)
-        self.assertIn("warning", result.stdout.lower())
-        self.assertIn("D1", result.stdout)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertNotIn("warning", result.stdout.lower())
+        self.assertNotIn("D1", result.stdout)
 
 
 class TestTaxonomyValidation(CheckTestCase):

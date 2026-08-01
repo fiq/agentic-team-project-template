@@ -30,27 +30,9 @@ Direct user routing wins. Do not secretly reroute a directly addressed task.
 
 ## Model Classes
 
-Strong model:
-- ambiguity resolution
-- architecture synthesis
-- risk assessment
-- conflict resolution
-- high-impact final review
-
-Midrange model:
-- bounded planning
-- implementation
-- test creation
-- documentation
-- routine review
-
-Lesser or local model:
-- mechanical edits
-- narrow transformations
-- test execution
-- indexing
-- metadata extraction
-- knowledge-link maintenance
+The generic model-class guidance (strong / midrange / lesser-or-local) lives in
+[`tooling/model-routing/core.md`](../skills/tooling/model-routing/core.md).
+This file records only the provider-specific defaults for this repository.
 
 Escalate when assumptions conflict, knowledge is missing, architecture
 boundaries are unclear, tests repeatedly fail, security or privacy risk is

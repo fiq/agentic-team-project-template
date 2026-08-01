@@ -42,21 +42,10 @@ agent to continue without reconstructing intent from code alone:
 
 Architecture fitness functions are cheap, deterministic checks that protect
 project-specific characteristics. Generated projects should identify the top
-1-3 architecture risks and encode checks when practical.
-
-Good candidates include:
-
-- dependency direction and forbidden imports;
-- public API, event or file schema drift;
-- provider-specific code leaking across clean boundaries;
-- migration drift for persistence-backed systems;
-- performance, accessibility, security or deployability budgets;
-- required container health checks and health-aware Compose dependencies.
-
-Wire fitness functions into `.agentic-template/bin/project check` or
-`.agentic-template/bin/project ready`. If the best check is still manual,
-record the command or inspection path in `docs/validation.md` and the current
-result in `HANDOFF.toon.tests_run`.
+1-3 architecture risks and encode checks when practical. The canonical
+guidance — including candidate categories and how to wire them into
+`project check` / `project ready` — lives in
+[`docs/validation.md`](validation.md).
 
 ## Further Reading
 

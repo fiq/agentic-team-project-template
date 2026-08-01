@@ -29,6 +29,10 @@ It should not contain:
 
 Prefer knowledge IDs over copied content.
 
+Before changing model or provider, preserve bounded context with
+`context-packet` so the receiving agent can continue without reconstructing
+intent.
+
 `knowledge` must include:
 
 - `consulted`: IDs or paths used before planning/implementation;
