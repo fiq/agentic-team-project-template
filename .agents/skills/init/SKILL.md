@@ -102,16 +102,18 @@ discover
    - `.agentic-template/bin/check-secrets` — useful for any project.
 
 10. If the project's runtime is not covered by an existing `specialise/runtime-*`
-    skill, create one following the established pattern. The template ships
-    common runtimes (Java, Python, Node/TS, Elixir, Godot, Rust, Go, C#/.NET)
-    as examples — it is **not exhaustive** and never will be. When encountering
-    an uncovered runtime (e.g. Ruby, Clojure, Haskell, Perl, Scala, Kotlin,
-    Zig, OCaml), create a `specialise/runtime-<name>/SKILL.md` following the
-    pattern of the existing runtime skills:
+    skill, create one following the established pattern. See `CATALOG.toon`
+    for the current list of shipped runtimes — it is **not exhaustive** and
+    never will be. When encountering an uncovered runtime (e.g. Haskell,
+    Scala, Kotlin, Zig, OCaml), create a `specialise/runtime-<name>/SKILL.md`
+    following the fullest existing pattern (`specialise/runtime-rust` and
+    `specialise/runtime-go` are good references):
 
     - detect the build tool, framework, and test framework from evidence;
-    - provide evolvable static-analysis defaults (not a closed list);
+    - describe build and tooling conventions;
+    - provide evolvable static-analysis defaults as a table (not a closed list);
     - list language smells for the review-loop;
+    - describe testing conventions;
     - include an "ecosystem openness" section that says to inspect, respect,
       and record unknown tools rather than imposing them;
     - add the new skill to `CATALOG.toon` and `check-repo-contract`;

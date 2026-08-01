@@ -9,6 +9,108 @@ import _support  # noqa: F401
 ROOT = _support.ROOT
 BIN = _support.BIN
 
+SPECIALISE = ROOT / ".agents/skills/specialise"
+
+# Every runtime skill must carry these sections. The set is derived from the
+# fullest existing skills (runtime-rust, runtime-go) and is what
+# `init/SKILL.md` step 10 instructs an agent to write for a new runtime.
+# Discovering the runtimes from disk rather than listing them here means a
+# newly added runtime skill is held to the same bar automatically.
+REQUIRED_RUNTIME_SECTIONS = (
+    "## Build and tooling",
+    "## Static analysis",
+    "## Language smells",
+    "## Testing",
+    "## Ecosystem openness",
+)
+
+
+def discovered_runtime_skills():
+    """Every specialise/runtime-* skill present on disk, by directory name."""
+    return sorted(
+        path.name
+        for path in SPECIALISE.iterdir()
+        if path.is_dir() and path.name.startswith("runtime-") and (path / "SKILL.md").exists()
+    )
+
+
+class TestEveryRuntimeSkillIsComplete(unittest.TestCase):
+    """Hold every runtime skill to the pattern, including ones added later.
+
+    The template ships runtime skills as examples of a self-extending pattern.
+    If some carry only a smells list while others carry the full pattern, an
+    agent told to "follow the existing runtime skills" for a new language gets
+    two contradictory templates and may silently drop static analysis.
+    """
+
+    def test_at_least_the_known_runtimes_are_present(self):
+        found = discovered_runtime_skills()
+        self.assertGreaterEqual(len(found), 11, f"expected the shipped runtimes, found {found}")
+
+    def test_every_runtime_skill_has_valid_frontmatter(self):
+        for runtime in discovered_runtime_skills():
+            with self.subTest(runtime=runtime):
+                text = (SPECIALISE / runtime / "SKILL.md").read_text()
+                self.assertTrue(text.startswith("---\n"), "missing frontmatter")
+                end = text.find("\n---", 4)
+                self.assertGreater(end, 0, "unterminated frontmatter")
+                frontmatter = text[4:end]
+                self.assertIn("name:", frontmatter)
+                self.assertIn("description:", frontmatter)
+
+    def test_every_runtime_skill_has_the_required_sections(self):
+        for runtime in discovered_runtime_skills():
+            text = (SPECIALISE / runtime / "SKILL.md").read_text()
+            for section in REQUIRED_RUNTIME_SECTIONS:
+                with self.subTest(runtime=runtime, section=section):
+                    self.assertIn(
+                        section,
+                        text,
+                        f"{runtime} is missing '{section}'; see init/SKILL.md step 10",
+                    )
+
+    def test_every_runtime_skill_acknowledges_unknown_tools(self):
+        for runtime in discovered_runtime_skills():
+            with self.subTest(runtime=runtime):
+                text = (SPECIALISE / runtime / "SKILL.md").read_text().lower()
+                self.assertIn(
+                    "not a closed list",
+                    text,
+                    f"{runtime} must state its tool list is not closed",
+                )
+
+    def test_every_runtime_skill_is_catalogued(self):
+        catalog = (ROOT / ".agents/skills/CATALOG.toon").read_text()
+        for runtime in discovered_runtime_skills():
+            with self.subTest(runtime=runtime):
+                self.assertIn(f"specialise/{runtime}/SKILL.md", catalog)
+
+    def test_every_runtime_skill_is_required_by_the_repo_contract(self):
+        text = (ROOT / ".agentic-template/bin/check-repo-contract").read_text()
+        for runtime in discovered_runtime_skills():
+            with self.subTest(runtime=runtime):
+                self.assertIn(f"specialise/{runtime}", text)
+
+
+class TestInitSkillRuntimeGuidance(unittest.TestCase):
+    """init/SKILL.md must not carry a hand-maintained runtime list that rots."""
+
+    def test_step_ten_points_at_the_catalog_not_a_hardcoded_list(self):
+        text = (ROOT / ".agents/skills/init/SKILL.md").read_text()
+        self.assertIn("CATALOG.toon", text)
+
+    def test_step_ten_does_not_claim_java_as_a_runtime_skill(self):
+        # The skill was renamed runtime-java -> runtime-jvm; a stale "Java"
+        # in the example list sends an agent looking for a skill that is gone.
+        text = (ROOT / ".agents/skills/init/SKILL.md").read_text()
+        self.assertNotIn("runtime-java/", text)
+
+    def test_step_ten_names_the_required_sections(self):
+        text = (ROOT / ".agents/skills/init/SKILL.md").read_text().lower()
+        for phrase in ("static-analysis", "language smells", "ecosystem openness"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, text)
+
 
 class TestRuntimeRustSkill(unittest.TestCase):
     def test_skill_file_exists(self):
@@ -187,6 +289,115 @@ class TestCheckSecrets(unittest.TestCase):
     def test_check_secrets_is_in_repo_contract(self):
         text = (ROOT / ".agentic-template/bin/check-repo-contract").read_text()
         self.assertIn("check-secrets", text)
+
+    def test_anthropic_key_is_detected(self):
+        # The plain sk- pattern cannot match this: the hyphen after `sk-`
+        # falls outside its character class.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "leak.txt").write_text(
+                "ANTHROPIC_API_KEY=sk-ant-api03-"
+                "AbCdEfGhIjKlMnOpQrStUvWxYz0123456789ABCDEFGHIJ\n"
+            )
+            result = subprocess.run(
+                [str(BIN / "check-secrets")],
+                cwd=root, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+            )
+            self.assertEqual(result.returncode, 1, result.stdout)
+            self.assertIn("Anthropic", result.stdout)
+
+    def test_openai_project_key_is_detected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "leak.txt").write_text(
+                "OPENAI_API_KEY=sk-proj-"
+                "AbCdEfGhIjKlMnOpQrStUvWxYz0123456789ABCDEFGHIJ\n"
+            )
+            result = subprocess.run(
+                [str(BIN / "check-secrets")],
+                cwd=root, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+            )
+            self.assertEqual(result.returncode, 1, result.stdout)
+            self.assertIn("project-scoped", result.stdout)
+
+
+def git_available():
+    try:
+        return subprocess.run(
+            ["git", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        ).returncode == 0
+    except OSError:
+        return False
+
+
+@unittest.skipUnless(git_available(), "git is not available")
+class TestCheckSecretsIsGitAware(unittest.TestCase):
+    """Scope is what git would let you commit, not everything on disk.
+
+    Scanning ignored paths flags credentials that cannot reach the remote
+    (a real `.env`, `node_modules/`), which is noise — and contradicts the
+    tool's own advice to move secrets into an untracked `.env`.
+    """
+
+    AWS_KEY = "AKIAABCDEFGHIJKLMNOP"
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self.tmp.name)
+        subprocess.run(["git", "init", "-q"], cwd=self.repo, check=True)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def run_check(self):
+        return subprocess.run(
+            [str(BIN / "check-secrets")],
+            cwd=self.repo, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+        )
+
+    def test_gitignored_file_is_out_of_scope(self):
+        (self.repo / ".gitignore").write_text(".env\n")
+        (self.repo / ".env").write_text(f"AWS_ACCESS_KEY_ID={self.AWS_KEY}\n")
+        result = self.run_check()
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("SECRETS CHECK OK", result.stdout)
+
+    def test_untracked_but_committable_file_is_in_scope(self):
+        # Not yet `git add`ed, but nothing stops someone adding it next.
+        (self.repo / "config.txt").write_text(f"AWS_ACCESS_KEY_ID={self.AWS_KEY}\n")
+        result = self.run_check()
+        self.assertEqual(result.returncode, 1, result.stdout)
+        self.assertIn("config.txt", result.stdout)
+
+    def test_staged_file_is_in_scope(self):
+        (self.repo / "config.txt").write_text(f"AWS_ACCESS_KEY_ID={self.AWS_KEY}\n")
+        subprocess.run(["git", "add", "config.txt"], cwd=self.repo, check=True)
+        result = self.run_check()
+        self.assertEqual(result.returncode, 1, result.stdout)
+        self.assertIn("config.txt", result.stdout)
+
+    def test_ignored_directory_is_not_walked(self):
+        (self.repo / ".gitignore").write_text("vendor/\n")
+        vendor = self.repo / "vendor"
+        vendor.mkdir()
+        (vendor / "leak.txt").write_text(f"AWS_ACCESS_KEY_ID={self.AWS_KEY}\n")
+        result = self.run_check()
+        self.assertEqual(result.returncode, 0, result.stdout)
+
+    def test_non_git_directory_falls_back_to_walking_the_tree(self):
+        with tempfile.TemporaryDirectory() as plain:
+            root = Path(plain)
+            (root / "leak.txt").write_text(f"AWS_ACCESS_KEY_ID={self.AWS_KEY}\n")
+            result = subprocess.run(
+                [str(BIN / "check-secrets")],
+                cwd=root, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+            )
+            self.assertEqual(result.returncode, 1, result.stdout)
+            self.assertIn("leak.txt", result.stdout)
+
+    def test_docstring_documents_the_history_limitation(self):
+        text = (BIN / "check-secrets").read_text()
+        self.assertIn("does not scan git history", text.lower())
 
 
 class TestStaticAnalysisSkill(unittest.TestCase):

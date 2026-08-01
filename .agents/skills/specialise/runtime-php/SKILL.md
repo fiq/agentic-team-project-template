@@ -67,6 +67,22 @@ Bedrock vs traditional structure. Use `wp-cli` for CLI operations.
 **Laravel:** respect the service container, middleware, Eloquent models, and
 the `artisan` command surface. Detect Livewire vs Inertia vs Blade.
 
+## Testing
+
+- PHPUnit is the dominant framework; Pest is a popular expressive wrapper
+  over it. Detect which the project uses rather than imposing one.
+- `vendor/bin/phpunit` or `vendor/bin/pest` are the standard commands.
+- Laravel: built-in HTTP tests, database refresh traits and factories;
+  `php artisan test` wraps the runner.
+- Drupal: `BrowserTestBase`, `KernelTestBase` and `UnitTestBase` are distinct
+  fidelities — pick by risk, not habit.
+- WordPress: WP-CLI scaffolds the PHPUnit harness; the test suite needs a
+  separate WordPress install.
+- Real dependencies: Testcontainers has a PHP binding for lifecycle-managed
+  database tests.
+- Keep pure domain logic testable without booting the framework; this is the
+  largest and fastest layer in most PHP codebases.
+
 ## Ecosystem openness
 
 PHP's ecosystem is vast, especially with CMS frameworks like Drupal and

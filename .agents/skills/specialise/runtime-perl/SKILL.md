@@ -13,6 +13,17 @@ Classify application shape from code and config, not framework. Prefer the
 existing build tool. Add migration and test harness guidance only when evidence
 requires it.
 
+## Build and tooling
+
+- Perl dependency declaration lives in `cpanfile`, `Makefile.PL`, `Build.PL`
+  or `dist.ini` (Dist::Zilla); detect which and respect it.
+- Carton (`cpanfile.snapshot`) pins dependencies for applications; `cpanm` is
+  the common installer.
+- Raku uses `META6.json` and `zef` for dependency management.
+- `prove` is the standard test harness runner for both.
+- Nix owns the developer toolchain; do not introduce perlbrew, plenv or
+  rakubrew on NixOS.
+
 ## Static analysis (see specialise/static-analysis)
 
 The Perl/Raku ecosystem has established analysis tools. The per-runtime
@@ -43,6 +54,16 @@ form.
 `.so`/`.not` where explicit comparison is clearer; `EVAL` in production;
 ignoring `Failure` return values; `Nil` where `Empty` is meant; deep metaop
 chains that are unreadable.
+
+## Testing
+
+- Perl's TAP (Test Anything Protocol) originated here; `prove` runs `t/*.t`.
+- Test::More is the baseline; Test2::Suite is the modern successor.
+- Test::Deep for structural assertions; Test::Exception for error paths.
+- Mocking: Test::MockModule or Test::MockObject at boundaries only.
+- Raku has `Test` in core; `zef test` or `prove6` runs the suite.
+- Respect the existing `t/` layout and naming; these ecosystems have long
+  established conventions that predate most alternatives.
 
 ## Ecosystem openness
 
