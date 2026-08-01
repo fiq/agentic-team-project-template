@@ -135,9 +135,9 @@ skills:
   runtime_node:
     path: specialise/runtime-node/SKILL.md
     trigger: node_or_typescript_detected
-  runtime_java:
-    path: specialise/runtime-java/SKILL.md
-    trigger: java_detected
+  runtime_jvm:
+    path: specialise/runtime-jvm/SKILL.md
+    trigger: jvm_detected
   runtime_python:
     path: specialise/runtime-python/SKILL.md
     trigger: python_detected
@@ -155,6 +155,10 @@ skills:
   runtime_csharp:
     path: specialise/runtime-csharp/SKILL.md
     trigger: csharp_or_dotnet_detected
+
+  runtime_perl:
+    path: specialise/runtime-perl/SKILL.md
+    trigger: perl_or_raku_detected
 
   runtime_godot:
     path: specialise/runtime-godot/SKILL.md

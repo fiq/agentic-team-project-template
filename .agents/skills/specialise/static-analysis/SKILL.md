@@ -48,7 +48,10 @@ OSS tools. Watch for upstream deprecation or abandonment.
 
 | Runtime | lint | type_check | sast | dependency_scan | complexity |
 |---|---|---|---|---|---|
-| Java | Checkstyle, PMD | compiler, NullAway | SpotBugs | OWASP Dep-Check | PMD |
+| JVM/Java | Checkstyle, PMD | compiler, NullAway | SpotBugs | OWASP Dep-Check | PMD |
+| JVM/Kotlin | ktlint, detekt | compiler | detekt | OWASP Dep-Check | detekt |
+| JVM/Scala | scalafix | compiler | wartremover | sbt-dep-graph | scalafix |
+| JVM/Clojure | clj-kondo | n/a | clj-kondo | n/a | clj-kondo |
 | Node/TS | ESLint | tsc --noEmit | eslint-security | npm audit, audit-ci | ESLint complexity rules |
 | Python | ruff | mypy, pyright | bandit | pip-audit | ruff, radon |
 | Rust | clippy | compiler | clippy | cargo-audit | clippy |
@@ -56,6 +59,7 @@ OSS tools. Watch for upstream deprecation or abandonment.
 | C#/.NET | dotnet format | compiler | Roslyn analyzers | dotnet list --vulnerable | Roslyn analyzers |
 | Elixir | credo | dialyzer | sobelow | mix audit | credo |
 | Ruby | RuboCop | Sorbet (if adopted) | brakeman | bundler-audit | RuboCop |
+| Perl/Raku | perlcritic | n/a | Perl::Critic security | CPAN audit | perlcritic |
 | Godot | GDScript warnings | built-in | n/a | n/a | n/a |
 
 ## Evolvability and deprecation risk
