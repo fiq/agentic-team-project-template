@@ -12,8 +12,11 @@ Every generated project must make an explicit static-analysis decision at
 tools. Tools are evolvable defaults recorded with a deprecation revisit trigger.
 
 Static analysis is a shift-left gate: it runs before tests in CI and catches
-defects, style violations, type errors, security issues and complexity drift
-before they reach review or production.
+defects, style violations, type errors, security vulnerabilities (SAST),
+dependency vulnerabilities, complexity drift and dead code before they reach
+review or production. This is broader than just "lint" — it encompasses the
+full static analysis spectrum: SAST, DAST (where applicable), dependency
+scanning, type-checking, complexity analysis and style enforcement.
 
 The framework is opinionated about *categories* (every project must address
 them) but adaptable about *tools* (pick the right ones per runtime, and pivot
@@ -32,8 +35,10 @@ The project must address each category. A category may be recorded as
 |---|---|
 | `lint` | Style and convention enforcement |
 | `type_check` | Static type checking where the runtime supports it |
-| `security_scan` | Dependency vulnerability and code security scanning |
+| `sast` | Static application security testing — code-level security analysis |
+| `dependency_scan` | Dependency vulnerability scanning (SCA) |
 | `complexity` | Cyclomatic/cognitive complexity or dead-code detection |
+| `dast` | Dynamic application security testing — optional, runtime-level, when the project has a running service |
 
 ## Per-runtime tool suggestions
 
@@ -41,15 +46,15 @@ These are evolvable defaults, not authoritative mandates. Record the chosen
 tool in `PROJECT_PROFILE.toon.static_analysis` with a `revisit_trigger`. Prefer
 OSS tools. Watch for upstream deprecation or abandonment.
 
-| Runtime | lint | type_check | security | complexity |
-|---|---|---|---|---|
-| Java | Checkstyle, PMD | compiler, NullAway | SpotBugs, OWASP Dep-Check | PMD |
-| Node/TS | ESLint | tsc --noEmit | npm audit, audit-ci | ESLint complexity rules |
-| Python | ruff | mypy, pyright | pip-audit, bandit | ruff, radon |
-| Rust | clippy | compiler | cargo-audit | clippy |
-| Elixir | credo | dialyzer | mix audit | credo |
-| Ruby | RuboCop | Sorbet (if adopted) | bundler-audit | RuboCop |
-| Godot | GDScript warnings | built-in | n/a | n/a |
+| Runtime | lint | type_check | sast | dependency_scan | complexity |
+|---|---|---|---|---|---|
+| Java | Checkstyle, PMD | compiler, NullAway | SpotBugs | OWASP Dep-Check | PMD |
+| Node/TS | ESLint | tsc --noEmit | eslint-security | npm audit, audit-ci | ESLint complexity rules |
+| Python | ruff | mypy, pyright | bandit | pip-audit | ruff, radon |
+| Rust | clippy | compiler | clippy | cargo-audit | clippy |
+| Elixir | credo | dialyzer | sobelow | mix audit | credo |
+| Ruby | RuboCop | Sorbet (if adopted) | brakeman | bundler-audit | RuboCop |
+| Godot | GDScript warnings | built-in | n/a | n/a | n/a |
 
 ## Evolvability and deprecation risk
 
@@ -68,13 +73,28 @@ deliberately avoids per-tool shims or scripts. Instead:
 
 Expose `.agentic-template/bin/project lint`. It must:
 
-- run all configured static-analysis tools for the project;
+- run all configured static-analysis tools for the project (lint, type-check,
+  SAST, dependency scanning, complexity, DAST where applicable);
 - fail (non-zero exit) on violations unless the project explicitly records a
   warn-only policy with a revisit trigger;
 - be deterministic and repeatable in CI and locally.
 
 Libraries and Godot projects may record `lint` as `not_applicable` with a
 reason, but must not leave it unspecialised after `/specialise`.
+
+## Pre-commit hook
+
+Generated projects should install a pre-commit hook that runs a fast subset
+of `project lint` (typically lint and type-check, not full SAST or dependency
+scanning which may be slower) before a commit is created. This catches defects
+at the earliest possible point — before the developer even stages or pushes.
+
+- the hook must be non-blocking by default for the template (opt-in via
+  `project install-hooks`);
+- the hook should run in under 5 seconds for fast feedback;
+- full SAST, dependency scanning and DAST run in CI, not the pre-commit hook,
+  unless the project explicitly opts in;
+- the hook must not require network access or external services.
 
 ## Profile state
 
@@ -89,7 +109,10 @@ static_analysis:
   type_check:
     tool: ...
     status: specialised | not_applicable
-  security_scan:
+  sast:
+    tool: ...
+    status: specialised | not_applicable
+  dependency_scan:
     tool: ...
     status: specialised | not_applicable
   complexity:

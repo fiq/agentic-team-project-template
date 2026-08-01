@@ -107,7 +107,11 @@ thing             is built; acceptance tests are orthogonal to the trophy
 design for prod   observability recorded from the start, not bolted on
 ```
 
-- `project lint` runs before `project test` in CI.
+- `project lint` runs before `project test` in CI. It covers the full static
+  analysis spectrum: lint, type-check, SAST, dependency scanning, complexity
+  and DAST where applicable — not just style linting.
+- A pre-commit hook (opt-in via `project install-hooks`) runs a fast subset
+  of `project lint` before a commit is created.
 - `project build` produces reproducible artefacts (Nix-first).
 - Deployment pipeline and observability decisions are recorded at
   `/specialise`, even when deferred.

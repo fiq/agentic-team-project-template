@@ -23,6 +23,10 @@ Vocabulary for how this repository works. Domain vocabulary lives in
 | Shift-left | Moving quality checks (static analysis, testing, security) earlier in the pipeline, before review and production |
 | Lint gate | The `project lint` command that enforces static analysis deterministically in CI, before tests |
 | Complexity budget | A recorded threshold for cyclomatic or cognitive complexity, enforced by `project lint` |
+| SAST | Static application security testing — code-level security analysis without executing the application |
+| DAST | Dynamic application security testing — runtime security testing of a running service |
+| Dependency scanning (SCA) | Software composition analysis — scanning dependencies for known vulnerabilities |
+| Pre-commit hook | A git hook that runs a fast subset of `project lint` before a commit is created |
 | Budget appetite | Qualitative scale (`constrained` / `moderate` / `comfortable` / `generous`) influencing right-sizing and thin-slicing |
 | Observability 2.0 | Correlated traces, logs and metrics (OTel), not siloed; local instrumentation works in dev and CI |
 | Deployment pipeline | The CD flow: how built artefacts are promoted to environments; evolvable target (container, Lambda, etc.) |

@@ -24,9 +24,14 @@ class TestStaticAnalysisSkill(unittest.TestCase):
     def test_skill_mentions_required_categories(self):
         path = ROOT / ".agents/skills/specialise/static-analysis/SKILL.md"
         text = path.read_text()
-        for category in ("lint", "type_check", "security_scan", "complexity"):
+        for category in ("lint", "type_check", "sast", "dependency_scan", "complexity", "dast"):
             with self.subTest(category=category):
                 self.assertIn(category, text, f"skill missing category: {category}")
+
+    def test_skill_mentions_pre_commit_hook(self):
+        path = ROOT / ".agents/skills/specialise/static-analysis/SKILL.md"
+        text = path.read_text()
+        self.assertIn("pre-commit", text.lower(), "skill missing pre-commit hook guidance")
 
     def test_skill_mentions_deprecation_revisit(self):
         path = ROOT / ".agents/skills/specialise/static-analysis/SKILL.md"
@@ -81,7 +86,7 @@ class TestCustomizeContract(unittest.TestCase):
 
     def test_static_analysis_categories_present(self):
         text = (ROOT / "CUSTOMIZE_THIS_PROJECT.toon").read_text()
-        for category in ("lint:", "type_check:", "security_scan:", "complexity:"):
+        for category in ("lint:", "type_check:", "sast:", "dependency_scan:", "complexity:", "dast:"):
             with self.subTest(category=category):
                 self.assertIn(category, text)
 

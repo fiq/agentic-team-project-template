@@ -55,11 +55,14 @@ static_analysis:
   categories:
     lint: infer
     type_check: infer
-    security_scan: infer
+    sast: infer
+    dependency_scan: infer
     complexity: infer
+    dast: infer
   tools: infer
   revisit_trigger: tool_deprecation_or_better_alternative
   enforce_in_ci: true
+  pre_commit_hook: opt_in
 
 testing:
   philosophy: testing_trophy
