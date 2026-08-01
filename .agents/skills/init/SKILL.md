@@ -101,6 +101,22 @@ discover
    - `.agentic-template/bin/context-test` — runs the router test suite.
    - `.agentic-template/bin/check-secrets` — useful for any project.
 
+10. If the project's runtime is not covered by an existing `specialise/runtime-*`
+    skill, create one following the established pattern. The template ships
+    common runtimes (Java, Python, Node/TS, Elixir, Godot, Rust, Go, C#/.NET)
+    as examples — it is **not exhaustive** and never will be. When encountering
+    an uncovered runtime (e.g. Ruby, Clojure, Haskell, Perl, Scala, Kotlin,
+    Zig, OCaml), create a `specialise/runtime-<name>/SKILL.md` following the
+    pattern of the existing runtime skills:
+
+    - detect the build tool, framework, and test framework from evidence;
+    - provide evolvable static-analysis defaults (not a closed list);
+    - list language smells for the review-loop;
+    - include an "ecosystem openness" section that says to inspect, respect,
+      and record unknown tools rather than imposing them;
+    - add the new skill to `CATALOG.toon` and `check-repo-contract`;
+    - record the creation in `PROJECT_PROFILE.toon`.
+
 ### 4. Rewrite top-level project identity
 
 1. Replace `README.md` with a project-facing README (do not append to the

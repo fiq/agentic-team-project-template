@@ -148,6 +148,14 @@ skills:
     path: specialise/runtime-rust/SKILL.md
     trigger: rust_detected
 
+  runtime_go:
+    path: specialise/runtime-go/SKILL.md
+    trigger: go_detected
+
+  runtime_csharp:
+    path: specialise/runtime-csharp/SKILL.md
+    trigger: csharp_or_dotnet_detected
+
   runtime_godot:
     path: specialise/runtime-godot/SKILL.md
     trigger: godot_detected

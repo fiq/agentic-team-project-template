@@ -54,6 +54,88 @@ class TestRuntimeRustSkill(unittest.TestCase):
         self.assertIn("Rust", text)
         self.assertIn("clippy", text.lower())
 
+    def test_static_analysis_table_has_go(self):
+        path = ROOT / ".agents/skills/specialise/static-analysis/SKILL.md"
+        text = path.read_text()
+        self.assertIn("Go", text)
+        self.assertIn("golangci-lint", text.lower())
+
+    def test_static_analysis_table_has_csharp(self):
+        path = ROOT / ".agents/skills/specialise/static-analysis/SKILL.md"
+        text = path.read_text()
+        self.assertIn("C#/.NET", text)
+        self.assertIn("dotnet format", text.lower())
+
+
+class TestRuntimeGoSkill(unittest.TestCase):
+    def test_skill_file_exists(self):
+        path = ROOT / ".agents/skills/specialise/runtime-go/SKILL.md"
+        self.assertTrue(path.exists(), f"missing skill: {path}")
+
+    def test_skill_has_valid_frontmatter(self):
+        path = ROOT / ".agents/skills/specialise/runtime-go/SKILL.md"
+        text = path.read_text()
+        self.assertTrue(text.startswith("---\n"), "missing frontmatter")
+        end = text.find("\n---", 4)
+        self.assertGreater(end, 0, "unterminated frontmatter")
+        frontmatter = text[4:end]
+        self.assertIn("name:", frontmatter)
+        self.assertIn("description:", frontmatter)
+
+    def test_skill_mentions_go_modules(self):
+        path = ROOT / ".agents/skills/specialise/runtime-go/SKILL.md"
+        text = path.read_text()
+        self.assertIn("go.mod", text)
+        self.assertIn("go test", text)
+
+    def test_skill_acknowledges_unknown_tools(self):
+        path = ROOT / ".agents/skills/specialise/runtime-go/SKILL.md"
+        text = path.read_text()
+        self.assertIn("not a closed list", text.lower())
+
+    def test_skill_in_catalog(self):
+        catalog = (ROOT / ".agents/skills/CATALOG.toon").read_text()
+        self.assertIn("specialise/runtime-go/SKILL.md", catalog)
+
+    def test_skill_in_required_skills(self):
+        text = (ROOT / ".agentic-template/bin/check-repo-contract").read_text()
+        self.assertIn("specialise/runtime-go", text)
+
+
+class TestRuntimeCSharpSkill(unittest.TestCase):
+    def test_skill_file_exists(self):
+        path = ROOT / ".agents/skills/specialise/runtime-csharp/SKILL.md"
+        self.assertTrue(path.exists(), f"missing skill: {path}")
+
+    def test_skill_has_valid_frontmatter(self):
+        path = ROOT / ".agents/skills/specialise/runtime-csharp/SKILL.md"
+        text = path.read_text()
+        self.assertTrue(text.startswith("---\n"), "missing frontmatter")
+        end = text.find("\n---", 4)
+        self.assertGreater(end, 0, "unterminated frontmatter")
+        frontmatter = text[4:end]
+        self.assertIn("name:", frontmatter)
+        self.assertIn("description:", frontmatter)
+
+    def test_skill_mentions_dotnet(self):
+        path = ROOT / ".agents/skills/specialise/runtime-csharp/SKILL.md"
+        text = path.read_text()
+        self.assertIn("dotnet", text.lower())
+        self.assertIn("csproj", text.lower())
+
+    def test_skill_acknowledges_unknown_tools(self):
+        path = ROOT / ".agents/skills/specialise/runtime-csharp/SKILL.md"
+        text = path.read_text()
+        self.assertIn("not a closed list", text.lower())
+
+    def test_skill_in_catalog(self):
+        catalog = (ROOT / ".agents/skills/CATALOG.toon").read_text()
+        self.assertIn("specialise/runtime-csharp/SKILL.md", catalog)
+
+    def test_skill_in_required_skills(self):
+        text = (ROOT / ".agentic-template/bin/check-repo-contract").read_text()
+        self.assertIn("specialise/runtime-csharp", text)
+
 
 class TestCheckSecrets(unittest.TestCase):
     def test_clean_repo_passes(self):

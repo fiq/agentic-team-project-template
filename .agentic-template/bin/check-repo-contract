@@ -102,6 +102,8 @@ REQUIRED_SKILLS = [
     "specialise/runtime-elixir",
     "specialise/runtime-godot",
     "specialise/runtime-rust",
+    "specialise/runtime-go",
+    "specialise/runtime-csharp",
     "specialise/messaging-kafka",
     "specialise/sql-migrations",
     "specialise/test-harness",
