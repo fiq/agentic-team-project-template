@@ -60,6 +60,7 @@ OSS tools. Watch for upstream deprecation or abandonment.
 | Elixir | credo | dialyzer | sobelow | mix audit | credo |
 | Ruby | RuboCop | Sorbet (if adopted) | brakeman | bundler-audit | RuboCop |
 | Perl/Raku | perlcritic | n/a | Perl::Critic security | CPAN audit | perlcritic |
+| PHP | PHPCS / PHP CS Fixer | PHPStan / Psalm | PHPCS security / Psalm taint | composer audit | PHPStan |
 | Godot | GDScript warnings | built-in | n/a | n/a | n/a |
 
 ## Evolvability and deprecation risk

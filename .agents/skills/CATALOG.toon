@@ -164,6 +164,10 @@ skills:
     path: specialise/runtime-ruby/SKILL.md
     trigger: ruby_detected
 
+  runtime_php:
+    path: specialise/runtime-php/SKILL.md
+    trigger: php_detected
+
   runtime_godot:
     path: specialise/runtime-godot/SKILL.md
     trigger: godot_detected
