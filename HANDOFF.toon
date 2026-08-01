@@ -30,7 +30,7 @@ completed:
 in_progress: []
 
 next:
-  - apply the shift-left pipeline and context router to a real project (VRunnable) via /specialise
+  - apply the shift-left pipeline and context router to a real project via /specialise
   - consider scrubbing the project name from pre-existing INBOX-004/005/006 if the template is public
   - review the new specialise skills (static-analysis, build-pipeline, deployment-pipeline, observability) on a real specialisation
   - promote any remaining inbox proposals (INBOX-001..008) as evidence accumulates
