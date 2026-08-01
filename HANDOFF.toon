@@ -1,39 +1,58 @@
 session:
-  updated: 2026-08-01
-  status: shift_left_pipeline_complete
-  branch: feat/portable-context-router
+  updated: 2026-08-02
+  status: review_findings_addressed
+  branch: main
 
 goal:
-  current: deliver the shift-left pipeline, static analysis, build, deployment, observability and budget scale changes
+  current: address the findings from the overall template review and close the gaps they exposed
 
 completed:
-  - added specialise/static-analysis skill: opinionated about categories, per-runtime tool tables, evolvable, no shims
-  - added specialise/build-pipeline skill: Nix-first reproducible builds, evolvable targets, project build command
-  - added specialise/deployment-pipeline skill: CD, promotion, evolvable targets, catered from the start
-  - added specialise/observability skill: OTel traces, structured logs, local instrumentation, Observability 2.0
-  - updated specialise/ci skill: lint and build in canonical pipeline shape, parallel execution
-  - updated specialise/container-build skill: cross-references build-pipeline
-  - updated specialise/infra-decision skill: cross-references deployment-pipeline
-  - wired lint and build into command surface (UNSPECIALISED, PROJECT_COMMANDS)
-  - added 4 new skills to REQUIRED_SKILLS and CATALOG.toon
-  - added static_analysis, build, deployment, observability, budget blocks to CUSTOMIZE_THIS_PROJECT.toon
-  - added 4 new decisions and budget block to PROJECT_PROFILE.toon
-  - added shift-left engineering section to AGENTS.md
-  - added acceptance-tests-orthogonal and right-framework principles to AGENTS.md
-  - added static analysis section to AGENTS_TEMPLATE.md required sections
-  - updated wiki: testing.md (static analysis, orthogonal), development.md (lint in lifecycle), glossary.md (10 new terms), operations.md (observability)
-  - updated README.md: lifecycle diagram, key principles, specialisation list
-  - updated wiki index: testing page description
-  - added 61 tests in test_static_analysis.py covering all 5 phases
-  - added plans/shift-left-pipeline-and-observability.md
+  - fixed project ready specialisation detection: it parsed `project --list`, which
+    always prints the union of COMMANDS and UNSPECIALISED, so the check could never
+    be false and a specialised project would run unspecialised targets and fail
+  - extracted select_runtime_commands so the selection is directly testable
+  - wired the missing `project build` step into readiness; ordered lint, build, test
+  - aligned ci and static-analysis skills with the AGENTS.md rule that lint precedes test
+  - fixed 7 broken sibling cross-references between specialise skills (bare ci/SKILL.md
+    resolved relative to the referring skill's own directory, not to specialise/)
+  - backfilled Build, Static analysis, Testing and Ecosystem openness sections for
+    runtime-python, runtime-node, runtime-elixir, runtime-godot; also jvm, perl, php
+  - added a discovery-driven test holding every runtime skill to the same pattern, so a
+    runtime added later cannot ship thin
+  - added test_project_ready.py covering the detection bug that shipped undetected
+  - added Anthropic and OpenAI project-scoped key patterns to check-secrets; the plain
+    sk- pattern could not match either because of the hyphen after the prefix
+  - scoped check-secrets to git-committable files, so gitignored paths are out of scope
+    and the tool's own advice to move secrets into an untracked .env is coherent
+  - ran a full-history scan over 759 blobs across all commits; no credentials found
+  - fixed the scaffold reporting directories as changed on every run without comparing
+    contents
+  - specified and tested the wiki axis rule: no axis directory means pre-adoption and is
+    not checked; any axis directory means adoption, and every page must migrate
+  - replaced the fixed pre-commit hook with a declarative gate: .agents/hooks.toon
+    declares checks, run-hooks executes them concurrently with per-check timeouts,
+    blocking or advisory per check, skipping unspecialised project targets
+  - promoted the five verified-resolved duplication candidates to enforced topics
+  - added why-this-not-a-skill.md and elevated the knowledge-graph framing in README
+  - refined why-this-not-a-skill.md for engineers, agentic developers and newcomers:
+    seven-point case, ontology extensibility and provenance, bounded subagents,
+    cross-agent contract, Superpowers composition boundary, repeatable-project
+    pattern, opinionated scaffolds, honest costs and a domain-focus close
+  - added ontology, subagent, topology and tooling-detection terms to the glossary
+  - added outside-in-tdd/verification.md: prove every test can fail before treating it
+    as evidence; red-first for new code, mutation check for tests written after it,
+    reproduce-first for regressions, break-the-input for tooling checks; declared as a
+    skill layer so the router preloads it on guarded work
 
 in_progress: []
 
 next:
+  - review the uncommitted working tree and commit; nothing from this session is committed
   - apply the shift-left pipeline and context router to a real project via /specialise
-  - consider scrubbing the project name from pre-existing INBOX-004/005/006 if the template is public
-  - review the new specialise skills (static-analysis, build-pipeline, deployment-pipeline, observability) on a real specialisation
-  - promote any remaining inbox proposals (INBOX-001..008) as evidence accumulates
+  - read why-this-not-a-skill.md end to end and adjust tone where it overreaches
+  - apply the mutation-check obligation to the existing suite: most tests predate the
+    rule and have not been proven able to fail
+  - promote remaining inbox proposals (INBOX-001..009) as evidence accumulates
 
 decisions:
   - id: portable_context_router
@@ -42,6 +61,8 @@ decisions:
     summary: license lean context from fixture-scored behaviour, never from model identity
   - id: wiki_method_product_axis
     summary: every wiki page declares axis method or product, matching its directory
+  - id: wiki_axis_adoption_is_all_or_nothing
+    summary: a wholly flat wiki is unchecked; creating one axis directory requires migrating every page
   - id: yaml_skill_frontmatter_deviation
     summary: keep skill frontmatter in YAML despite the TOON default for state
   - id: static_analysis_from_specialise
@@ -52,56 +73,89 @@ decisions:
     summary: every generated project records a deployment pipeline decision at /specialise
   - id: observability_from_specialise
     summary: every generated project records an observability decision at /specialise
+  - id: declarative_precommit_gate
+    summary: hook checks are declared in project-owned .agents/hooks.toon, run concurrently, blocking per check
+  - id: secret_scan_scoped_to_committable_files
+    summary: scan what git would let you commit; gitignored paths are out of scope, history needs a real scanner
+  - id: tests_must_be_proven_able_to_fail
+    summary: a test observed only passing is not evidence; prove it fails, then restore and rerun
 
 risks:
-  - skill proliferation: 4 new skills added; each is lean but catalog is growing
-  - tool deprecation: per-runtime tool suggestions may go stale; mitigated by revisit_trigger
-  - pre-existing D1/D2/D4/D8/D9 warnings remain from the Phase 1 dedupe ledger
-  - no real generated project has exercised this yet; adoption friction may surface
-  - the apply_diff tool intermittently failed with missing path parameter; retried successfully each time
+  - runtime skill tool tables may go stale; mitigated by revisit_trigger and openness sections
+  - the pre-commit gate is only as fast as its checks; a project adding a slow blocking
+    check will push people toward --no-verify
+  - check-secrets still does not scan git history; a full scanner is needed before any
+    repository with real history is published
+  - no real generated project has exercised the shift-left pipeline yet
+  - positioning copy in why-this-not-a-skill.md is a first draft, not the owner's voice
 
 files_changed:
+  - .agentic-template/bin/project
+  - .agentic-template/bin/project-ready
+  - .agentic-template/bin/check-secrets
+  - .agentic-template/bin/check-repo-contract
+  - .agentic-template/bin/context
+  - .agentic-template/bin/install-hooks
+  - .agentic-template/bin/run-hooks
+  - .agentic-template/tests/test_static_analysis.py
+  - .agentic-template/tests/test_scaffold_acceptance.py
+  - .agentic-template/tests/test_project_ready.py
+  - .agentic-template/tests/test_hooks.py
+  - .agentic-template/fixtures/rust-sample-project/README.md
+  - .agentic-template/fixtures/rust-sample-project/docs/wiki/operations.md
+  - .agents/hooks.toon
+  - .agents/context/TOPICS.toon
+  - .agents/context/README.md
+  - .agents/knowledge/inbox/INBOX-004-documentation-map-and-validation-blueprint.md
+  - .agents/skills/init/SKILL.md
+  - .agents/skills/workflow/outside-in-tdd/SKILL.md
+  - .agents/skills/workflow/outside-in-tdd/verification.md
+  - docs/wiki/method/testing.md
+  - docs/wiki/method/glossary.md
+  - .agents/skills/specialise/ci/SKILL.md
   - .agents/skills/specialise/static-analysis/SKILL.md
   - .agents/skills/specialise/build-pipeline/SKILL.md
-  - .agents/skills/specialise/deployment-pipeline/SKILL.md
-  - .agents/skills/specialise/observability/SKILL.md
-  - .agents/skills/specialise/ci/SKILL.md
   - .agents/skills/specialise/container-build/SKILL.md
+  - .agents/skills/specialise/deployment-pipeline/SKILL.md
   - .agents/skills/specialise/infra-decision/SKILL.md
-  - .agents/skills/CATALOG.toon
-  - .agentic-template/bin/project
-  - .agentic-template/bin/check-repo-contract
-  - .agentic-template/templates/AGENTS_TEMPLATE.md
-  - .agentic-template/tests/test_static_analysis.py
+  - .agents/skills/specialise/runtime-python/SKILL.md
+  - .agents/skills/specialise/runtime-node/SKILL.md
+  - .agents/skills/specialise/runtime-elixir/SKILL.md
+  - .agents/skills/specialise/runtime-godot/SKILL.md
+  - .agents/skills/specialise/runtime-jvm/SKILL.md
+  - .agents/skills/specialise/runtime-perl/SKILL.md
+  - .agents/skills/specialise/runtime-php/SKILL.md
   - AGENTS.md
-  - CUSTOMIZE_THIS_PROJECT.toon
-  - PROJECT_PROFILE.toon
   - README.md
   - HANDOFF.toon
   - docs/wiki/index.md
-  - docs/wiki/method/testing.md
   - docs/wiki/method/development.md
-  - docs/wiki/method/glossary.md
-  - docs/wiki/product/operations.md
-  - plans/shift-left-pipeline-and-observability.md
+  - docs/wiki/method/why-this-not-a-skill.md
+  - plans/review-claude-overall.md
 
 tests_run:
-  - 2026-08-01 python3 -m unittest test_static_analysis: pass (61 tests)
-  - 2026-08-01 .agentic-template/bin/project check: pass (CONTEXT ROUTER OK)
-  - 2026-08-01 .agentic-template/bin/project self-test: pass (SELF TEST OK)
-  - 2026-08-01 .agentic-template/bin/project ready: pass (READY: PASS)
-  - 2026-08-01 .agentic-template/bin/project context test: pass (238 tests)
+  - 2026-08-02 python3 -m unittest discover .agentic-template/tests: pass (325 tests, was 272)
+  - 2026-08-02 .agentic-template/bin/project check: pass (all gates OK)
+  - 2026-08-02 .agentic-template/bin/project ready: pass (READY: PASS)
+  - 2026-08-02 .agentic-template/bin/project self-test: pass (SELF TEST OK)
+  - 2026-08-02 .agentic-template/bin/project hooks: pass (PRE-COMMIT OK, 0.1s)
+  - 2026-08-02 full-history secret scan over 759 blobs: no findings
+  - 2026-08-02 mutation checks: reverted each fix in turn and confirmed the new tests fail
 
 knowledge:
   consulted:
     - .agents/knowledge/index.md
     - .agents/knowledge/TAXONOMY.md
-    - .agents/knowledge/inbox/INBOX-009-portable-context-router.md
-  proposals:
-    - .agents/knowledge/patterns/PAT-001-portable-context-router.md
-  no_record: null
+    - .agents/context/README.md
+  proposals: []
+  no_record: >-
+    findings were defects in shipped tooling and their fixes, not durable reusable
+    knowledge; the decisions worth keeping are recorded in decisions above and the
+    reasoning in plans/review-claude-overall.md
 
 team_fallback:
   current: single lead agent using explicit review checklist
-  reason: bounded implementation, documentation and state recording
-  lost_challenge: independent reviewer; mitigated by 61 tests, 238 context tests, self-test, ready and check validation
+  reason: bounded review and remediation of a known finding list
+  lost_challenge: >-
+    independent reviewer; mitigated by 325 automated tests, mutation-checking each new
+    test against the bug it guards, and end-to-end verification of the commit gate
