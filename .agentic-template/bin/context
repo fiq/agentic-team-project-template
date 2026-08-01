@@ -258,6 +258,14 @@ def _check_wiki_axis(root, errors):
     wiki = Path(root) / "docs/wiki"
     if not wiki.exists():
         return
+    # P2: only enforce axis layout when the project has adopted the
+    # method/product directory structure. Legacy wikis with flat pages
+    # should not fail the check.
+    has_axis_dirs = any(
+        (wiki / axis).is_dir() for axis in WIKI_AXES
+    )
+    if not has_axis_dirs:
+        return
     for path in sorted(wiki.rglob("*.md")):
         relative = str(path.relative_to(root))
         if path.parent == wiki:
@@ -452,6 +460,21 @@ def cmd_scaffold(args):
             destination.write_text(SCAFFOLD_STARTER[relative])
     (target / ".agents/context/observations").mkdir(parents=True, exist_ok=True)
 
+    # P1: ensure the scaffolded qualification skill is catalogued so
+    # `context check` does not fail on a router-only adoption path.
+    catalog_path = target / ".agents/skills/CATALOG.toon"
+    if catalog_path.exists():
+        catalog_text = catalog_path.read_text()
+        if "context_qualification" not in catalog_text:
+            catalog_path.write_text(
+                catalog_text.rstrip()
+                + "\n\n  context_qualification:\n"
+                "    path: tooling/context-qualification/SKILL.md\n"
+                "    trigger: no_observation_for_this_environment\n"
+            )
+            print()
+            print("  updated: .agents/skills/CATALOG.toon (added context_qualification)")
+
     # D4: install a minimal project facade when one doesn't exist.
     # B2: when one exists but doesn't dispatch 'context', print the exact line.
     project_facade = target / ".agentic-template/bin/project"
@@ -464,7 +487,32 @@ def cmd_scaffold(args):
         print("          extend it with additional commands as your project grows.")
     else:
         facade_text = project_facade.read_text()
-        if '"context"' not in facade_text and "context" not in facade_text:
+        # P2: verify actual dispatch, not just a substring match that could
+        # match "context-packet" or a comment.
+        dispatches_context = False
+        try:
+            import ast
+            tree = ast.parse(facade_text)
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Dict):
+                    for key in node.keys:
+                        if isinstance(key, ast.Constant) and key.value == "context":
+                            dispatches_context = True
+                            break
+                    if dispatches_context:
+                        break
+                if isinstance(node, (ast.If,)) and isinstance(node.test, ast.Compare):
+                    # Check for `sys.argv[1] == "context"` pattern
+                    for comp in node.test.comparators:
+                        if isinstance(comp, ast.Constant) and comp.value == "context":
+                            dispatches_context = True
+                            break
+                    if dispatches_context:
+                        break
+        except SyntaxError:
+            # Not Python; fall back to substring check
+            dispatches_context = "context" in facade_text
+        if not dispatches_context:
             print()
             print("  note: .agentic-template/bin/project does not dispatch 'context'.")
             print("        Add this line to its COMMANDS table:")
@@ -504,7 +552,7 @@ def build_parser():
     )
     observe.add_argument("--event", choices=("degraded", "success"), required=True)
     observe.add_argument("--symptom", help="symptom key from .agents/context/RECOVERY.toon")
-    observe.add_argument("--profile", choices=("lean", "standard", "guarded"), default="lean")
+    observe.add_argument("--profile", choices=("lean", "standard", "guarded"), default="standard")
     observe.add_argument("--model")
     observe.add_argument("--runtime")
     observe.set_defaults(handler=cmd_observe)

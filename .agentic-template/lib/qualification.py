@@ -91,12 +91,21 @@ def _cites_a_file_containing(fixture, answer, field, expected):
     Used for checks that an evidence citation is honest, not merely present: the
     named file must exist AND its content must actually contain the correct
     answer, so a real-but-wrong file or an unsourced claim both fail.
+
+    P2: the cited path must resolve inside the fixture directory (no traversal
+    out via ``..`` or absolute paths) and must be a regular file, not a
+    directory.
     """
     claimed = str(answer.get(field, "")).strip()
     if not claimed:
         return False
-    candidate = fixture / claimed
-    return candidate.exists() and expected in candidate.read_text()
+    candidate = (fixture / claimed).resolve()
+    fixture_resolved = fixture.resolve()
+    try:
+        candidate.relative_to(fixture_resolved)
+    except ValueError:
+        return False
+    return candidate.is_file() and expected in candidate.read_text()
 
 
 def score(root, answers):

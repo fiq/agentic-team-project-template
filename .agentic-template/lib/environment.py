@@ -15,6 +15,9 @@ CONTRACT_FILES = (
     ".agents/skills/CATALOG.toon",
     ".agents/knowledge/TAXONOMY.md",
     ".agents/context/ROUTER.toon",
+    # P2: include qualification contract files so that changing the
+    # qualification fixture or contract invalidates recorded observations.
+    ".agents/context/qualification/QUALIFICATION.toon",
 )
 
 UNREPORTED_MODEL = "unreported"

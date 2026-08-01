@@ -209,9 +209,16 @@ def _emit(value, indent, out):
                 keys = list(item)
                 first = keys[0]
                 head = item[first]
-                if isinstance(head, (dict, list)) and head:
+                if isinstance(head, dict) and head:
                     out.append(f"{pad}- {first}:")
                     _emit(head, indent + 4, out)
+                elif isinstance(head, list) and head:
+                    out.append(f"{pad}- {first}:")
+                    _emit(head, indent + 4, out)
+                elif isinstance(head, dict):
+                    out.append(f"{pad}- {first}: {{}}")
+                elif isinstance(head, list):
+                    out.append(f"{pad}- {first}: []")
                 else:
                     out.append(f"{pad}- {first}: {_emit_scalar(head)}")
                 _emit({key: item[key] for key in keys[1:]}, indent + 2, out)
