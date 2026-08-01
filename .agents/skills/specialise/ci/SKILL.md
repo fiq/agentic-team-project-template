@@ -21,10 +21,15 @@ project infra-check            # when applicable
 project ready                  # or the non-duplicating composite
 ```
 
-Run `lint` early and in parallel with `test` where the CI runner supports it,
-for fast feedback. Lint must fail the pipeline on violations (not warn-only)
-unless the project explicitly records a warn-only policy with a revisit
-trigger. See [`specialise/static-analysis`](static-analysis/SKILL.md).
+Run `lint` before `test`, not just early: a lint failure should stop the
+pipeline before the test suite spends time on a build that is already known to
+violate the static-analysis gate. Where the CI runner supports it, run lint's
+own sub-categories (type-check, SAST, dependency-scan, complexity) in parallel
+with each other to keep the gate fast — but the lint stage as a whole still
+gates `test`, it does not run alongside it. Lint must fail the pipeline on
+violations (not warn-only) unless the project explicitly records a warn-only
+policy with a revisit trigger. See
+[`specialise/static-analysis`](../static-analysis/SKILL.md).
 
 Avoid running the same expensive tests twice when `ready` composes earlier
 commands.

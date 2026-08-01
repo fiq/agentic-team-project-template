@@ -58,7 +58,7 @@ Libraries, mobile apps, desktop apps and Godot projects may record
 ## Relationship to deployment pipeline
 
 This skill records IaC status (infrastructure-as-code). The
-[`specialise/deployment-pipeline`](deployment-pipeline/SKILL.md) skill records
+[`specialise/deployment-pipeline`](../deployment-pipeline/SKILL.md) skill records
 the CD flow (how built artefacts are promoted to environments). They are
 complementary: IaC defines what infrastructure exists; the deployment pipeline
 defines how software reaches it.

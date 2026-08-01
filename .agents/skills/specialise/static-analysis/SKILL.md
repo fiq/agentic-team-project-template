@@ -131,8 +131,8 @@ static_analysis:
 
 ## CI integration
 
-CI must call `project lint` early in the pipeline, before or in parallel with
-`project test`. See [`specialise/ci`](ci/SKILL.md).
+CI must call `project lint` before `project test`. See
+[`specialise/ci`](../ci/SKILL.md).
 
 ## Do not
 

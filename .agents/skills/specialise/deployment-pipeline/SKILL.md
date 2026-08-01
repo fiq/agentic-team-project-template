@@ -71,7 +71,7 @@ Libraries, mobile apps, desktop apps and Godot projects may record
 
 ## Relationship to infra-decision
 
-The [`specialise/infra-decision`](infra-decision/SKILL.md) skill records IaC
+The [`specialise/infra-decision`](../infra-decision/SKILL.md) skill records IaC
 status (infrastructure-as-code). This skill records the CD flow (how built
 artefacts are promoted to environments). They are complementary: IaC defines
 what infrastructure exists; the deployment pipeline defines how software

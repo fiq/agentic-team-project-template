@@ -29,7 +29,7 @@ The `flake.nix` provides a reproducible build environment. The build command
 
 When a deployable service, the container build uses the Nix environment (or a
 multi-stage Dockerfile) to produce a pinned, reproducible image. See
-[`specialise/container-build`](container-build/SKILL.md) for container-specific
+[`specialise/container-build`](../container-build/SKILL.md) for container-specific
 requirements (non-root user, health check, `.dockerignore`, `image-test`).
 
 The container build is one build target, not the only one. The build target
@@ -76,7 +76,7 @@ build:
 ## CI integration
 
 CI must call `project build` before `project test` when applicable. See
-[`specialise/ci`](ci/SKILL.md).
+[`specialise/ci`](../ci/SKILL.md).
 
 ## Do not
 
