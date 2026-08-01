@@ -1,4 +1,4 @@
-"""Tests for the static-analysis skill and CI pipeline shape."""
+"""Tests for the static-analysis skill, CI pipeline shape, and runtime skills."""
 import subprocess
 import tempfile
 import unittest
@@ -8,6 +8,51 @@ import _support  # noqa: F401
 
 ROOT = _support.ROOT
 BIN = _support.BIN
+
+
+class TestRuntimeRustSkill(unittest.TestCase):
+    def test_skill_file_exists(self):
+        path = ROOT / ".agents/skills/specialise/runtime-rust/SKILL.md"
+        self.assertTrue(path.exists(), f"missing skill: {path}")
+
+    def test_skill_has_valid_frontmatter(self):
+        path = ROOT / ".agents/skills/specialise/runtime-rust/SKILL.md"
+        text = path.read_text()
+        self.assertTrue(text.startswith("---\n"), "missing frontmatter")
+        end = text.find("\n---", 4)
+        self.assertGreater(end, 0, "unterminated frontmatter")
+        frontmatter = text[4:end]
+        self.assertIn("name:", frontmatter)
+        self.assertIn("description:", frontmatter)
+
+    def test_skill_mentions_cargo(self):
+        path = ROOT / ".agents/skills/specialise/runtime-rust/SKILL.md"
+        text = path.read_text()
+        self.assertIn("cargo", text.lower())
+
+    def test_skill_mentions_clippy(self):
+        path = ROOT / ".agents/skills/specialise/runtime-rust/SKILL.md"
+        text = path.read_text()
+        self.assertIn("clippy", text.lower())
+
+    def test_skill_acknowledges_unknown_tools(self):
+        path = ROOT / ".agents/skills/specialise/runtime-rust/SKILL.md"
+        text = path.read_text()
+        self.assertIn("not a closed list", text.lower())
+
+    def test_skill_in_catalog(self):
+        catalog = (ROOT / ".agents/skills/CATALOG.toon").read_text()
+        self.assertIn("specialise/runtime-rust/SKILL.md", catalog)
+
+    def test_skill_in_required_skills(self):
+        text = (ROOT / ".agentic-template/bin/check-repo-contract").read_text()
+        self.assertIn("specialise/runtime-rust", text)
+
+    def test_static_analysis_table_has_rust(self):
+        path = ROOT / ".agents/skills/specialise/static-analysis/SKILL.md"
+        text = path.read_text()
+        self.assertIn("Rust", text)
+        self.assertIn("clippy", text.lower())
 
 
 class TestCheckSecrets(unittest.TestCase):

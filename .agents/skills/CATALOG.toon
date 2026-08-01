@@ -144,6 +144,10 @@ skills:
   runtime_elixir:
     path: specialise/runtime-elixir/SKILL.md
     trigger: elixir_detected
+  runtime_rust:
+    path: specialise/runtime-rust/SKILL.md
+    trigger: rust_detected
+
   runtime_godot:
     path: specialise/runtime-godot/SKILL.md
     trigger: godot_detected
