@@ -81,7 +81,7 @@ The agent will:
 - Ask the smallest useful question set to resolve unknowns
 - Recommend the smallest sufficient architecture
 - Populate `PROJECT_PROFILE.toon` with facts, inferences, decisions and unknowns
-- Specialise runtime, testing, containers and CI from your evidence
+- Specialise runtime, testing, static analysis, build, deployment, observability and CI from your evidence
 - Rewrite the README and operating contract for your project
 - Hand off to `HANDOFF.toon` so the next work continues from here
 
@@ -170,27 +170,34 @@ Work flows through a small, connected loop. Agents drive it; humans steer at dec
 ```
 /specialise --> calibrate audience + app shape (plain language)
                   right-size: smallest sufficient architecture, recorded buy-in
-      |
-      v
+       |
+       v
 /ideate ------> short-cycle multi-persona loop -> structured change artifact
      (idea or     Intent -> Boundary -> Delivery -> Quality gate
      narrative)   At hard choices: show persona stances (discourages/accepts/encourages)
-      |
-      v
+       |
+       v
+project lint --> static analysis gate (shift-left): lint, type-check,
+                 security, complexity — before tests
+       |
+       v
 outside-in -> acceptance test per WHEN/THEN scenario, fidelity by risk
     ATDD        (acceptance / component-integration / subcutaneous)
-      |
-      v
+                 acceptance tests are orthogonal to the testing trophy
+       |
+       v
 /review ------> boy-scout cleanup: code, language and architectural smells, coupling
-      |
-      v
+       |
+       v
 archive -------> specs/capabilities/ + wiki keeps docs and knowledge graph current
 ```
 
 **Key principles:**
+- **Shift left from the get-go.** Static analysis (`project lint`) runs before tests in CI. Reproducible builds (`project build`) are Nix-first. Deployment pipeline and observability decisions are recorded at `/specialise`, even when deferred. Budget appetite (`constrained` / `moderate` / `comfortable` / `generous`) influences right-sizing.
 - **Specs are structured and agent-first.** TOON is the template default; generated projects may choose TOON or S-expressions by purpose during setup.
 - **Quality is standing, not a phase.** Boy-scout rule, reuse over duplication, pay in-path debt, docs land in the change, no silent TODOs.
 - **Right-sizing is conscious.** The smallest sufficient architecture is chosen, explicitly. What is excluded and why are recorded. Revisit conditions are named.
+- **Use the right framework.** Don't build from first principles when a mature, well-supported framework solves the problem. Hand-rolling what a framework provides is a smell.
 - **Knowledge forms one graph.** `AGENTS.md` + `PROJECT_PROFILE.toon` + specs + `HANDOFF.toon` + `.agents/knowledge/` + wiki all connect via `TAXONOMY.md`. Agents search before acting.
 - **Context is repo-native.** Structure, lineage, behavior and conformance live
   in versioned files and checks, with external memory added only when evidence

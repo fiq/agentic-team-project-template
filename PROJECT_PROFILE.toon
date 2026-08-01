@@ -4,6 +4,11 @@ project:
   concept_date: 2026-05-16
   concept_date_reason: original decision date for creating this template
 
+budget:
+  appetite: unknown    # constrained | moderate | comfortable | generous
+  influence_on_right_sizing: a constrained budget makes the smallest sufficient architecture mandatory and scope must be aggressively thin-sliced
+  revisit_trigger: budget appetite changes or project scope changes
+
 audience:
   skill_level: unknown
   app_shape: unknown
@@ -184,6 +189,53 @@ decisions:
     validation:
       - .agentic-template/lib/skills.py
     consequence_if_changed: skills stop loading natively in at least one supported runtime
+  - id: static_analysis_from_specialise
+    decision: every generated project makes an explicit static-analysis decision at /specialise
+    reason:
+      - shift-left: catch defects before tests and review
+      - deterministic enforcement via project lint and CI
+      - evolvable tool choices with deprecation revisit triggers
+      - adaptable across runtimes: pick the right tools per language, pivot easily
+    confidence: medium
+    status: active
+    validation:
+      - .agents/skills/specialise/static-analysis/SKILL.md
+      - .agentic-template/bin/project lint
+    consequence_if_changed: static analysis may be omitted or ad hoc
+  - id: nix_first_build_pipeline
+    decision: every generated project makes an explicit build decision at /specialise; Nix owns the toolchain
+    reason:
+      - repeatability: same commit produces same artefact locally and in CI
+      - Nix-first for developer tooling; container build for deployable artefacts
+      - evolvable build targets (container, Lambda zip, static binary, etc.)
+    confidence: medium
+    status: active
+    validation:
+      - .agents/skills/specialise/build-pipeline/SKILL.md
+      - .agentic-template/bin/project build
+    consequence_if_changed: builds may be non-reproducible or ad hoc
+  - id: deployment_pipeline_from_specialise
+    decision: every generated project records a deployment pipeline decision at /specialise
+    reason:
+      - catered from the start, even when deferred
+      - evolvable targets (container, Lambda, Fly, static, etc.)
+      - promotion model recorded (automated, manual, deferred)
+    confidence: medium
+    status: active
+    validation:
+      - .agents/skills/specialise/deployment-pipeline/SKILL.md
+    consequence_if_changed: deployment may be implicit or ad hoc
+  - id: observability_from_specialise
+    decision: every generated project records an observability decision at /specialise
+    reason:
+      - design for prod from the start, not bolted on
+      - OTel traces, structured logs, metrics with correlation IDs
+      - local instrumentation that works in dev and CI
+    confidence: medium
+    status: active
+    validation:
+      - .agents/skills/specialise/observability/SKILL.md
+    consequence_if_changed: observability may be omitted or prod-only
 
 unknowns:
   - id: target_project_domain

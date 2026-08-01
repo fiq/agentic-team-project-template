@@ -1,28 +1,31 @@
 session:
-  updated: 2026-07-28
-  status: thin_slice_complete
+  updated: 2026-08-01
+  status: shift_left_pipeline_complete
   branch: feat/portable-context-router
 
 goal:
-  current: deliver the portable context router thin slice
+  current: deliver the shift-left pipeline, static analysis, build, deployment, observability and budget scale changes
 
 completed:
-  - added a TOON reader/writer for control files (Task 1)
-  - added a profile config and deterministic precedence resolver (Task 2)
-  - added runtime detection and contract fingerprinting (Task 3)
-  - added observations with invalidation and bounded escalation (Task 4)
-  - added skill catalog resolution and taxonomy layer discovery (Task 5)
-  - added task-risk classification and context plan assembly (Task 6)
-  - added `project context explain` and `project context observe` (Task 7)
-  - added taxonomy, router config and canonical-source validation (Task 8)
-  - added fixture-scored capability qualification — unguessable, defeat score 0 of 6 blind (Task 9)
-  - migrated context-packet into taxonomy layers and removed duplicated rules (Task 10)
-  - migrated review-loop into five taxonomy layers (Task 11)
-  - separated wiki methodology from product with axis enforcement (Task 12)
-  - added `project context scaffold` and the generated-project fixture (Task 13)
-  - added the acceptance suite (AC-1 to AC-14), `context test` and CI integration (Task 14)
-  - documented the router, recorded decisions and updated handoff (Task 15)
-  - addressed all review findings (B1, B2, B3, D1, D2, D3, D4)
+  - added specialise/static-analysis skill: opinionated about categories, per-runtime tool tables, evolvable, no shims
+  - added specialise/build-pipeline skill: Nix-first reproducible builds, evolvable targets, project build command
+  - added specialise/deployment-pipeline skill: CD, promotion, evolvable targets, catered from the start
+  - added specialise/observability skill: OTel traces, structured logs, local instrumentation, Observability 2.0
+  - updated specialise/ci skill: lint and build in canonical pipeline shape, parallel execution
+  - updated specialise/container-build skill: cross-references build-pipeline
+  - updated specialise/infra-decision skill: cross-references deployment-pipeline
+  - wired lint and build into command surface (UNSPECIALISED, PROJECT_COMMANDS)
+  - added 4 new skills to REQUIRED_SKILLS and CATALOG.toon
+  - added static_analysis, build, deployment, observability, budget blocks to CUSTOMIZE_THIS_PROJECT.toon
+  - added 4 new decisions and budget block to PROJECT_PROFILE.toon
+  - added shift-left engineering section to AGENTS.md
+  - added acceptance-tests-orthogonal and right-framework principles to AGENTS.md
+  - added static analysis section to AGENTS_TEMPLATE.md required sections
+  - updated wiki: testing.md (static analysis, orthogonal), development.md (lint in lifecycle), glossary.md (10 new terms), operations.md (observability)
+  - updated README.md: lifecycle diagram, key principles, specialisation list
+  - updated wiki index: testing page description
+  - added 61 tests in test_static_analysis.py covering all 5 phases
+  - added plans/shift-left-pipeline-and-observability.md
 
 in_progress: []
 
@@ -42,99 +45,62 @@ decisions:
     summary: every wiki page declares axis method or product, matching its directory
   - id: yaml_skill_frontmatter_deviation
     summary: keep skill frontmatter in YAML despite the TOON default for state
+  - id: static_analysis_from_specialise
+    summary: every generated project makes an explicit static-analysis decision at /specialise
+  - id: nix_first_build_pipeline
+    summary: every generated project makes an explicit build decision at /specialise; Nix owns the toolchain
+  - id: deployment_pipeline_from_specialise
+    summary: every generated project records a deployment pipeline decision at /specialise
+  - id: observability_from_specialise
+    summary: every generated project records an observability decision at /specialise
 
 risks:
-  - the router's only evidence is the template's own fixture; promotion needs a real generated project
-  - project check still warns on D1, D2, D4, D8, D9 — the Phase 1 dedupe ledger
-  - no independent review round was run; the test suite and context checks provide the deterministic gate
-  - context-test was added back to SCAFFOLD_COPY after Task 14 created it
+  - skill proliferation: 4 new skills added; each is lean but catalog is growing
+  - tool deprecation: per-runtime tool suggestions may go stale; mitigated by revisit_trigger
+  - pre-existing D1/D2/D4/D8/D9 warnings remain from the Phase 1 dedupe ledger
+  - no real generated project has exercised this yet; adoption friction may surface
+  - the apply_diff tool intermittently failed with missing path parameter; retried successfully each time
 
 files_changed:
-  - .agentic-template/lib/toon.py
-  - .agentic-template/lib/router.py
-  - .agentic-template/lib/environment.py
-  - .agentic-template/lib/observations.py
-  - .agentic-template/lib/skills.py
-  - .agentic-template/lib/plan.py
-  - .agentic-template/lib/qualification.py
-  - .agentic-template/bin/context
-  - .agentic-template/bin/context-test
-  - .agentic-template/bin/self-test
-  - .agentic-template/bin/check-repo-contract
-  - .agentic-template/bin/startup
-  - .agentic-template/bin/docs-map
-  - .agentic-template/tests/_support.py
-  - .agentic-template/tests/test_toon.py
-  - .agentic-template/tests/test_router_precedence.py
-  - .agentic-template/tests/test_environment.py
-  - .agentic-template/tests/test_observations.py
-  - .agentic-template/tests/test_qualification.py
-  - .agentic-template/tests/test_taxonomy_check.py
-  - .agentic-template/tests/test_scaffold_acceptance.py
-  - .agentic-template/fixtures/qualification-repo
-  - .agentic-template/fixtures/generated-project
-  - .agents/context/ROUTER.toon
-  - .agents/context/RECOVERY.toon
-  - .agents/context/runtimes.toon
-  - .agents/context/overrides.toon
-  - .agents/context/TOPICS.toon
-  - .agents/context/risk-rules.toon
-  - .agents/context/qualification/QUALIFICATION.toon
-  - .agents/context/README.md
-  - .agents/skills/tooling/context-packet/SKILL.md
-  - .agents/skills/tooling/context-packet/core.md
-  - .agents/skills/tooling/context-packet/procedure.md
-  - .agents/skills/tooling/context-packet/references.md
-  - .agents/skills/tooling/context-qualification/SKILL.md
-  - .agents/skills/workflow/review-loop/SKILL.md
-  - .agents/skills/workflow/review-loop/core.md
-  - .agents/skills/workflow/review-loop/procedure.md
-  - .agents/skills/workflow/review-loop/verification.md
-  - .agents/skills/workflow/review-loop/failure-modes.md
+  - .agents/skills/specialise/static-analysis/SKILL.md
+  - .agents/skills/specialise/build-pipeline/SKILL.md
+  - .agents/skills/specialise/deployment-pipeline/SKILL.md
+  - .agents/skills/specialise/observability/SKILL.md
+  - .agents/skills/specialise/ci/SKILL.md
+  - .agents/skills/specialise/container-build/SKILL.md
+  - .agents/skills/specialise/infra-decision/SKILL.md
   - .agents/skills/CATALOG.toon
-  - .agents/coordination/CONTEXT_POLICY.md
-  - .agents/knowledge/inbox/INBOX-009-portable-context-router.md
+  - .agentic-template/bin/project
+  - .agentic-template/bin/check-repo-contract
   - .agentic-template/templates/AGENTS_TEMPLATE.md
-  - .agentic-template/templates/README_TEMPLATE.md
-  - .github/workflows/ci.yml
+  - .agentic-template/tests/test_static_analysis.py
   - AGENTS.md
-  - HANDOFF.toon
+  - CUSTOMIZE_THIS_PROJECT.toon
   - PROJECT_PROFILE.toon
   - README.md
-  - docs/context-store.md
-  - docs/README.md
+  - HANDOFF.toon
   - docs/wiki/index.md
-  - docs/wiki/method/agents.md
-  - docs/wiki/method/development.md
   - docs/wiki/method/testing.md
-  - docs/wiki/method/context-router.md
+  - docs/wiki/method/development.md
   - docs/wiki/method/glossary.md
-  - docs/wiki/product/architecture.md
-  - docs/wiki/product/domain.md
   - docs/wiki/product/operations.md
-  - docs/wiki/product/glossary.md
-  - flake.nix
+  - plans/shift-left-pipeline-and-observability.md
 
 tests_run:
-  - 2026-07-28 .agentic-template/bin/project context test: pass (177 tests)
-  - 2026-07-28 .agentic-template/bin/project check: pass (CONTEXT ROUTER OK)
-  - 2026-07-28 .agentic-template/bin/project check-wiki: pass (WIKI OK)
-  - 2026-07-28 .agentic-template/bin/project self-test: pass (SELF TEST OK)
-  - 2026-07-28 .agentic-template/bin/project ready: pass
-  - 2026-07-28 git diff --check: pass
+  - 2026-08-01 python3 -m unittest test_static_analysis: pass (61 tests)
+  - 2026-08-01 .agentic-template/bin/project check: pass (CONTEXT ROUTER OK)
+  - 2026-08-01 .agentic-template/bin/project self-test: pass (SELF TEST OK)
+  - 2026-08-01 .agentic-template/bin/project ready: pass (READY: PASS)
+  - 2026-08-01 .agentic-template/bin/project context test: pass (238 tests)
 
 knowledge:
   consulted:
     - .agents/knowledge/index.md
     - .agents/knowledge/TAXONOMY.md
-    - .agents/knowledge/inbox/INBOX-003-context-packet-budgeting.md
-    - .agents/knowledge/inbox/INBOX-008-repo-native-context-store.md
-    - https://www.infoq.com/articles/ai-speed-context-store-architecture/
-  proposals:
-    - .agents/knowledge/inbox/INBOX-009-portable-context-router.md
-  no_record: null
+  proposals: []
+  no_record: template-level change; no new domain knowledge entry needed
 
 team_fallback:
   current: single lead agent using explicit review checklist
   reason: bounded implementation, documentation and state recording
-  lost_challenge: independent reviewer; mitigated by 177 tests, 22 acceptance scenarios, adversarial qualification (defeat score 0 of 6), two review passes and final project validation
+  lost_challenge: independent reviewer; mitigated by 61 tests, 238 context tests, self-test, ready and check validation

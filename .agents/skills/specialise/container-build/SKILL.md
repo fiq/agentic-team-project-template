@@ -11,6 +11,10 @@ Every project must make an explicit container decision. Deployable services
 and web applications default to a tested application image unless evidence
 supports a documented exception.
 
+The container build is one build target within the broader build pipeline.
+See [`specialise/build-pipeline`](build-pipeline/SKILL.md) for Nix-first
+reproducible build guidance and evolvable build targets.
+
 Libraries, mobile apps, desktop apps and Godot projects may record
 containerisation as `not_applicable` with a reason in `PROJECT_PROFILE.toon`.
 

@@ -37,6 +37,8 @@ invoke them through `project <command>`.
 | `project init` | Evidence-driven discovery, specialisation, identity rewrite and validation |
 | `project inspect` | Print compact project evidence |
 | `project check` | Run all repo-contract, profile, handoff, knowledge, changes and tooling checks |
+| `project lint` | Static analysis gate (shift-left); specialised at /specialise |
+| `project build` | Reproducible build (Nix-first); specialised at /specialise |
 | `project repo-check` | Validate required files, skills and commands |
 | `project check-profile` | Validate PROJECT_PROFILE.toon structure and resolved state |
 | `project check-handoff` | Validate HANDOFF.toon |
@@ -82,12 +84,36 @@ retry once before adding context.
 - Prefer experiments over long debate where evidence is cheap.
 - Use Clean Architecture principles to protect meaningful boundaries, not to
   create ceremony.
+- Use the right framework for the job. Do not build from first principles when
+  a mature, well-supported framework solves the problem. Adding complexity in
+  the wrong places — hand-rolling what a framework provides — is a smell.
 - Do not add databases, brokers, Kubernetes, cloud emulators or extra runtimes
   without evidence.
 - Developer tooling is Nix-owned. Runtime packaging may use containers.
 - CI must call repository commands instead of duplicating build logic.
 - Do not merge provider-specific or platform-specific paths into shared
   abstractions unless explicitly requested.
+
+## Shift-left engineering
+
+Shift left: close risk early, not at the end. The pipeline catches defects
+before review and production.
+
+```
+infra risk        container, IaC, deployment decisions explicit from /specialise
+build-right       static analysis (project lint) before tests in CI
+build-right-      specs, acceptance scenarios, ATDD ensure the right thing
+thing             is built; acceptance tests are orthogonal to the trophy
+design for prod   observability recorded from the start, not bolted on
+```
+
+- `project lint` runs before `project test` in CI.
+- `project build` produces reproducible artefacts (Nix-first).
+- Deployment pipeline and observability decisions are recorded at
+  `/specialise`, even when deferred.
+- Budget appetite (`constrained` / `moderate` / `comfortable` / `generous`)
+  influences right-sizing and thin-slicing. A constrained budget makes the
+  smallest sufficient architecture mandatory.
 
 ## Quality and technical debt
 
@@ -107,6 +133,9 @@ Quality is a standing obligation on all work, re-checked explicitly inside
   coupling and reversibility before implementing.
 - Do not leave silent `TODO`s or dead code. Convert them into recorded
   changes, tasks or knowledge entries.
+- Static analysis is a standing obligation, not a phase. `project lint`
+  enforces it deterministically. Generated projects must specialise `lint` at
+  `/specialise`; see `specialise/static-analysis`.
 
 ## Right-sizing and over-engineering
 
@@ -127,8 +156,15 @@ This keeps YAGNI deliberate and revisitable rather than unexamined.
 ## Testing expectations
 
 - Default to test-first for meaningful behaviour.
+- Static analysis is a shift-left gate: `project lint` runs before tests in CI
+  and catches defects, type errors, security issues and complexity drift
+  before review. Generated projects must specialise `lint` at `/specialise`.
 - Use a testing trophy: strong unit/domain feedback, strong integration or
   component confidence, focused contracts, and a few high-value E2E paths.
+- Acceptance tests are orthogonal to the testing trophy. They are not a layer
+  inside the pyramid — they are a separate dimension that drives design and
+  verifies whether the right thing was built. The trophy governs the balance
+  of supporting tests underneath.
 - Select test layers from actual risks, not a fixed checklist.
 - Drive design outside-in, from the boundary in. A change's `WHEN/THEN`
   scenarios (see the spec system) drive tests before implementation

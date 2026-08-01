@@ -11,6 +11,8 @@ A suitable workflow shape is:
 
 ```text
 project check
+project lint                   # static analysis gate (shift-left)
+project build                  # reproducible build (Nix-first)
 project test
 project integration-test       # when applicable
 project image-test             # when applicable
@@ -18,6 +20,11 @@ project compose-config         # when applicable
 project infra-check            # when applicable
 project ready                  # or the non-duplicating composite
 ```
+
+Run `lint` early and in parallel with `test` where the CI runner supports it,
+for fast feedback. Lint must fail the pipeline on violations (not warn-only)
+unless the project explicitly records a warn-only policy with a revisit
+trigger. See [`specialise/static-analysis`](static-analysis/SKILL.md).
 
 Avoid running the same expensive tests twice when `ready` composes earlier
 commands.

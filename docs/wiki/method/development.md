@@ -27,17 +27,20 @@ which document to read first.
                  architecture as a recorded, bought-into choice
      ▼
 /ideate ─────► short-cycle multi-persona loop (Intent → Boundary → Delivery →
-    (idea or     Quality gate) → structured change artifact
-    narrative)
+     (idea or     Quality gate) → structured change artifact
+     narrative)
+     ▼
+project lint ► static analysis gate (shift-left): lint, type-check,
+                 security, complexity — before tests
      ▼
 outside-in ► acceptance test per WHEN/THEN scenario, fidelity by risk
-   ATDD        (acceptance / component-integration / subcutaneous)
+    ATDD        (acceptance / component-integration / subcutaneous)
      ▼
 /review ────► bounded boy-scout clean-up: code, language and architectural
-                 smells, inappropriate coupling
+                  smells, inappropriate coupling
      ▼
 archive change → specs/capabilities/  +  wiki-tidy keeps docs and the
-                 knowledge graph current
+                  knowledge graph current
 ```
 
 - Specs are OpenSpec-shaped, structured and agent-first (`specs/README.md`).

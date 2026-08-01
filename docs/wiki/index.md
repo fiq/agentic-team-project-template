@@ -18,7 +18,7 @@ New here? Start with [Agents](method/agents.md) for startup and roles, or
 |---|---|
 | [Agents](method/agents.md) | Startup, roles and delegation |
 | [Development](method/development.md) | Day-to-day lifecycle and command sequence |
-| [Testing](method/testing.md) | Validation strategy and layer selection |
+| [Testing](method/testing.md) | Validation strategy, static analysis and layer selection |
 | [Portable context router](method/context-router.md) | Why and how context depth is routed |
 | [Method glossary](method/glossary.md) | Vocabulary for the way we work |
 

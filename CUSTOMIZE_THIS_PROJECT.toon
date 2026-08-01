@@ -4,6 +4,10 @@ project:
   concept_date: 2026-05-16
   status: template
 
+budget:
+  appetite: infer    # constrained | moderate | comfortable | generous
+  notes: null
+
 domain:
   summary: null
   primary_users: []
@@ -42,9 +46,20 @@ development:
   commands:
     test: specialise
     lint: specialise
+    build: specialise
     integration_test: specialise
     run: specialise
     image: specialise
+
+static_analysis:
+  categories:
+    lint: infer
+    type_check: infer
+    security_scan: infer
+    complexity: infer
+  tools: infer
+  revisit_trigger: tool_deprecation_or_better_alternative
+  enforce_in_ci: true
 
 testing:
   philosophy: testing_trophy
@@ -70,6 +85,21 @@ containers:
   local_runtime: infer
   compose_required: infer
   platform_smoke: optional
+
+deployment:
+  pipeline:
+    status: infer
+    target: infer
+    promotion: infer
+    revisit_trigger: deployment_target_selected
+  cd_tool: infer
+
+observability:
+  traces: infer
+  logs: structured
+  metrics: infer
+  local_collector: infer
+  revisit_trigger: ...
 
 agents:
   mode: hybrid

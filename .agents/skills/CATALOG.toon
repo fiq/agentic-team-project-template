@@ -170,6 +170,14 @@ skills:
     path: specialise/test-harness/SKILL.md
     trigger: runtime_and_application_shape_known
 
+  static_analysis:
+    path: specialise/static-analysis/SKILL.md
+    trigger: runtime_known_and_static_analysis_required
+
+  build_pipeline:
+    path: specialise/build-pipeline/SKILL.md
+    trigger: build_target_decision_required
+
   container_build:
     path: specialise/container-build/SKILL.md
     trigger: deployable_service_or_explicit_container_decision_required
@@ -186,6 +194,14 @@ skills:
   infra_decision:
     path: specialise/infra-decision/SKILL.md
     trigger: infrastructure_decision_required_after_init
+
+  deployment_pipeline:
+    path: specialise/deployment-pipeline/SKILL.md
+    trigger: deployment_pipeline_decision_required
+
+  observability:
+    path: specialise/observability/SKILL.md
+    trigger: observability_decision_required
 
   ci:
     path: specialise/ci/SKILL.md

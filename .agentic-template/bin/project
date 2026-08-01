@@ -50,6 +50,7 @@ UNSPECIALISED = {
     "component-test",
     "e2e-test",
     "lint",
+    "build",
     "run",
     "image",
     "image-test",

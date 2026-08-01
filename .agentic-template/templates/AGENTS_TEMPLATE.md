@@ -43,7 +43,10 @@ A generated project AGENTS.md must include:
 7. **Testing expectations** — boundary-in, ATDD-aligned design; fidelity by
    risk (acceptance / component-integration / subcutaneous); real dependency
    semantics where cheap and material.
-8. **Structured data formats** — configured TOON/S-expression policy; TOON
+8. **Static analysis** — `project lint` as a shift-left gate; opinionated about
+   categories (lint, type-check, security, complexity), adaptable about tools per
+   runtime; enforced deterministically in CI before tests.
+9. **Structured data formats** — configured TOON/S-expression policy; TOON
    benefits state/contracts, S-expressions benefit rules/compute.
 9. **Spec system** — OpenSpec-shaped structured specs under
    `specs/capabilities` and `specs/changes`, validated by `check-changes`.
