@@ -20,7 +20,10 @@ scaffold outside its comfort zone:
 - **an existing domain skill and catalog** — the scaffold must merge, not
   clobber;
 - **a flat legacy wiki** — `docs/wiki/operations.md` without the
-  method/product layout, which must not fail the axis check.
+  method/product layout. With no axis directory present the project has not
+  adopted the layout, so the axis check leaves it alone rather than forcing
+  a migration. Adoption is all-or-nothing: creating the first axis directory
+  opts in, and every page must then move.
 
 It is intentionally small, fun and visual — a very simple game — so the
 scaffold can be tested without entangling any real project.

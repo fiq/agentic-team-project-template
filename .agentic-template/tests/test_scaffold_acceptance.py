@@ -258,8 +258,8 @@ class RustFixtureTestCase(unittest.TestCase):
 
     The fixture deliberately stresses the scaffold outside its comfort zone:
     a Rust runtime (not specialised by the template), no existing
-    .agents/context/, an existing domain skill + catalog, and a flat legacy
-    wiki page that must not fail the axis check.
+    .agents/context/, an existing domain skill + catalog, and a wholly flat
+    legacy wiki that must not be forced onto the axis layout.
     """
 
     def setUp(self):
@@ -295,12 +295,50 @@ class TestRustFixtureScaffold(RustFixtureTestCase):
             with self.subTest(file=relative):
                 self.assertTrue((self.project / relative).exists())
 
-    def test_legacy_flat_wiki_does_not_fail_the_axis_check(self):
+    def test_wholly_flat_legacy_wiki_does_not_fail_the_axis_check(self):
+        # Pre-adoption state: no axis directories, so the layout is not
+        # enforced at all. A project is never forced to adopt it.
         scaffold_into(self.project)
         self.assertTrue((self.project / "docs/wiki/operations.md").exists())
         check = project_run(self.project, "check")
         self.assertEqual(check.returncode, 0, check.stdout)
-        self.assertNotIn("wiki axis", check.stdout.lower())
+        self.assertIn("CONTEXT ROUTER OK", check.stdout)
+
+    def test_adopting_the_axis_layout_requires_migrating_every_page(self):
+        # Creating the first axis directory opts the project in, and the
+        # remaining flat page must move too. Adoption is all-or-nothing:
+        # tolerating a half-migrated tree would forfeit the check's real job
+        # of catching a page later dropped in the wrong place.
+        scaffold_into(self.project)
+        migrated = self.project / "docs/wiki/product/architecture.md"
+        migrated.parent.mkdir(parents=True, exist_ok=True)
+        migrated.write_text("---\naxis: product\n---\n\n# Architecture\n")
+        check = project_run(self.project, "check")
+        self.assertEqual(check.returncode, 1, check.stdout)
+        self.assertIn("operations.md", check.stdout)
+        self.assertIn("migrating every page", check.stdout)
+
+    def test_a_fully_migrated_wiki_passes(self):
+        # The other side of the same rule: once every page has moved, the
+        # check is satisfied.
+        scaffold_into(self.project)
+        wiki = self.project / "docs/wiki"
+        (wiki / "product").mkdir(parents=True, exist_ok=True)
+        (wiki / "product/operations.md").write_text(
+            "---\naxis: product\n---\n\n# Operations\n"
+        )
+        (wiki / "operations.md").unlink()
+        check = project_run(self.project, "check")
+        self.assertEqual(check.returncode, 0, check.stdout)
+
+    def test_a_page_inside_an_axis_directory_must_declare_the_matching_axis(self):
+        scaffold_into(self.project)
+        bad = self.project / "docs/wiki/product/broken.md"
+        bad.parent.mkdir(parents=True, exist_ok=True)
+        bad.write_text("---\naxis: method\n---\n\n# Wrong axis\n")
+        check = project_run(self.project, "check")
+        self.assertEqual(check.returncode, 1, check.stdout)
+        self.assertIn("broken.md", check.stdout)
 
     def test_domain_skill_resolves_after_scaffold(self):
         scaffold_into(self.project)

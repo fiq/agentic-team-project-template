@@ -258,9 +258,16 @@ def _check_wiki_axis(root, errors):
     wiki = Path(root) / "docs/wiki"
     if not wiki.exists():
         return
-    # P2: only enforce axis layout when the project has adopted the
-    # method/product directory structure. Legacy wikis with flat pages
-    # should not fail the check.
+    # Adoption is all-or-nothing, by design:
+    #
+    #   no axis directories  -> pre-adoption legacy wiki, not checked at all
+    #   any axis directory   -> adopted, so every page must be migrated
+    #
+    # Migrating a wiki is a single mechanical change (move the pages, add
+    # frontmatter), so there is no need to tolerate a half-migrated tree; and
+    # tolerating one would forfeit the check's real job, which is catching a
+    # page later dropped in the wrong place. A project not ready to migrate
+    # keeps its wholly flat wiki and is left alone.
     has_axis_dirs = any(
         (wiki / axis).is_dir() for axis in WIKI_AXES
     )
@@ -272,7 +279,8 @@ def _check_wiki_axis(root, errors):
             if path.name != "index.md":
                 errors.append(
                     f"{relative}: wiki pages live under docs/wiki/method/ or "
-                    f"docs/wiki/product/; only index.md sits at the root"
+                    f"docs/wiki/product/; only index.md sits at the root. "
+                    f"Adopting the axis layout means migrating every page"
                 )
             continue
         axis = path.relative_to(wiki).parts[0]
@@ -374,6 +382,17 @@ SCAFFOLD_NEVER = (
 )
 
 
+def _dir_contents_match(source, destination):
+    """True if every file under `source` exists at `destination` with identical bytes."""
+    source_files = sorted(p.relative_to(source) for p in source.rglob("*") if p.is_file())
+    destination_files = sorted(p.relative_to(destination) for p in destination.rglob("*") if p.is_file())
+    if source_files != destination_files:
+        return False
+    return all(
+        (source / rel).read_bytes() == (destination / rel).read_bytes() for rel in source_files
+    )
+
+
 def _scaffold_actions(target):
     actions = []
     for relative in SCAFFOLD_COPY:
@@ -383,7 +402,11 @@ def _scaffold_actions(target):
             actions.append(("missing", relative, "source absent from this template"))
         elif not destination.exists():
             actions.append(("create", relative, "copy"))
-        elif source.is_dir() or destination.read_bytes() != source.read_bytes():
+        elif source.is_dir():
+            actions.append(
+                ("unchanged" if _dir_contents_match(source, destination) else "update", relative, "copy")
+            )
+        elif destination.read_bytes() != source.read_bytes():
             actions.append(("update", relative, "copy"))
         else:
             actions.append(("unchanged", relative, "copy"))

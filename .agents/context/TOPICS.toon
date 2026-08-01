@@ -16,13 +16,12 @@ exclude: [.agentic-template/, .agents/context/, docs/superpowers/]
 
 # Enforced: a marker here must appear in its canonical file and nowhere else.
 # Each entry arrives with the change that removes its duplication.
+# D1/D2/D4/D8/D9 were promoted from `candidates` after verifying no other
+# file under scan_roots still repeats the marker text (checked 2026-08-02).
 topics:
   - id: context_packet_transport
     canonical: .agents/skills/tooling/context-packet/core.md
     marker: Do not encode semantic context into opaque transport blobs
-
-# Known duplications awaiting migration. These warn; they do not fail.
-candidates:
   - id: model_classes
     canonical: .agents/skills/tooling/model-routing/core.md
     marker: "Lesser or local model:"
@@ -43,3 +42,6 @@ candidates:
     canonical: .agents/skills/workflow/outside-in-tdd/core.md
     marker: collaborators appear as needed; mock at boundaries
     finding: D9
+
+# Known duplications awaiting migration. These warn; they do not fail.
+candidates: []

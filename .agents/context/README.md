@@ -11,7 +11,7 @@ prints why. Reasoning and design live in
 | `RECOVERY.toon` | template | Symptom to authoritative source; stop conditions |
 | `qualification/` | template | Probe contract, expected answers, answer schema |
 | `overrides.toon` | template | Shared overrides; ships empty |
-| `TOPICS.toon` | project | One canonical home per topic; `candidates` is the dedupe ledger |
+| `TOPICS.toon` | project | One canonical home per topic; `candidates` holds duplications awaiting migration |
 | `risk-rules.toon` | project | Path globs to task risk |
 | `overrides.local.toon` | project | Project overrides; never scaffolded over |
 | `observations/` | project | Recorded qualification and degradation evidence |
