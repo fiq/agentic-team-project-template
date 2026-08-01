@@ -30,11 +30,10 @@ completed:
 in_progress: []
 
 next:
-  - open a PR for feat/portable-context-router into main
-  - try the scaffold on a real existing project to surface adoption friction
-  - Phase 1: slim AGENTS.md and promote remaining candidate topics (D1, D2, D4, D8, D9)
-  - Phase 1: migrate remaining skills into taxonomy layers
-  - promote INBOX-009 after a real generated project reports profile-based preloading improves quality
+  - apply the shift-left pipeline and context router to a real project (VRunnable) via /specialise
+  - consider scrubbing the project name from pre-existing INBOX-004/005/006 if the template is public
+  - review the new specialise skills (static-analysis, build-pipeline, deployment-pipeline, observability) on a real specialisation
+  - promote any remaining inbox proposals (INBOX-001..008) as evidence accumulates
 
 decisions:
   - id: portable_context_router
