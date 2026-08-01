@@ -30,6 +30,7 @@ COMMANDS = {
     "check-wiki": [[str(BIN / "check-wiki")]],
     "context": [[str(BIN / "context")]],
     "install-hooks": [[str(BIN / "install-hooks")]],
+    "hooks": [[str(BIN / "run-hooks")]],
     "check-tooling": [[str(BIN / "check-tooling")]],
     "check-mcp": [[str(BIN / "check-mcp")]],
     "check-secrets": [[str(BIN / "check-secrets")]],

@@ -1,23 +1,29 @@
 #!/usr/bin/env python3
 """Opt-in git hook installer.
 
-Installs a non-blocking pre-commit hook that runs `project check-wiki` so wiki
-drift is surfaced at commit time. Never installed automatically; run
-`.agentic-template/bin/project install-hooks` to opt in. The hook only warns
-and always allows the commit; an agent still runs the wiki-tidy skill to fix
-drift.
+Installs a pre-commit hook that runs `project hooks`, which executes the
+checks declared in `.agents/hooks.toon` concurrently. Never installed
+automatically; run `.agentic-template/bin/project install-hooks` to opt in.
+
+Which checks run, and whether each one blocks a commit, is decided by
+`.agents/hooks.toon` rather than by this installer. Editing that file takes
+effect immediately — there is no need to reinstall the hook after changing
+it, or after `/specialise` wires up `project lint`.
+
+An existing pre-commit hook that this installer did not write is left alone.
 """
 from pathlib import Path
 import subprocess
 import sys
 
 ROOT = Path.cwd()
+MARKER = "install-hooks"
 
 HOOK = """#!/bin/sh
 # Installed by: .agentic-template/bin/project install-hooks
-# Non-blocking: surfaces wiki drift, never fails the commit.
-.agentic-template/bin/project check-wiki || true
-exit 0
+# Checks are declared in .agents/hooks.toon, not here. Edit that file to add,
+# remove or unblock a check; this hook needs no reinstall.
+exec .agentic-template/bin/project hooks
 """
 
 
@@ -42,15 +48,20 @@ def main():
     if gd is None:
         print("install-hooks: not a git repository; nothing to install")
         return 1
+    if not (ROOT / ".agents/hooks.toon").exists():
+        print("install-hooks: .agents/hooks.toon is missing; nothing to run")
+        return 1
     hooks = gd / "hooks"
     hooks.mkdir(parents=True, exist_ok=True)
     pre_commit = hooks / "pre-commit"
-    if pre_commit.exists() and "install-hooks" not in pre_commit.read_text():
+    if pre_commit.exists() and MARKER not in pre_commit.read_text():
         print(f"install-hooks: {pre_commit} already exists and is not ours; leaving it")
         return 1
     pre_commit.write_text(HOOK)
     pre_commit.chmod(0o755)
-    print(f"install-hooks: installed non-blocking pre-commit at {pre_commit}")
+    print(f"install-hooks: installed pre-commit at {pre_commit}")
+    print("             checks are declared in .agents/hooks.toon")
+    print("             run them any time with: .agentic-template/bin/project hooks")
     return 0
 
 

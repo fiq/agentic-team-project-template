@@ -1,0 +1,39 @@
+# Project-owned. Deterministic checks that run before a commit is created.
+#
+# Install with:   .agentic-template/bin/project install-hooks
+# Run by hand:    .agentic-template/bin/project hooks
+#
+# Agents may edit this file directly: add a check, flip `blocking`, or adjust
+# a budget. Nothing here is generated, and no command is special-cased.
+#
+# Checks run concurrently, so the gate costs about as long as its slowest
+# check rather than their sum. Keep the whole gate to a couple of seconds:
+# a pre-commit hook that makes people reach for --no-verify has failed.
+# Anything slow (full SAST, dependency scanning, DAST, e2e) belongs in CI,
+# not here.
+#
+#   blocking: true   a failure stops the commit
+#   blocking: false  a failure is printed and the commit proceeds
+#   timeout_seconds  per-check budget; overrides the default below
+#
+# A check whose command is an unspecialised `project` target is reported as
+# skipped rather than failing, so this file needs no edits before /specialise
+# wires those targets up.
+version: 1
+
+pre_commit:
+  parallel: true
+  default_timeout_seconds: 15
+  checks:
+    - id: secrets
+      command: [.agentic-template/bin/project, check-secrets]
+      blocking: true
+      why: a leaked credential must never reach a commit
+    - id: lint
+      command: [.agentic-template/bin/project, lint]
+      blocking: true
+      why: static analysis is the shift-left gate; keep the fast subset here
+    - id: wiki-drift
+      command: [.agentic-template/bin/project, check-wiki]
+      blocking: false
+      why: drift is advisory; an agent runs wiki-tidy to reconcile it

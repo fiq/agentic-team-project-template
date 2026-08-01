@@ -1,0 +1,175 @@
+#!/usr/bin/env python3
+"""Run the checks declared in .agents/hooks.toon, concurrently.
+
+Internal implementation. Invoke through:
+    .agentic-template/bin/project hooks
+
+The gate exists to give fast, deterministic feedback before a commit, so
+checks run in parallel and each carries a timeout. A blocking check that
+fails stops the commit; an advisory check only reports. Results print in
+declaration order regardless of completion order, so output is reproducible.
+
+A check whose command targets an unspecialised `project` subcommand is
+reported as skipped, not failed: the template ships with `lint` unwired and
+should not block commits before /specialise.
+"""
+from concurrent.futures import ThreadPoolExecutor
+import importlib.machinery
+import importlib.util
+from pathlib import Path
+import subprocess
+import sys
+import time
+
+BIN = Path(__file__).resolve().parent
+sys.path.insert(0, str(BIN.parent / "lib"))
+
+import toon  # noqa: E402
+
+ROOT = Path.cwd()
+CONFIG = ROOT / ".agents/hooks.toon"
+DEFAULT_TIMEOUT = 15
+
+OK, FAILED, SKIPPED, TIMEOUT = "ok", "fail", "skip", "timeout"
+
+
+def unspecialised_commands():
+    """The dispatcher's UNSPECIALISED set, or empty if it cannot be read."""
+    try:
+        loader = importlib.machinery.SourceFileLoader("_dispatcher", str(BIN / "project"))
+        spec = importlib.util.spec_from_loader(loader.name, loader)
+        module = importlib.util.module_from_spec(spec)
+        loader.exec_module(module)
+        return set(module.UNSPECIALISED)
+    except Exception:
+        return set()
+
+
+def is_unspecialised(command, unspecialised):
+    """True when the command is `<...>/project <name>` and name is unwired."""
+    if len(command) < 2:
+        return False
+    return Path(command[0]).name == "project" and command[1] in unspecialised
+
+
+def load_checks():
+    if not CONFIG.exists():
+        return None, DEFAULT_TIMEOUT
+    config = toon.loads(CONFIG.read_text())
+    section = config.get("pre_commit") or {}
+    default_timeout = section.get("default_timeout_seconds") or DEFAULT_TIMEOUT
+    return (section.get("checks") or []), default_timeout
+
+
+def token(part):
+    """Render one command token as a shell argument.
+
+    TOON coerces bare scalars, so `command: [true]` arrives as the boolean
+    True and `[sleep, 30]` as the int 30. Python's str() would turn the first
+    into "True", which is not the binary the author meant.
+    """
+    if part is True:
+        return "true"
+    if part is False:
+        return "false"
+    return str(part)
+
+
+def run_check(check, default_timeout, unspecialised):
+    command = [token(part) for part in check["command"]]
+    timeout = check.get("timeout_seconds") or default_timeout
+    started = time.monotonic()
+
+    if is_unspecialised(command, unspecialised):
+        return {
+            "check": check, "status": SKIPPED, "seconds": 0.0,
+            "output": f"{command[1]} is not specialised yet",
+        }
+    try:
+        result = subprocess.run(
+            command, cwd=str(ROOT), stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT, text=True, timeout=timeout,
+        )
+    except subprocess.TimeoutExpired:
+        return {
+            "check": check, "status": TIMEOUT, "seconds": time.monotonic() - started,
+            "output": (
+                f"exceeded its {timeout}s budget. Speed the check up, raise "
+                f"timeout_seconds, or move it to CI."
+            ),
+        }
+    except OSError as error:
+        return {
+            "check": check, "status": FAILED, "seconds": time.monotonic() - started,
+            "output": f"could not run {command[0]}: {error}",
+        }
+    return {
+        "check": check,
+        "status": OK if result.returncode == 0 else FAILED,
+        "seconds": time.monotonic() - started,
+        "output": result.stdout.strip(),
+    }
+
+
+def blocks(outcome):
+    return outcome["check"].get("blocking") and outcome["status"] in (FAILED, TIMEOUT)
+
+
+def main():
+    checks, default_timeout = load_checks()
+    if checks is None:
+        print("hooks: no .agents/hooks.toon; nothing to run")
+        return 0
+    if not checks:
+        print("hooks: .agents/hooks.toon declares no checks")
+        return 0
+
+    unspecialised = unspecialised_commands()
+    started = time.monotonic()
+    if len(checks) > 1:
+        with ThreadPoolExecutor(max_workers=len(checks)) as pool:
+            outcomes = list(
+                pool.map(lambda check: run_check(check, default_timeout, unspecialised), checks)
+            )
+    else:
+        outcomes = [run_check(checks[0], default_timeout, unspecialised)]
+    elapsed = time.monotonic() - started
+
+    label = {OK: "ok", FAILED: "FAIL", SKIPPED: "skip", TIMEOUT: "TIMEOUT"}
+    print(f"PRE-COMMIT  {len(outcomes)} checks  {elapsed:.1f}s")
+    print()
+    for outcome in outcomes:
+        check = outcome["check"]
+        suffix = "" if check.get("blocking") else "  (advisory)"
+        print(
+            f"  {label[outcome['status']]:<8} {check['id']:<16} "
+            f"{outcome['seconds']:.1f}s{suffix}"
+        )
+
+    noisy = [o for o in outcomes if o["status"] in (FAILED, TIMEOUT) and o["output"]]
+    for outcome in noisy:
+        print()
+        print(f"--- {outcome['check']['id']} ---")
+        print(outcome["output"])
+
+    blocked = [outcome for outcome in outcomes if blocks(outcome)]
+    print()
+    if blocked:
+        names = ", ".join(outcome["check"]["id"] for outcome in blocked)
+        print(f"PRE-COMMIT BLOCKED  ({names})")
+        print()
+        print("Fix the above, or bypass once with: git commit --no-verify")
+        return 1
+    advisory = [
+        outcome for outcome in outcomes
+        if outcome["status"] in (FAILED, TIMEOUT) and not outcome["check"].get("blocking")
+    ]
+    if advisory:
+        print("PRE-COMMIT OK  (advisory failures above)")
+    else:
+        print("PRE-COMMIT OK")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
