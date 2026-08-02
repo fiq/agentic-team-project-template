@@ -58,6 +58,17 @@ completed:
     plus the optional loop_state HANDOFF field they use; merged directly by explicit
     request rather than via PR, since the branch was clean, self-reviewed and had no
     conflicts with main
+  - resolved the merge conflicts by hand: check-repo-contract and handoff.schema.md
+    were pure additive collisions (combined both); README.md's branch-side skill-table
+    edit was fully superseded by main's later switch to a short curated table plus
+    CATALOG.toon as the single source of truth, so kept HEAD as-is; HANDOFF.toon kept
+    HEAD's current state, folding the branch's still-true decisions and risks in
+  - re-ran the full suite post-merge: 325 tests, project check, project ready all pass
+  - deleted local branches now fully landed on main: proactive-advisory-skills (merged
+    above), feat/portable-context-router and feature/agentic-lifecycle (both verified
+    byte-identical to their PR #5/#4 merge commits, which are ancestors of main) -
+    removed their worktree/checkouts too where present, so nothing stale is left lying
+    around
 
 in_progress: []
 
