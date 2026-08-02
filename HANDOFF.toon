@@ -53,12 +53,15 @@ completed:
     coordination/git-worktree-workflow skill, catalogued alongside worktree-status
   - backed up the discarded diff and untracked files to scratchpad, then removed the
     worktree and deleted the stale local branch (never pushed, so nothing lost upstream)
+  - merged proactive-advisory-skills into main: adds context-hygiene-advisory,
+    specialist-recruitment-advisory and loop-engineering-advisory coordination skills,
+    plus the optional loop_state HANDOFF field they use; merged directly by explicit
+    request rather than via PR, since the branch was clean, self-reviewed and had no
+    conflicts with main
 
 in_progress: []
 
 next:
-  - open a PR for .worktrees/proactive-advisory-skills: clean, 7 commits ahead of main,
-    no PR yet
   - reconcile local branch research-driven-specialise (approved spec, last touched
     2026-07-16, no worktree, not reflected in this HANDOFF) - resume or park explicitly
   - apply the shift-left pipeline and context router to a real project via /specialise
@@ -66,6 +69,8 @@ next:
   - apply the mutation-check obligation to the existing suite: most tests predate the
     rule and have not been proven able to fail
   - promote remaining inbox proposals (INBOX-001..009) as evidence accumulates
+  - watch loop_state blocks for staleness: they must be removed once a fallback loop
+    completes or they read as abandoned work
 
 decisions:
   - id: portable_context_router
@@ -98,6 +103,30 @@ decisions:
       coordination/git-worktree-workflow, alongside the read-only worktree-status
       report; AGENTS.md keeps only the rules (never remove dirty, .worktrees/ location,
       one per agent), not the commands
+  - id: three_separate_skills
+    summary: >-
+      loop-engineering-advisory, specialist-recruitment-advisory and
+      context-hygiene-advisory are three focused skills, not one unified skill,
+      matching existing coordination skill granularity
+  - id: loop_state_disk_persisted
+    summary: >-
+      loop-engineering fallback tracks iteration state in an optional HANDOFF.toon
+      loop_state block so it survives context resets, session restarts or
+      model/provider swaps mid-loop
+  - id: no_new_bin_scripts
+    summary: >-
+      all three advisory skills are judgment/instruction skills like team-selection
+      and agent-team-fallback; no new .agentic-template/bin/ command
+  - id: presence_only_testing
+    summary: >-
+      advisory skills are validated by check-repo-contract presence and frontmatter
+      checks only, no new self-test fixtures, matching how other coordination skills
+      are tested
+  - id: specialist_recruitment_vs_team_selection
+    summary: >-
+      specialist-recruitment-advisory is the earlier mid-task tripwire that surfaces
+      an explicit offer; team-selection still owns the actual roster mechanics once
+      accepted
 
 risks:
   - runtime skill tool tables may go stale; mitigated by revisit_trigger and openness sections
@@ -107,6 +136,9 @@ risks:
     repository with real history is published
   - no real generated project has exercised the shift-left pipeline yet
   - positioning copy in why-this-not-a-skill.md is a first draft, not the owner's voice
+  - advisory skills could become noisy if triggers are too broad; triggers are scoped
+    narrowly (repeating pattern detected / specialist domain matched with none engaged /
+    context growing or boundary reached)
 
 files_changed:
   - .agentic-template/bin/project
@@ -153,6 +185,11 @@ files_changed:
   - plans/review-claude-overall.md
   - .agents/skills/CATALOG.toon
   - .agents/skills/coordination/git-worktree-workflow/SKILL.md
+  - .agents/skills/coordination/context-hygiene-advisory/SKILL.md
+  - .agents/skills/coordination/specialist-recruitment-advisory/SKILL.md
+  - .agents/skills/coordination/loop-engineering-advisory/SKILL.md
+  - .agents/schemas/handoff.schema.md
+  - .gitignore
 
 tests_run:
   - 2026-08-02 python3 -m unittest discover .agentic-template/tests: pass (325 tests, was 272)
