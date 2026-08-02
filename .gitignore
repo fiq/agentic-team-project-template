@@ -20,8 +20,5 @@ __pycache__/
 !.worktrees/.gitkeep
 !.worktrees/README.md
 
-# Legacy worktrees directory (pre-existing, not part of template scaffolding)
-worktrees/
-
 # Context router: recorded observations are environment-specific evidence
 .agents/context/observations/*.toon

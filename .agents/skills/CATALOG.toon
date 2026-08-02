@@ -96,6 +96,9 @@ skills:
   backlog_status:
     path: coordination/backlog-status/SKILL.md
     trigger: user_asks_current_or_next_work
+  git_worktree_workflow:
+    path: coordination/git-worktree-workflow/SKILL.md
+    trigger: starting_isolated_worktree_work_or_agent_worktree_cleanup
 
   knowledge_search:
     path: knowledge/knowledge-search/SKILL.md

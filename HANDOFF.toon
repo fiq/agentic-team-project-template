@@ -43,11 +43,24 @@ completed:
     as evidence; red-first for new code, mutation check for tests written after it,
     reproduce-first for regressions, break-the-input for tooling checks; declared as a
     skill layer so the router preloads it on guarded work
+  - triaged all worktrees, local branches and upstream PRs; found
+    worktrees/codex-git-worktree-model stale (branch tip == old main from 2026-07-11,
+    zero unique commits, 20 commits behind) with uncommitted WIP superseded by the
+    already-shipped worktree-status skill
+  - ported the reusable part of that WIP (the start/work/integrate/cleanup procedure;
+    its check-worktrees validator and active_work: schema were not portable, and its
+    unqualified worktrees/ path was superseded by .worktrees/) into a new
+    coordination/git-worktree-workflow skill, catalogued alongside worktree-status
+  - backed up the discarded diff and untracked files to scratchpad, then removed the
+    worktree and deleted the stale local branch (never pushed, so nothing lost upstream)
 
 in_progress: []
 
 next:
-  - review the uncommitted working tree and commit; nothing from this session is committed
+  - open a PR for .worktrees/proactive-advisory-skills: clean, 7 commits ahead of main,
+    no PR yet
+  - reconcile local branch research-driven-specialise (approved spec, last touched
+    2026-07-16, no worktree, not reflected in this HANDOFF) - resume or park explicitly
   - apply the shift-left pipeline and context router to a real project via /specialise
   - read why-this-not-a-skill.md end to end and adjust tone where it overreaches
   - apply the mutation-check obligation to the existing suite: most tests predate the
@@ -79,6 +92,12 @@ decisions:
     summary: scan what git would let you commit; gitignored paths are out of scope, history needs a real scanner
   - id: tests_must_be_proven_able_to_fail
     summary: a test observed only passing is not evidence; prove it fails, then restore and rerun
+  - id: worktree_procedure_is_a_skill_not_just_prose
+    summary: >-
+      the concrete start/work/integrate/cleanup steps for an agent worktree live in
+      coordination/git-worktree-workflow, alongside the read-only worktree-status
+      report; AGENTS.md keeps only the rules (never remove dirty, .worktrees/ location,
+      one per agent), not the commands
 
 risks:
   - runtime skill tool tables may go stale; mitigated by revisit_trigger and openness sections
@@ -132,6 +151,8 @@ files_changed:
   - docs/wiki/method/development.md
   - docs/wiki/method/why-this-not-a-skill.md
   - plans/review-claude-overall.md
+  - .agents/skills/CATALOG.toon
+  - .agents/skills/coordination/git-worktree-workflow/SKILL.md
 
 tests_run:
   - 2026-08-02 python3 -m unittest discover .agentic-template/tests: pass (325 tests, was 272)
@@ -141,6 +162,8 @@ tests_run:
   - 2026-08-02 .agentic-template/bin/project hooks: pass (PRE-COMMIT OK, 0.1s)
   - 2026-08-02 full-history secret scan over 759 blobs: no findings
   - 2026-08-02 mutation checks: reverted each fix in turn and confirmed the new tests fail
+  - 2026-08-02 .agentic-template/bin/project repo-check: pass (REPO CONTRACT OK, after
+    adding coordination/git-worktree-workflow)
 
 knowledge:
   consulted:
