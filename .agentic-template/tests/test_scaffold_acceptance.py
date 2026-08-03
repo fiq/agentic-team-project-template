@@ -86,6 +86,16 @@ class TestAC1Inheritance(ScaffoldTestCase):
         result = project_run(self.project, "explain", "--skill", "ship_slice")
         self.assertEqual(result.returncode, 0, result.stdout)
 
+    def test_reapplying_scaffold_to_an_unchanged_project_reports_no_updates(self):
+        # Regression: the scaffold used to report every directory-kind entry
+        # (the qualification fixture, the qualification config) as "update"
+        # on every run without comparing contents, so an unmodified
+        # re-scaffold falsely claimed changes.
+        scaffold_into(self.project)
+        result = scaffold_into(self.project, apply=False)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertNotIn("update", result.stdout)
+
 
 class TestAC2ProjectValidates(ScaffoldTestCase):
     def test_the_generated_project_passes_context_check(self):
