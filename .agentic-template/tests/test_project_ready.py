@@ -30,7 +30,11 @@ dispatcher = load_module("_project_dispatcher_under_test", BIN / "project")
 
 class TestRuntimeCommandSelection(unittest.TestCase):
     def test_template_state_runs_no_runtime_commands(self):
-        selected = ready.select_runtime_commands(True, dispatcher.UNSPECIALISED)
+        # An empty unspecialised set isolates the is_template short-circuit: if
+        # it were not checked, every runtime command would pass the filter
+        # (nothing here excludes them), so this only stays [] because of the
+        # branch under test - not by coincidence with today's dispatcher state.
+        selected = ready.select_runtime_commands(True, set())
         self.assertEqual(selected, [])
 
     def test_fully_unspecialised_project_runs_no_runtime_commands(self):
