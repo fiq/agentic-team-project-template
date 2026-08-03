@@ -1,5 +1,5 @@
 session:
-  updated: 2026-08-02
+  updated: 2026-08-04
   status: review_findings_addressed
   branch: main
 
@@ -69,6 +69,62 @@ completed:
     byte-identical to their PR #5/#4 merge commits, which are ancestors of main) -
     removed their worktree/checkouts too where present, so nothing stale is left lying
     around
+  - mutation-checked the highest-risk slice of the pre-existing suite (325 tests
+    predate the "prove it can fail" rule; this is a bounded first pass, not the whole
+    suite): triaged all 12 test files by risk, then genuinely broke-and-restored the
+    implementation behind check-secrets (13/13 tests: pattern detection, git-aware
+    scope, wiring into project/check-repo-contract), project-ready's runtime-command
+    selection (7/11: the exact historical bug class - filter removed, is_template
+    inverted, build dropped, label duplicated), and the pre-commit gate itself
+    (15/22 of test_hooks.py: blocking vs advisory, concurrency, ordering, timeout,
+    missing-command handling, no-config handling, token rendering, the foreign-hook
+    install guard, secrets-must-block in the real .agents/hooks.toon); every mutation
+    was confirmed red, restored, and confirmed green again; working tree and full
+    325-test suite both clean at the end
+  - found and fixed a gap: test_template_state_runs_no_runtime_commands
+    (test_project_ready.py) did not independently catch inverting the `is_template`
+    short-circuit - it stayed green by coincidence because today's dispatcher
+    UNSPECIALISED set already excludes every runtime command anyway. Fixed by passing
+    set() instead of dispatcher.UNSPECIALISED, isolating the branch under test;
+    re-ran the is_template-inversion mutation and confirmed it now goes red
+  - continued the mutation-check sweep onto test_scaffold_acceptance.py and
+    test_toon.py, fixing gaps found rather than just cataloguing them:
+    - wrote a missing regression test for the scaffold change-detection bug fixed in
+      02d2463 - that commit's message and HANDOFF both claimed a fix, but only the
+      wiki-axis half of it got a test; test_reapplying_scaffold_to_an_unchanged_
+      project_reports_no_updates now guards it, reproduced against the pre-fix
+      behaviour (falsely reports "2 update" for the two directory entries) before
+      confirming it passes on current code
+    - mutation-checked the wiki axis rule end to end (pre-adoption bypass, adoption
+      trigger, per-page frontmatter/axis-directory mismatch) and the byte-identical
+      copy guarantee; all caught their mutations
+    - mutation-checked test_toon.py's scalar coercion, quote detection, nested-map
+      indent, key-vs-scalar-line disambiguation (including the URL double-slash
+      guard), duplicate-key last-wins, and the two structural error checks
+    - found and fixed test_odd_indent_is_rejected_with_line_number: it only asserted
+      "line 2" appears in the error, which a completely different, unrelated
+      "unexpected indent" fallback also satisfies (every valid indent is even, so an
+      odd one always trips something); strengthened to assert the specific "not a
+      multiple of two" message, matching its sibling tab-indent test's pattern
+    - found and fixed a real hole in the escaping round trip: the only backslash
+      value in test_awkward_scalars_survive_the_round_trip ("back\slash") never
+      triggers _needs_quoting (no colon, no leading bracket/quote char), so it
+      round-trips bare and _quote()'s backslash/quote-escaping was never exercised
+      despite the module's own docstring promising it; added
+      test_backslash_and_quote_survive_a_value_that_also_needs_quoting with a value
+      that needs quoting for an unrelated reason (a colon) and also contains both
+      characters _quote() must escape
+    - hit and resolved a test-infra hazard mid-sweep: rapid edit/test/restore cycles
+      on the same file within the same filesystem-mtime tick can serve a stale
+      __pycache__ .pyc instead of recompiling the restored source, producing a
+      false "still red after restore" result; cleared __pycache__ and switched to
+      `python3 -B` (no bytecode cache) for the rest of the sweep. Source content was
+      verified correct via `git diff` throughout, and the two full-suite runs
+      bracketing the earlier check-secrets/project-ready/hooks work both came back
+      clean at the expected count, so that earlier work is not in question - this
+      was caught by, not hidden from, the restore-verification step
+  - full suite: 327 tests (was 325; +1 scaffold regression test, +1 toon escaping
+    test), all pass, working tree left clean after every mutation cycle
 
 in_progress: []
 
@@ -77,11 +133,23 @@ next:
     2026-07-16, no worktree, not reflected in this HANDOFF) - resume or park explicitly
   - apply the shift-left pipeline and context router to a real project via /specialise
   - read why-this-not-a-skill.md end to end and adjust tone where it overreaches
-  - apply the mutation-check obligation to the existing suite: most tests predate the
-    rule and have not been proven able to fail
+  - continue the mutation-check sweep on the remaining ~275 pre-existing tests, in
+    this risk order: test_router_precedence.py and test_taxonomy_check.py (core
+    context-router mechanisms), then test_qualification.py, test_explain.py,
+    test_observations.py, test_environment.py, test_skill_layers.py; lowest priority
+    is the ~93 doc-presence/wiring tests in test_static_analysis.py (skill file
+    exists / mentions X / is catalogued) plus the remaining ~24 tests already
+    partially covered this session (test_scaffold_acceptance.py's AC2-AC14 profile/
+    recovery/qualification tests and catalog-merge/domain-skill tests,
+    test_project_ready.py's 4 TestDispatcherIsTheSourceOfTruth tests,
+    test_hooks.py's TestHooksConfig structure checks and 3 of TestInstaller)
   - promote remaining inbox proposals (INBOX-001..009) as evidence accumulates
   - watch loop_state blocks for staleness: they must be removed once a fallback loop
     completes or they read as abandoned work
+  - consider adding PYTHONDONTWRITEBYTECODE=1 (or an equivalent) to the test-running
+    path given the __pycache__ staleness hazard found this session; not done yet
+    since it was worked around locally and hasn't caused a real false pass, only a
+    false red that was itself caught
 
 decisions:
   - id: portable_context_router
@@ -150,6 +218,14 @@ risks:
   - advisory skills could become noisy if triggers are too broad; triggers are scoped
     narrowly (repeating pattern detected / specialist domain matched with none engaged /
     context growing or boundary reached)
+  - ~290 of 325 pre-existing tests still have not been mutation-checked (only
+    check-secrets, most of project-ready, and most of run-hooks/install-hooks have been
+    verified so far); an untested test in that remainder could be silently vacuous
+    until its file comes up in the ordered sweep in next
+  - test_template_state_runs_no_runtime_commands (test_project_ready.py) does not
+    independently guard the is_template short-circuit it names; only a coincidence of
+    today's UNSPECIALISED set keeps it correct, and two sibling tests carry the real
+    coverage
 
 files_changed:
   - .agentic-template/bin/project
@@ -201,6 +277,9 @@ files_changed:
   - .agents/skills/coordination/loop-engineering-advisory/SKILL.md
   - .agents/schemas/handoff.schema.md
   - .gitignore
+  - .agentic-template/tests/test_project_ready.py
+  - .agentic-template/tests/test_scaffold_acceptance.py
+  - .agentic-template/tests/test_toon.py
 
 tests_run:
   - 2026-08-02 python3 -m unittest discover .agentic-template/tests: pass (325 tests, was 272)
@@ -212,6 +291,32 @@ tests_run:
   - 2026-08-02 mutation checks: reverted each fix in turn and confirmed the new tests fail
   - 2026-08-02 .agentic-template/bin/project repo-check: pass (REPO CONTRACT OK, after
     adding coordination/git-worktree-workflow)
+  - 2026-08-04 mutation-checked 35 pre-existing tests across check-secrets (13/13),
+    project-ready (7/11), run-hooks/install-hooks/.agents/hooks.toon (15/22): each
+    implementation mutated, confirmed the target test(s) go red for the right reason,
+    restored, confirmed green; one test found not independently red-proof
+    (test_template_state_runs_no_runtime_commands - see completed and decisions)
+  - 2026-08-04 python3 -m unittest discover .agentic-template/tests: pass (325 tests,
+    working tree clean - full sanity check after all mutation/restore cycles)
+  - 2026-08-04 fixed test_template_state_runs_no_runtime_commands (set() instead of
+    dispatcher.UNSPECIALISED); re-ran the is_template-inversion mutation and confirmed
+    it now goes red
+  - 2026-08-04 added test_reapplying_scaffold_to_an_unchanged_project_reports_no_updates;
+    reproduced red against the pre-02d2463 behaviour (falsely reports "2 update"),
+    confirmed green on current code
+  - 2026-08-04 mutation-checked test_scaffold_acceptance.py's wiki-axis rule (4
+    scenarios) and byte-identical copy guarantee: all caught their mutations, restored
+  - 2026-08-04 mutation-checked test_toon.py: scalar coercion, quote detection,
+    nested-map indent, key-vs-scalar disambiguation (incl. URL guard), duplicate-key
+    last-wins, tab-indent error - all caught their mutations, restored
+  - 2026-08-04 strengthened test_odd_indent_is_rejected_with_line_number to assert the
+    specific error message; confirmed it now independently catches the mutation a
+    weaker assertion missed
+  - 2026-08-04 added test_backslash_and_quote_survive_a_value_that_also_needs_quoting;
+    confirmed it catches both the backslash-escaping-removed and
+    all-escaping-removed mutations, which no prior test caught
+  - 2026-08-04 python3 -m unittest discover .agentic-template/tests: pass (327 tests,
+    working tree clean - final sanity check)
 
 knowledge:
   consulted:
