@@ -111,6 +111,16 @@ class TestToonRoundTrip(unittest.TestCase):
         value = {"symptom": "[degraded]", "note": "{pending}"}
         self.assertEqual(toon.loads(toon.dumps(value)), value)
 
+    def test_backslash_and_quote_survive_a_value_that_also_needs_quoting(self):
+        # None of the values in test_awkward_scalars_survive_the_round_trip
+        # exercise quote-escaping: the one backslash case ("back\slash") has
+        # no colon/leading bracket, so _needs_quoting is False for it and it
+        # round-trips bare - _quote()'s escaping is never invoked. Force both
+        # by adding a colon, so this value must be quoted *and* contains the
+        # two characters _quote() promises to escape losslessly.
+        value = {"k": 'needs quoting: with \\ and "'}
+        self.assertEqual(toon.loads(toon.dumps(value)), value)
+
     def test_awkward_scalars_survive_the_round_trip(self):
         values = [
             "0", "-0", "007", "1e5", "0123456789012345",
