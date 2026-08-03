@@ -71,9 +71,16 @@ class TestToonCollections(unittest.TestCase):
 
 class TestToonErrors(unittest.TestCase):
     def test_odd_indent_is_rejected_with_line_number(self):
+        # An odd indent is always structurally invalid too (valid indents are
+        # 0, 2, 4, ...), so a weaker assertion here would still pass via that
+        # unrelated "unexpected indent" path even with the modulo check
+        # removed. Assert the specific message so this guards the check it
+        # names, matching test_tab_indent_is_rejected_with_line_number below.
         with self.assertRaises(toon.ToonError) as caught:
             toon.loads("a:\n   b: 1\n")
-        self.assertIn("line 2", str(caught.exception))
+        message = str(caught.exception)
+        self.assertIn("line 2", message)
+        self.assertIn("not a multiple of two", message)
 
     def test_tab_indent_is_rejected_with_line_number(self):
         with self.assertRaises(toon.ToonError) as caught:
