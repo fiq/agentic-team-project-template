@@ -125,6 +125,18 @@ completed:
       was caught by, not hidden from, the restore-verification step
   - full suite: 327 tests (was 325; +1 scaffold regression test, +1 toon escaping
     test), all pass, working tree left clean after every mutation cycle
+  - split the four independent fixes above into five small, individually reviewed
+    commits (one per fix, plus one for this handoff update) instead of one bundled
+    commit, per user feedback that smaller chunks are less liable to miss detail on
+    review - see decisions
+  - made Arrange-Act-Assert, real fixtures and FIRST a default testing rule after a
+    downstream implementation repo shipped tests without them and the contract never
+    said otherwise: added the requirement to AGENTS.md's Testing expectations
+    (binding on every generated project, with a pointer to the skill), spelled out
+    the AAA breakdown and a FIRST table in workflow/test-first (triggered on every
+    meaningful behaviour change), and kept AGENTS_TEMPLATE.md's summary in sync.
+    Wrote test_testing_expectations.py first, watched it fail (17 failures) against
+    the pre-existing content, then added the guidance and confirmed green
 
 in_progress: []
 
@@ -152,6 +164,16 @@ next:
     false red that was itself caught
 
 decisions:
+  - id: aaa_first_fixtures_are_default
+    summary: >-
+      every test is Arrange-Act-Assert from a real fixture and upholds FIRST;
+      stated in AGENTS.md's Testing expectations and spelled out in
+      workflow/test-first, enforced by test_testing_expectations.py
+  - id: small_reviewed_commits
+    summary: >-
+      split multi-part session work into small, individually reviewed commits
+      rather than one bundled commit; user feedback, smaller chunks miss less on
+      review
   - id: portable_context_router
     summary: route context depth and timing by profile, never required behaviour
   - id: capability_by_observation_not_registry
@@ -280,6 +302,9 @@ files_changed:
   - .agentic-template/tests/test_project_ready.py
   - .agentic-template/tests/test_scaffold_acceptance.py
   - .agentic-template/tests/test_toon.py
+  - .agentic-template/tests/test_testing_expectations.py
+  - .agents/skills/workflow/test-first/SKILL.md
+  - .agentic-template/templates/AGENTS_TEMPLATE.md
 
 tests_run:
   - 2026-08-02 python3 -m unittest discover .agentic-template/tests: pass (325 tests, was 272)
@@ -317,6 +342,11 @@ tests_run:
     all-escaping-removed mutations, which no prior test caught
   - 2026-08-04 python3 -m unittest discover .agentic-template/tests: pass (327 tests,
     working tree clean - final sanity check)
+  - 2026-08-04 wrote test_testing_expectations.py first, confirmed red (17 failures)
+    against the pre-existing AGENTS.md/test-first content, added the AAA/FIRST/
+    fixture guidance, confirmed green
+  - 2026-08-04 python3 -m unittest discover .agentic-template/tests: pass (335 tests)
+  - 2026-08-04 .agentic-template/bin/project check: pass (all gates OK)
 
 knowledge:
   consulted:
