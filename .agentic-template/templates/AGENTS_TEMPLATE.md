@@ -42,7 +42,9 @@ A generated project AGENTS.md must include:
    smaller design is a conscious, recorded, bought-into choice.
 7. **Testing expectations** — boundary-in, ATDD-aligned design; fidelity by
    risk (acceptance / component-integration / subcutaneous); real dependency
-   semantics where cheap and material.
+   semantics where cheap and material; every test is Arrange-Act-Assert from
+   a real fixture and upholds FIRST (Fast, Independent, Repeatable,
+   Self-validating, Timely).
 8. **Static analysis** — `project lint` as a shift-left gate; opinionated about
    categories (lint, type-check, security, complexity), adaptable about tools per
    runtime; enforced deterministically in CI before tests.

@@ -164,6 +164,15 @@ This keeps YAGNI deliberate and revisitable rather than unexamined.
 ## Testing expectations
 
 - Default to test-first for meaningful behaviour.
+- Every test follows Arrange-Act-Assert, with the arrange step built from a
+  real fixture — dedicated setup/teardown or a fixture factory — never
+  shared mutable state a prior test could have left behind. Uphold FIRST:
+  Fast, Independent (no ordering or cross-test state), Repeatable
+  (deterministic — no unseeded randomness, wall clock or live network),
+  Self-validating (a clear pass/fail, not a result needing manual
+  inspection) and Timely (written with the behaviour it guards, not
+  backfilled long after). See
+  [`workflow/test-first`](.agents/skills/workflow/test-first/SKILL.md).
 - Prove every test can fail. A test that has only ever been observed passing
   is not evidence: it may assert something always true, never reach the path
   it claims to cover, or pass with the implementation deleted. Watch it fail
