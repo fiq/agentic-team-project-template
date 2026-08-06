@@ -138,11 +138,15 @@ completed:
     Wrote test_testing_expectations.py first, watched it fail (17 failures) against
     the pre-existing content, then added the guidance and confirmed green
 
-in_progress: []
+in_progress:
+  - research-driven /specialise consultation: branch research-driven-specialise-v2,
+    worktree .worktrees/research-driven-specialise-v2. Design spec ported forward
+    (still valid, reviewed against current main); regenerating the implementation
+    plan now via superpowers:writing-plans, then implementing. Supersedes the old
+    research-driven-specialise branch (100+ commits stale; not deleted, just
+    unreferenced by this work)
 
 next:
-  - reconcile local branch research-driven-specialise (approved spec, last touched
-    2026-07-16, no worktree, not reflected in this HANDOFF) - resume or park explicitly
   - apply the shift-left pipeline and context router to a real project via /specialise
   - read why-this-not-a-skill.md end to end and adjust tone where it overreaches
   - continue the mutation-check sweep on the remaining ~275 pre-existing tests, in
