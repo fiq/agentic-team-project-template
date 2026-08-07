@@ -247,6 +247,19 @@ skills:
     path: specialise/infra-decision/SKILL.md
     trigger: infrastructure_decision_required_after_init
 
+  specialise_scaffold_execution:
+    path: specialise/scaffold-execution/SKILL.md
+    trigger: official_scaffolder_available_for_chosen_stack
+  specialise_security_scanning:
+    path: specialise/security-scanning/SKILL.md
+    trigger: dependency_manifests_present
+  specialise_infra_k8s:
+    path: specialise/infra-k8s/SKILL.md
+    trigger: kubernetes_deployment_target_selected
+  specialise_local_sandbox:
+    path: specialise/local-sandbox/SKILL.md
+    trigger: local_cloud_service_semantics_required
+
   deployment_pipeline:
     path: specialise/deployment-pipeline/SKILL.md
     trigger: deployment_pipeline_decision_required
