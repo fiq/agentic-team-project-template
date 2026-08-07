@@ -590,6 +590,22 @@ def main():
         ):
             failures += 1
 
+        # ---- infra-check with kubernetes manifests but no kubeconform ----
+        if shutil.which("kubeconform") is None:
+            kustomization = work / "kustomization.yaml"
+            kustomization.write_text("resources:\n  - deployment.yaml\n")
+            if not expect(
+                work,
+                "infra-check fails clearly for k8s manifests without kubeconform",
+                PROJECT + ["infra-check"],
+                1,
+                "kubeconform not found",
+            ):
+                failures += 1
+            kustomization.unlink()
+        else:
+            print("ok      infra-check k8s fixture skipped (kubeconform present)")
+
         # ---- compose-config on empty template compose ----
         # compose.yaml has services: {} which means empty; compose-config
         # should still validate (docker compose config succeeds on empty)

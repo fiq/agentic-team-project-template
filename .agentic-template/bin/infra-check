@@ -33,6 +33,18 @@ def has_iac_files():
     return False
 
 
+def has_k8s_files():
+    if list(ROOT.glob("kustomization.yaml")) or list(ROOT.glob("kustomization.yml")):
+        return True
+    for base in ("k8s", "deploy", "manifests"):
+        directory = ROOT / base
+        if directory.is_dir() and (
+            list(directory.rglob("*.yaml")) or list(directory.rglob("*.yml"))
+        ):
+            return True
+    return False
+
+
 def check_terraform():
     fmt = shutil.which("terraform")
     if not fmt:
@@ -94,18 +106,43 @@ def check_pulumi():
     return 0
 
 
+def check_kubernetes():
+    tool = shutil.which("kubeconform")
+    if not tool:
+        return fail("kubernetes manifests present but kubeconform not found on PATH")
+
+    result = subprocess.run(
+        [tool, "-strict", "-summary", "-ignore-missing-schemas", "-recursive", "."],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        cwd=str(ROOT),
+    )
+    if result.returncode != 0:
+        return fail(f"kubeconform validation failed:\n{result.stdout.strip()}")
+
+    print("INFRA CHECK OK (kubeconform)")
+    return 0
+
+
 def main():
-    if not has_iac_files():
+    iac = has_iac_files()
+    k8s = has_k8s_files()
+
+    if not iac and not k8s:
         print("INFRA CHECK: no IaC files found")
         print("status: not_applicable")
         return 0
 
     # Prefer terraform when present.
-    if shutil.which("terraform"):
+    if iac and shutil.which("terraform"):
         return check_terraform()
 
-    if shutil.which("pulumi"):
+    if iac and shutil.which("pulumi"):
         return check_pulumi()
+
+    if k8s:
+        return check_kubernetes()
 
     return fail("IaC files present but no supported tool found on PATH")
 
