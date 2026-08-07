@@ -606,6 +606,25 @@ def main():
         else:
             print("ok      infra-check k8s fixture skipped (kubeconform present)")
 
+        # ---- infra-check with IaC files but no tools, plus k8s files ----
+        if shutil.which("terraform") is None and shutil.which("pulumi") is None:
+            pulumi_yaml = work / "Pulumi.yaml"
+            pulumi_yaml.write_text("name: test\nruntime: python\n")
+            kustomization = work / "kustomization.yaml"
+            kustomization.write_text("resources:\n  - deployment.yaml\n")
+            if not expect(
+                work,
+                "infra-check fails on IaC files when no tools present, even if k8s also exists",
+                PROJECT + ["infra-check"],
+                1,
+                "IaC files present but no supported tool found on PATH",
+            ):
+                failures += 1
+            pulumi_yaml.unlink()
+            kustomization.unlink()
+        else:
+            print("ok      infra-check IaC+k8s fixture skipped (terraform or pulumi present)")
+
         # ---- compose-config on empty template compose ----
         # compose.yaml has services: {} which means empty; compose-config
         # should still validate (docker compose config succeeds on empty)

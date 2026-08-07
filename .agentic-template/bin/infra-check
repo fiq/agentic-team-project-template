@@ -111,8 +111,16 @@ def check_kubernetes():
     if not tool:
         return fail("kubernetes manifests present but kubeconform not found on PATH")
 
+    targets = []
+    for name in ("kustomization.yaml", "kustomization.yml"):
+        if (ROOT / name).exists():
+            targets.append(name)
+    for base in ("k8s", "deploy", "manifests"):
+        if (ROOT / base).is_dir():
+            targets.append(base)
+
     result = subprocess.run(
-        [tool, "-strict", "-summary", "-ignore-missing-schemas", "-recursive", "."],
+        [tool, "-strict", "-summary", "-ignore-missing-schemas", "-recursive", *targets],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
@@ -134,17 +142,21 @@ def main():
         print("status: not_applicable")
         return 0
 
-    # Prefer terraform when present.
-    if iac and shutil.which("terraform"):
-        return check_terraform()
-
-    if iac and shutil.which("pulumi"):
-        return check_pulumi()
+    if iac:
+        # Prefer terraform when present.
+        if shutil.which("terraform"):
+            result = check_terraform()
+        elif shutil.which("pulumi"):
+            result = check_pulumi()
+        else:
+            return fail("IaC files present but no supported tool found on PATH")
+        if result != 0:
+            return result
 
     if k8s:
         return check_kubernetes()
 
-    return fail("IaC files present but no supported tool found on PATH")
+    return 0
 
 
 if __name__ == "__main__":
