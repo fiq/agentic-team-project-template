@@ -55,6 +55,7 @@ invoke them through `project <command>`.
 | `project compose-config` | Validate docker compose configuration |
 | `project compose-test` | Bounded Compose smoke test with deterministic cleanup |
 | `project infra-check` | IaC formatting and static validation |
+| `project dep-audit` | Dependency vulnerability audit via osv-scanner (skips with warning offline) |
 | `project doctor` | Diagnostic summary of checks and blockers |
 | `project self-test` | Template fixture-driven integration self-test |
 

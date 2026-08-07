@@ -22,3 +22,12 @@ metrics.
 - do not log sensitive data, credentials, bearer tokens or signed URLs.
 
 See `specialise/observability`.
+
+## Dependency vulnerability audit
+
+`project dep-audit` scans dependency manifests with osv-scanner via a
+repeatable ladder: a devshell-provided tool first, then a pinned container
+(`ghcr.io/google/osv-scanner`), then an explicit skip. A skip is never a silent
+pass — it prints a visible warning and records the reason. The audit runs as
+part of `project check` and therefore in CI. With no dependency manifests it
+reports `not_applicable`.
