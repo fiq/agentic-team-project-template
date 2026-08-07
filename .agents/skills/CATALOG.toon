@@ -4,6 +4,19 @@ skills:
     trigger: project_profile_absent_or_material_project_shape_unknown
     purpose: orchestrate discovery, specialisation, identity rewrite and validation
 
+  consult_stack_research:
+    path: consult/stack-research/SKILL.md
+    trigger: undecided_stack_dimension_or_reconsideration_requested
+  consult_budget_hosting:
+    path: consult/budget-hosting/SKILL.md
+    trigger: hosting_or_budget_undecided
+  consult_repo_topology:
+    path: consult/repo-topology/SKILL.md
+    trigger: repo_topology_undecided_or_split_requested
+  consult_dependency_vetting:
+    path: consult/dependency-vetting/SKILL.md
+    trigger: candidate_dependency_requires_vetting
+
   detect_project_shape:
     path: discovery/detect-project-shape/SKILL.md
     trigger: repository_shape_unknown

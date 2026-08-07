@@ -94,6 +94,10 @@ REQUIRED_EXECUTABLES = [
 ]
 
 REQUIRED_SKILLS = [
+    "consult/stack-research",
+    "consult/budget-hosting",
+    "consult/repo-topology",
+    "consult/dependency-vetting",
     "discovery/detect-runtime",
     "discovery/detect-application-shape",
     "discovery/detect-messaging",
