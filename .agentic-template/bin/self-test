@@ -457,6 +457,16 @@ def main():
             failures += 1
         if not expect(work, "project --list includes check-readme", PROJECT + ["--list"], 0, "check-readme"):
             failures += 1
+        if not expect(work, "project --list includes dep-audit", PROJECT + ["--list"], 0, "dep-audit"):
+            failures += 1
+        if not expect(
+            work,
+            "dep-audit is not_applicable on template with no manifests",
+            PROJECT + ["dep-audit"],
+            0,
+            "not_applicable",
+        ):
+            failures += 1
         if not expect(work, "project --list includes startup", PROJECT + ["--list"], 0, "startup"):
             failures += 1
         if not expect(work, "project --list includes docs", PROJECT + ["--list"], 0, "docs"):
