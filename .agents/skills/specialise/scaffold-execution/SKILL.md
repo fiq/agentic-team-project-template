@@ -1,5 +1,5 @@
 ---
-name: specialise-scaffold-execution
+name: scaffold-execution
 description: Run the official project scaffolder repeatably via a Nix-then-container-then-one-shot ladder and merge into the template.
 ---
 

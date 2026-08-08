@@ -6,6 +6,14 @@ repeatable execution ladder: a tool provided by the Nix devshell first,
 then a pinned official container, then an explicit skip. Skipping is never
 a silent pass: it prints a visible WARNING and records the skip reason.
 
+A non-zero exit from the wrapped tool is not automatically "vulnerabilities
+found": a docker invocation that returns 125 means docker itself could not
+run the container (daemon unavailable, image pull failed, etc.), and output
+containing a common network-failure substring means osv-scanner could not
+reach the OSV database. Both are classified as a skip, not a failure. Any
+other non-zero exit is a real result (vulnerabilities, or a genuine tool
+error) and is reported as DEP AUDIT FAILED.
+
 Requires network access to reach the OSV database. Does not modify the
 repository. Returns not_applicable (exit 0) when no dependency manifests
 exist.
@@ -17,6 +25,23 @@ import sys
 
 ROOT = Path.cwd()
 OSV_IMAGE = "ghcr.io/google/osv-scanner:v1.9.2"
+
+# `docker run` exits 125 when docker itself failed to start the container
+# (daemon not running, image pull failed, etc.) — distinct from the wrapped
+# tool running and reporting a real result.
+DOCKER_CANNOT_RUN = 125
+
+# Case-insensitive substrings in captured output that indicate the tool
+# could not reach the network, rather than reporting a real scan result.
+NETWORK_FAILURE_SUBSTRINGS = [
+    "connection refused",
+    "no such host",
+    "could not resolve",
+    "network is unreachable",
+    "dial tcp",
+    "timeout",
+    "tls handshake",
+]
 
 MANIFEST_NAMES = [
     "package-lock.json",
@@ -43,6 +68,13 @@ def has_manifests():
     return False
 
 
+def fail(reason):
+    print("DEP AUDIT FAILED")
+    print()
+    print(reason)
+    return 1
+
+
 def skip(reason):
     print("DEP AUDIT SKIPPED")
     print()
@@ -53,11 +85,25 @@ def skip(reason):
     return 0
 
 
+def is_network_failure(output):
+    lowered = output.lower()
+    return any(substring in lowered for substring in NETWORK_FAILURE_SUBSTRINGS)
+
+
 def run_native():
-    result = subprocess.run(["osv-scanner", "-r", "."], cwd=str(ROOT))
+    result = subprocess.run(
+        ["osv-scanner", "-r", "."],
+        cwd=str(ROOT),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
     if result.returncode == 0:
         print("DEP AUDIT OK (osv-scanner)")
-    return result.returncode
+        return 0
+    if is_network_failure(result.stdout):
+        return skip("osv-scanner could not reach the network")
+    return fail(f"osv-scanner reported findings or an error:\n{result.stdout.strip()}")
 
 
 def run_container():
@@ -68,10 +114,18 @@ def run_container():
             OSV_IMAGE, "-r", "/src",
         ],
         cwd=str(ROOT),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
     )
     if result.returncode == 0:
         print(f"DEP AUDIT OK (osv-scanner container {OSV_IMAGE})")
-    return result.returncode
+        return 0
+    if result.returncode == DOCKER_CANNOT_RUN:
+        return skip("docker could not run osv-scanner (daemon unavailable?)")
+    if is_network_failure(result.stdout):
+        return skip("osv-scanner could not reach the network")
+    return fail(f"osv-scanner reported findings or an error:\n{result.stdout.strip()}")
 
 
 def main():

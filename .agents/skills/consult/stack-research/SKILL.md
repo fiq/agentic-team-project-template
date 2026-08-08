@@ -1,5 +1,5 @@
 ---
-name: consult-stack-research
+name: stack-research
 description: Research and recommend current best-practice framework, frontend and database options for undecided stack dimensions.
 ---
 

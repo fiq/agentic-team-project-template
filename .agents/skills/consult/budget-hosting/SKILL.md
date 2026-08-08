@@ -1,5 +1,5 @@
 ---
-name: consult-budget-hosting
+name: budget-hosting
 description: Map a budget tier to a hosting shortlist and record the resulting infrastructure decision.
 ---
 

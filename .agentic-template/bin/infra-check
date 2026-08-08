@@ -80,7 +80,6 @@ def check_terraform():
     if validate.returncode != 0:
         return fail(f"terraform validate failed:\n{validate.stdout.strip()}")
 
-    print("INFRA CHECK OK (terraform)")
     return 0
 
 
@@ -102,8 +101,26 @@ def check_pulumi():
     if result.returncode != 0:
         return fail(f"pulumi preview failed:\n{result.stdout.strip()}")
 
-    print("INFRA CHECK OK (pulumi)")
     return 0
+
+
+def find_kustomization_dir():
+    """Return the directory containing a kustomization file, or None.
+
+    Checked at the repo root and inside the conventional manifest
+    directories, matching the scope of `has_k8s_files()`.
+    """
+    for name in ("kustomization.yaml", "kustomization.yml"):
+        if (ROOT / name).exists():
+            return ROOT
+    for base in ("k8s", "deploy", "manifests"):
+        directory = ROOT / base
+        if not directory.is_dir():
+            continue
+        for name in ("kustomization.yaml", "kustomization.yml"):
+            if (directory / name).exists():
+                return directory
+    return None
 
 
 def check_kubernetes():
@@ -111,13 +128,49 @@ def check_kubernetes():
     if not tool:
         return fail("kubernetes manifests present but kubeconform not found on PATH")
 
-    targets = []
-    for name in ("kustomization.yaml", "kustomization.yml"):
-        if (ROOT / name).exists():
-            targets.append(name)
-    for base in ("k8s", "deploy", "manifests"):
-        if (ROOT / base).is_dir():
-            targets.append(base)
+    kustomize_dir = find_kustomization_dir()
+    if kustomize_dir is not None:
+        # Real kustomize overlays are strategic-merge patches that omit
+        # required fields (e.g. a Deployment image patch omitting
+        # spec.selector). Validate the rendered output, not the raw
+        # kustomize source directory.
+        kustomize = shutil.which("kustomize")
+        if not kustomize:
+            return fail(
+                "kustomize not found on PATH (required to render "
+                "kustomization.yaml before validation)"
+            )
+
+        target = "." if kustomize_dir == ROOT else str(kustomize_dir.relative_to(ROOT))
+        render = subprocess.run(
+            [kustomize, "build", target],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            cwd=str(ROOT),
+        )
+        if render.returncode != 0:
+            return fail(f"kustomize build failed:\n{render.stdout.strip()}")
+
+        # kubeconform reads a YAML stream from stdin when no file/directory
+        # arguments are given; -recursive only applies to on-disk targets.
+        result = subprocess.run(
+            [tool, "-strict", "-summary", "-ignore-missing-schemas"],
+            input=render.stdout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            cwd=str(ROOT),
+        )
+        if result.returncode != 0:
+            return fail(f"kubeconform validation failed:\n{result.stdout.strip()}")
+
+        return 0
+
+    # No kustomization file: plain manifest directories, validated directly.
+    targets = [base for base in ("k8s", "deploy", "manifests") if (ROOT / base).is_dir()]
+    if not targets:
+        return fail("kubernetes manifests present but no validation targets found")
 
     result = subprocess.run(
         [tool, "-strict", "-summary", "-ignore-missing-schemas", "-recursive", *targets],
@@ -129,7 +182,6 @@ def check_kubernetes():
     if result.returncode != 0:
         return fail(f"kubeconform validation failed:\n{result.stdout.strip()}")
 
-    print("INFRA CHECK OK (kubeconform)")
     return 0
 
 
@@ -142,20 +194,29 @@ def main():
         print("status: not_applicable")
         return 0
 
+    passed = []
+
     if iac:
         # Prefer terraform when present.
         if shutil.which("terraform"):
             result = check_terraform()
+            label = "terraform"
         elif shutil.which("pulumi"):
             result = check_pulumi()
+            label = "pulumi"
         else:
             return fail("IaC files present but no supported tool found on PATH")
         if result != 0:
             return result
+        passed.append(label)
 
     if k8s:
-        return check_kubernetes()
+        result = check_kubernetes()
+        if result != 0:
+            return result
+        passed.append("kubeconform")
 
+    print(f"INFRA CHECK OK ({', '.join(passed)})")
     return 0
 
 

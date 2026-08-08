@@ -1,5 +1,5 @@
 ---
-name: consult-dependency-vetting
+name: dependency-vetting
 description: Apply hard security and health rules to every framework, scaffold tool and notable dependency before it is offered.
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: specialise-local-sandbox
+name: local-sandbox
 description: Add a local cloud-service sandbox (LocalStack, Azurite, GCP emulators, Supabase) when containers alone are insufficient.
 ---
 

@@ -4,16 +4,16 @@ skills:
     trigger: project_profile_absent_or_material_project_shape_unknown
     purpose: orchestrate discovery, specialisation, identity rewrite and validation
 
-  consult_stack_research:
+  stack_research:
     path: consult/stack-research/SKILL.md
     trigger: undecided_stack_dimension_or_reconsideration_requested
-  consult_budget_hosting:
+  budget_hosting:
     path: consult/budget-hosting/SKILL.md
     trigger: hosting_or_budget_undecided
-  consult_repo_topology:
+  repo_topology:
     path: consult/repo-topology/SKILL.md
     trigger: repo_topology_undecided_or_split_requested
-  consult_dependency_vetting:
+  dependency_vetting:
     path: consult/dependency-vetting/SKILL.md
     trigger: candidate_dependency_requires_vetting
 
@@ -247,16 +247,16 @@ skills:
     path: specialise/infra-decision/SKILL.md
     trigger: infrastructure_decision_required_after_init
 
-  specialise_scaffold_execution:
+  scaffold_execution:
     path: specialise/scaffold-execution/SKILL.md
     trigger: official_scaffolder_available_for_chosen_stack
-  specialise_security_scanning:
+  security_scanning:
     path: specialise/security-scanning/SKILL.md
     trigger: dependency_manifests_present
-  specialise_infra_k8s:
+  infra_k8s:
     path: specialise/infra-k8s/SKILL.md
     trigger: kubernetes_deployment_target_selected
-  specialise_local_sandbox:
+  local_sandbox:
     path: specialise/local-sandbox/SKILL.md
     trigger: local_cloud_service_semantics_required
 

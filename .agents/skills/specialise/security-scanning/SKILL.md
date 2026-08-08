@@ -1,5 +1,5 @@
 ---
-name: specialise-security-scanning
+name: security-scanning
 description: Wire the project dep-audit dependency vulnerability scan into project check and generated CI.
 ---
 
