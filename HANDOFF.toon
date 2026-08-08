@@ -1,367 +1,232 @@
 session:
-  updated: 2026-08-04
-  status: review_findings_addressed
-  branch: main
+  updated: 2026-08-08
+  status: delivery_complete_awaiting_pr
+  branch: research-driven-specialise-v2
 
 goal:
-  current: address the findings from the overall template review and close the gaps they exposed
+  current: >-
+    implement research-driven stack consultation for /specialise per the approved
+    2026-07-16 design spec (docs/superpowers/specs/2026-07-16-research-driven-specialise-design.md)
+
+spec:
+  path: docs/superpowers/specs/2026-07-16-research-driven-specialise-design.md
+  status: approved, unchanged; carried forward from the stale research-driven-specialise
+    branch (100+ commits behind main) after review confirmed nothing shipped since
+    2026-07-16 duplicates or conflicts with it
+  plan: docs/superpowers/plans/2026-08-06-research-driven-specialise.md
+  plan_status: regenerated against current main this session; the original 2026-07-16
+    plan's Task 0 (renaming init/SKILL.md -> specialise/SKILL.md, project init ->
+    project specialise) was dropped as obsolete - that rename never happened upstream,
+    superseded by the cheaper .claude/commands/specialise.md wrapper already in place
 
 completed:
-  - fixed project ready specialisation detection: it parsed `project --list`, which
-    always prints the union of COMMANDS and UNSPECIALISED, so the check could never
-    be false and a specialised project would run unspecialised targets and fail
-  - extracted select_runtime_commands so the selection is directly testable
-  - wired the missing `project build` step into readiness; ordered lint, build, test
-  - aligned ci and static-analysis skills with the AGENTS.md rule that lint precedes test
-  - fixed 7 broken sibling cross-references between specialise skills (bare ci/SKILL.md
-    resolved relative to the referring skill's own directory, not to specialise/)
-  - backfilled Build, Static analysis, Testing and Ecosystem openness sections for
-    runtime-python, runtime-node, runtime-elixir, runtime-godot; also jvm, perl, php
-  - added a discovery-driven test holding every runtime skill to the same pattern, so a
-    runtime added later cannot ship thin
-  - added test_project_ready.py covering the detection bug that shipped undetected
-  - added Anthropic and OpenAI project-scoped key patterns to check-secrets; the plain
-    sk- pattern could not match either because of the hyphen after the prefix
-  - scoped check-secrets to git-committable files, so gitignored paths are out of scope
-    and the tool's own advice to move secrets into an untracked .env is coherent
-  - ran a full-history scan over 759 blobs across all commits; no credentials found
-  - fixed the scaffold reporting directories as changed on every run without comparing
-    contents
-  - specified and tested the wiki axis rule: no axis directory means pre-adoption and is
-    not checked; any axis directory means adoption, and every page must migrate
-  - replaced the fixed pre-commit hook with a declarative gate: .agents/hooks.toon
-    declares checks, run-hooks executes them concurrently with per-check timeouts,
-    blocking or advisory per check, skipping unspecialised project targets
-  - promoted the five verified-resolved duplication candidates to enforced topics
-  - added why-this-not-a-skill.md and elevated the knowledge-graph framing in README
-  - refined why-this-not-a-skill.md for engineers, agentic developers and newcomers:
-    seven-point case, ontology extensibility and provenance, bounded subagents,
-    cross-agent contract, Superpowers composition boundary, repeatable-project
-    pattern, opinionated scaffolds, honest costs and a domain-focus close
-  - added ontology, subagent, topology and tooling-detection terms to the glossary
-  - added outside-in-tdd/verification.md: prove every test can fail before treating it
-    as evidence; red-first for new code, mutation check for tests written after it,
-    reproduce-first for regressions, break-the-input for tooling checks; declared as a
-    skill layer so the router preloads it on guarded work
-  - triaged all worktrees, local branches and upstream PRs; found
-    worktrees/codex-git-worktree-model stale (branch tip == old main from 2026-07-11,
-    zero unique commits, 20 commits behind) with uncommitted WIP superseded by the
-    already-shipped worktree-status skill
-  - ported the reusable part of that WIP (the start/work/integrate/cleanup procedure;
-    its check-worktrees validator and active_work: schema were not portable, and its
-    unqualified worktrees/ path was superseded by .worktrees/) into a new
-    coordination/git-worktree-workflow skill, catalogued alongside worktree-status
-  - backed up the discarded diff and untracked files to scratchpad, then removed the
-    worktree and deleted the stale local branch (never pushed, so nothing lost upstream)
-  - merged proactive-advisory-skills into main: adds context-hygiene-advisory,
-    specialist-recruitment-advisory and loop-engineering-advisory coordination skills,
-    plus the optional loop_state HANDOFF field they use; merged directly by explicit
-    request rather than via PR, since the branch was clean, self-reviewed and had no
-    conflicts with main
-  - resolved the merge conflicts by hand: check-repo-contract and handoff.schema.md
-    were pure additive collisions (combined both); README.md's branch-side skill-table
-    edit was fully superseded by main's later switch to a short curated table plus
-    CATALOG.toon as the single source of truth, so kept HEAD as-is; HANDOFF.toon kept
-    HEAD's current state, folding the branch's still-true decisions and risks in
-  - re-ran the full suite post-merge: 325 tests, project check, project ready all pass
-  - deleted local branches now fully landed on main: proactive-advisory-skills (merged
-    above), feat/portable-context-router and feature/agentic-lifecycle (both verified
-    byte-identical to their PR #5/#4 merge commits, which are ancestors of main) -
-    removed their worktree/checkouts too where present, so nothing stale is left lying
-    around
-  - mutation-checked the highest-risk slice of the pre-existing suite (325 tests
-    predate the "prove it can fail" rule; this is a bounded first pass, not the whole
-    suite): triaged all 12 test files by risk, then genuinely broke-and-restored the
-    implementation behind check-secrets (13/13 tests: pattern detection, git-aware
-    scope, wiring into project/check-repo-contract), project-ready's runtime-command
-    selection (7/11: the exact historical bug class - filter removed, is_template
-    inverted, build dropped, label duplicated), and the pre-commit gate itself
-    (15/22 of test_hooks.py: blocking vs advisory, concurrency, ordering, timeout,
-    missing-command handling, no-config handling, token rendering, the foreign-hook
-    install guard, secrets-must-block in the real .agents/hooks.toon); every mutation
-    was confirmed red, restored, and confirmed green again; working tree and full
-    325-test suite both clean at the end
-  - found and fixed a gap: test_template_state_runs_no_runtime_commands
-    (test_project_ready.py) did not independently catch inverting the `is_template`
-    short-circuit - it stayed green by coincidence because today's dispatcher
-    UNSPECIALISED set already excludes every runtime command anyway. Fixed by passing
-    set() instead of dispatcher.UNSPECIALISED, isolating the branch under test;
-    re-ran the is_template-inversion mutation and confirmed it now goes red
-  - continued the mutation-check sweep onto test_scaffold_acceptance.py and
-    test_toon.py, fixing gaps found rather than just cataloguing them:
-    - wrote a missing regression test for the scaffold change-detection bug fixed in
-      02d2463 - that commit's message and HANDOFF both claimed a fix, but only the
-      wiki-axis half of it got a test; test_reapplying_scaffold_to_an_unchanged_
-      project_reports_no_updates now guards it, reproduced against the pre-fix
-      behaviour (falsely reports "2 update" for the two directory entries) before
-      confirming it passes on current code
-    - mutation-checked the wiki axis rule end to end (pre-adoption bypass, adoption
-      trigger, per-page frontmatter/axis-directory mismatch) and the byte-identical
-      copy guarantee; all caught their mutations
-    - mutation-checked test_toon.py's scalar coercion, quote detection, nested-map
-      indent, key-vs-scalar-line disambiguation (including the URL double-slash
-      guard), duplicate-key last-wins, and the two structural error checks
-    - found and fixed test_odd_indent_is_rejected_with_line_number: it only asserted
-      "line 2" appears in the error, which a completely different, unrelated
-      "unexpected indent" fallback also satisfies (every valid indent is even, so an
-      odd one always trips something); strengthened to assert the specific "not a
-      multiple of two" message, matching its sibling tab-indent test's pattern
-    - found and fixed a real hole in the escaping round trip: the only backslash
-      value in test_awkward_scalars_survive_the_round_trip ("back\slash") never
-      triggers _needs_quoting (no colon, no leading bracket/quote char), so it
-      round-trips bare and _quote()'s backslash/quote-escaping was never exercised
-      despite the module's own docstring promising it; added
-      test_backslash_and_quote_survive_a_value_that_also_needs_quoting with a value
-      that needs quoting for an unrelated reason (a colon) and also contains both
-      characters _quote() must escape
-    - hit and resolved a test-infra hazard mid-sweep: rapid edit/test/restore cycles
-      on the same file within the same filesystem-mtime tick can serve a stale
-      __pycache__ .pyc instead of recompiling the restored source, producing a
-      false "still red after restore" result; cleared __pycache__ and switched to
-      `python3 -B` (no bytecode cache) for the rest of the sweep. Source content was
-      verified correct via `git diff` throughout, and the two full-suite runs
-      bracketing the earlier check-secrets/project-ready/hooks work both came back
-      clean at the expected count, so that earlier work is not in question - this
-      was caught by, not hidden from, the restore-verification step
-  - full suite: 327 tests (was 325; +1 scaffold regression test, +1 toon escaping
-    test), all pass, working tree left clean after every mutation cycle
-  - split the four independent fixes above into five small, individually reviewed
-    commits (one per fix, plus one for this handoff update) instead of one bundled
-    commit, per user feedback that smaller chunks are less liable to miss detail on
-    review - see decisions
-  - made Arrange-Act-Assert, real fixtures and FIRST a default testing rule after a
-    downstream implementation repo shipped tests without them and the contract never
-    said otherwise: added the requirement to AGENTS.md's Testing expectations
-    (binding on every generated project, with a pointer to the skill), spelled out
-    the AAA breakdown and a FIRST table in workflow/test-first (triggered on every
-    meaningful behaviour change), and kept AGENTS_TEMPLATE.md's summary in sync.
-    Wrote test_testing_expectations.py first, watched it fail (17 failures) against
-    the pre-existing content, then added the guidance and confirmed green
+  - regenerated the implementation plan via superpowers:writing-plans: verified every
+    file:line reference against current main, dropped the obsolete Task 0, accounted
+    for the wiki's method/product axis adoption since the design was written
+  - executed all 6 tasks via superpowers:subagent-driven-development: fresh implementer
+    subagent per task, task-scoped spec+quality review after each, ledger tracked
+    throughout (.superpowers/sdd/2026-08-06-research-driven-specialise/progress.md)
+  - Task 1: `project dep-audit` command (osv-scanner wrapper, Nix-then-container-then-skip
+    ladder, wired into the check composite)
+  - Task 2: Kubernetes support in `project infra-check` via kubeconform
+  - Task 3: four consult/* skills (stack-research, budget-hosting, repo-topology,
+    dependency-vetting)
+  - Task 4: four specialise/* skills (scaffold-execution, security-scanning, infra-k8s,
+    local-sandbox)
+  - Task 5: wired the consult branch into .agents/skills/init/SKILL.md's Decide phase
+  - Task 6: documentation (AGENTS.md command table, docs/wiki/method/development.md,
+    docs/wiki/product/operations.md)
+  - Task 2 required one fix round: the original routing (transcribed from the
+    2026-07-16 plan) silently skipped IaC validation entirely when Kubernetes files
+    also happened to be present and no IaC tool was on PATH - fixed to always
+    validate-or-fail regardless of what else is present; independently re-verified by
+    the task reviewer across all 9 iac x k8s x tool-availability combinations
+  - final whole-branch review (opus) found 7 Important findings across the full
+    7912a43..c360671 range; two were escalated to the human as scope/design decisions
+    (see decisions below), the other five were clear defects
+  - one fix wave (433dccf) closed all 6 code-level findings (finding 7, this file
+    itself being stale, is this handoff update); extensive manual verification where
+    the sandbox lacked real tools - a real osv-scanner container pull against a
+    genuinely vulnerable pinned dependency to prove the FAIL path, fake kustomize/
+    kubeconform stand-in binaries to prove the render-then-validate wiring end to end
+  - scoped re-review confirmed all 6 findings ADDRESSED, no new Critical/Important
+    breakage
+  - full test suite (335 tests) and project check/self-test/repo-check green
+    throughout every task and every fix round
 
 in_progress: []
 
 next:
-  - reconcile local branch research-driven-specialise (approved spec, last touched
-    2026-07-16, no worktree, not reflected in this HANDOFF) - resume or park explicitly
-  - apply the shift-left pipeline and context router to a real project via /specialise
-  - read why-this-not-a-skill.md end to end and adjust tone where it overreaches
-  - continue the mutation-check sweep on the remaining ~275 pre-existing tests, in
-    this risk order: test_router_precedence.py and test_taxonomy_check.py (core
-    context-router mechanisms), then test_qualification.py, test_explain.py,
-    test_observations.py, test_environment.py, test_skill_layers.py; lowest priority
-    is the ~93 doc-presence/wiring tests in test_static_analysis.py (skill file
-    exists / mentions X / is catalogued) plus the remaining ~24 tests already
-    partially covered this session (test_scaffold_acceptance.py's AC2-AC14 profile/
-    recovery/qualification tests and catalog-merge/domain-skill tests,
-    test_project_ready.py's 4 TestDispatcherIsTheSourceOfTruth tests,
-    test_hooks.py's TestHooksConfig structure checks and 3 of TestInstaller)
-  - promote remaining inbox proposals (INBOX-001..009) as evidence accumulates
-  - watch loop_state blocks for staleness: they must be removed once a fallback loop
-    completes or they read as abandoned work
-  - consider adding PYTHONDONTWRITEBYTECODE=1 (or an equivalent) to the test-running
-    path given the __pycache__ staleness hazard found this session; not done yet
-    since it was worked around locally and hasn't caused a real false pass, only a
-    false red that was itself caught
+  - open a PR for research-driven-specialise-v2; human or lead agent owns merge
+  - after merge, delete the SDD workspace
+    (.superpowers/sdd/2026-08-06-research-driven-specialise/) and this worktree
+  - delete the superseded research-driven-specialise branch (100+ commits stale,
+    superseded by this branch; not deleted yet, left for the human to confirm)
+  - the design spec's own remaining scope beyond what shipped: consult skills are
+    prose-only guidance for a future /specialise session to follow - no session has
+    yet run through the actual consultation dialogue end to end on a real project.
+    Recommended next real-world validation: run /specialise on a genuinely greenfield
+    project and confirm the consult branch actually triggers and routes correctly
+  - follow-up (non-blocking, deferred from review): dep-audit's docker-exit-125
+    classification doesn't catch every "daemon unreachable" presentation - observed a
+    real case (Docker CLI 29.6.2) that returns exit 1 with a message matching none of
+    the 7 specified network-failure substrings, so it currently surfaces as
+    DEP AUDIT FAILED rather than a skip. Extend the substring list or the exit-code
+    check if this bites a real user
+  - follow-up (non-blocking, deferred from review): dep-audit no longer streams the
+    wrapped tool's own output on a successful run (capturing output was required for
+    failure classification) - only the one-line OK banner shows now; restore verbose
+    success output if scanner detail-on-success turns out to matter
+  - follow-up (non-blocking, deferred from review): has_manifests() in dep-audit does
+    up to 14 separate rglob() tree walks instead of one pruned os.walk - fine for the
+    manifest-free template today; also currently walks gitignored paths (.venv,
+    node_modules), so a developer with local vendored deps could see a false-positive
+    "not_applicable" fixture failure. Worth collapsing into one walk that skips
+    .git/node_modules/.venv/.worktrees before this runs routinely on real projects
+  - the Kubernetes render-then-validate path (kustomize build | kubeconform via
+    stdin) is verified for process wiring (fake stand-in binaries proved the exact
+    argument construction, stdin content and error propagation) and the stdin CLI
+    syntax is corroborated by kubeconform's own documented usage patterns, but is
+    NOT verified against the real kustomize/kubeconform binaries end to end - neither
+    tool is installed in any sandbox this work ran in. Validate by generating one
+    project through specialise/infra-k8s before relying on it for real
 
 decisions:
-  - id: aaa_first_fixtures_are_default
+  - id: research_driven_consultation_design_still_valid
     summary: >-
-      every test is Arrange-Act-Assert from a real fixture and upholds FIRST;
-      stated in AGENTS.md's Testing expectations and spelled out in
-      workflow/test-first, enforced by test_testing_expectations.py
-  - id: small_reviewed_commits
+      the 2026-07-16 approved design for research-driven /specialise consultation
+      required no changes; verified against every specialise/* skill shipped since
+      (static-analysis, build-pipeline, deployment-pipeline, observability,
+      infra-decision) with no overlap or conflict found
+  - id: plan_task_0_dropped_not_executed
     summary: >-
-      split multi-part session work into small, individually reviewed commits
-      rather than one bundled commit; user feedback, smaller chunks miss less on
-      review
-  - id: portable_context_router
-    summary: route context depth and timing by profile, never required behaviour
-  - id: capability_by_observation_not_registry
-    summary: license lean context from fixture-scored behaviour, never from model identity
-  - id: wiki_method_product_axis
-    summary: every wiki page declares axis method or product, matching its directory
-  - id: wiki_axis_adoption_is_all_or_nothing
-    summary: a wholly flat wiki is unchecked; creating one axis directory requires migrating every page
-  - id: yaml_skill_frontmatter_deviation
-    summary: keep skill frontmatter in YAML despite the TOON default for state
-  - id: static_analysis_from_specialise
-    summary: every generated project makes an explicit static-analysis decision at /specialise
-  - id: nix_first_build_pipeline
-    summary: every generated project makes an explicit build decision at /specialise; Nix owns the toolchain
-  - id: deployment_pipeline_from_specialise
-    summary: every generated project records a deployment pipeline decision at /specialise
-  - id: observability_from_specialise
-    summary: every generated project records an observability decision at /specialise
-  - id: declarative_precommit_gate
-    summary: hook checks are declared in project-owned .agents/hooks.toon, run concurrently, blocking per check
-  - id: secret_scan_scoped_to_committable_files
-    summary: scan what git would let you commit; gitignored paths are out of scope, history needs a real scanner
-  - id: tests_must_be_proven_able_to_fail
-    summary: a test observed only passing is not evidence; prove it fails, then restore and rerun
-  - id: worktree_procedure_is_a_skill_not_just_prose
+      the original plan's orchestrator rename (init -> specialise) never happened
+      upstream and was not revived; main's .claude/commands/specialise.md wrapper
+      already gives the same /specialise UX more cheaply. This plan targets
+      init/SKILL.md as it actually exists
+  - id: kubeconform_validates_rendered_kustomize_output
     summary: >-
-      the concrete start/work/integrate/cleanup steps for an agent worktree live in
-      coordination/git-worktree-workflow, alongside the read-only worktree-status
-      report; AGENTS.md keeps only the rules (never remove dirty, .worktrees/ location,
-      one per agent), not the commands
-  - id: three_separate_skills
+      when a kustomization is detected, infra-check now runs `kustomize build` and
+      pipes the rendered YAML into kubeconform via stdin, rather than pointing
+      kubeconform at the raw kustomize source directory (which is partial/patch YAML
+      that -strict validation would likely reject). Human-approved fix, not
+      end-to-end verified against real binaries - see next.actions
+  - id: new_skills_use_the_bare_name_convention
     summary: >-
-      loop-engineering-advisory, specialist-recruitment-advisory and
-      context-hygiene-advisory are three focused skills, not one unified skill,
-      matching existing coordination skill granularity
-  - id: loop_state_disk_persisted
+      all 8 new skills (4 consult/*, 4 specialise/*) use bare name: values and
+      catalog keys matching their directory basename (e.g. infra-k8s, not
+      specialise-infra-k8s), matching all 58 pre-existing skills with zero exceptions.
+      Human-approved rename after the final review flagged the inconsistency;
+      directory paths (used by check-repo-contract and init/SKILL.md's wiring) were
+      unaffected by the rename
+  - id: dep_audit_failure_classification_is_heuristic
     summary: >-
-      loop-engineering fallback tracks iteration state in an optional HANDOFF.toon
-      loop_state block so it survives context resets, session restarts or
-      model/provider swaps mid-loop
-  - id: no_new_bin_scripts
+      dep-audit distinguishes "tool/network unavailable" (skip, never a silent pass)
+      from "real finding or tool error" (fail) via docker exit code 125 plus a
+      7-substring case-insensitive match on captured output, not a fully exhaustive
+      classification - see the deferred docker-exit-1 follow-up in next.actions
+  - id: handoff_maintenance_is_a_controller_responsibility_in_sdd
     summary: >-
-      all three advisory skills are judgment/instruction skills like team-selection
-      and agent-team-fallback; no new .agentic-template/bin/ command
-  - id: presence_only_testing
-    summary: >-
-      advisory skills are validated by check-repo-contract presence and frontmatter
-      checks only, no new self-test fixtures, matching how other coordination skills
-      are tested
-  - id: specialist_recruitment_vs_team_selection
-    summary: >-
-      specialist-recruitment-advisory is the earlier mid-task tripwire that surfaces
-      an explicit offer; team-selection still owns the actual roster mechanics once
-      accepted
+      the final whole-branch review flagged HANDOFF.toon staleness as a finding, but
+      it was handled by the controller directly (this update) rather than folded into
+      the subagent fix wave - it requires whole-delivery context no single dispatched
+      subagent held, and the SDD skill's fix-loop is scoped to code-level findings
+      from a diff, not session-level documentation state
 
 risks:
-  - runtime skill tool tables may go stale; mitigated by revisit_trigger and openness sections
-  - the pre-commit gate is only as fast as its checks; a project adding a slow blocking
-    check will push people toward --no-verify
-  - check-secrets still does not scan git history; a full scanner is needed before any
-    repository with real history is published
-  - no real generated project has exercised the shift-left pipeline yet
-  - positioning copy in why-this-not-a-skill.md is a first draft, not the owner's voice
-  - advisory skills could become noisy if triggers are too broad; triggers are scoped
-    narrowly (repeating pattern detected / specialist domain matched with none engaged /
-    context growing or boundary reached)
-  - ~290 of 325 pre-existing tests still have not been mutation-checked (only
-    check-secrets, most of project-ready, and most of run-hooks/install-hooks have been
-    verified so far); an untested test in that remainder could be silently vacuous
-    until its file comes up in the ordered sweep in next
-  - test_template_state_runs_no_runtime_commands (test_project_ready.py) does not
-    independently guard the is_template short-circuit it names; only a coincidence of
-    today's UNSPECIALISED set keeps it correct, and two sibling tests carry the real
-    coverage
+  - the Kubernetes kustomize-render path is unverified against real kustomize/
+    kubeconform binaries (see next.actions) - a project relying on
+    specialise/infra-k8s before that validation could hit a real, currently-unknown
+    integration bug
+  - dep-audit's failure classification is a heuristic, not exhaustive (see decisions
+    and next.actions) - a docker-daemon-unreachable case on some Docker CLI versions
+    will currently surface as a false FAILED rather than a skip
+  - no session has run the actual consult/* dialogue end to end against a real
+    greenfield project; the skills are well-reviewed prose but unexercised in practice
+  - dep-audit is wired into the `check` composite, which the Nix repo-contract
+    derivation runs in a network-less sandbox; the fix wave addressed the most likely
+    failure mode (network/tool unavailable -> skip, not fail) but this composite
+    membership itself was a design choice inherited from the original plan, not
+    independently re-litigated this session - worth an explicit decision if it proves
+    troublesome for generated projects
+  - has_manifests()'s tree walk includes gitignored paths (see next.actions
+    follow-up) - low likelihood, not yet hit in practice
 
 files_changed:
+  - .agentic-template/bin/dep-audit
+  - .agentic-template/bin/infra-check
   - .agentic-template/bin/project
-  - .agentic-template/bin/project-ready
-  - .agentic-template/bin/check-secrets
   - .agentic-template/bin/check-repo-contract
-  - .agentic-template/bin/context
-  - .agentic-template/bin/install-hooks
-  - .agentic-template/bin/run-hooks
-  - .agentic-template/tests/test_static_analysis.py
-  - .agentic-template/tests/test_scaffold_acceptance.py
-  - .agentic-template/tests/test_project_ready.py
-  - .agentic-template/tests/test_hooks.py
-  - .agentic-template/fixtures/rust-sample-project/README.md
-  - .agentic-template/fixtures/rust-sample-project/docs/wiki/operations.md
-  - .agents/hooks.toon
-  - .agents/context/TOPICS.toon
-  - .agents/context/README.md
-  - .agents/knowledge/inbox/INBOX-004-documentation-map-and-validation-blueprint.md
-  - .agents/skills/init/SKILL.md
-  - .agents/skills/workflow/outside-in-tdd/SKILL.md
-  - .agents/skills/workflow/outside-in-tdd/verification.md
-  - docs/wiki/method/testing.md
-  - docs/wiki/method/glossary.md
-  - .agents/skills/specialise/ci/SKILL.md
-  - .agents/skills/specialise/static-analysis/SKILL.md
-  - .agents/skills/specialise/build-pipeline/SKILL.md
-  - .agents/skills/specialise/container-build/SKILL.md
-  - .agents/skills/specialise/deployment-pipeline/SKILL.md
-  - .agents/skills/specialise/infra-decision/SKILL.md
-  - .agents/skills/specialise/runtime-python/SKILL.md
-  - .agents/skills/specialise/runtime-node/SKILL.md
-  - .agents/skills/specialise/runtime-elixir/SKILL.md
-  - .agents/skills/specialise/runtime-godot/SKILL.md
-  - .agents/skills/specialise/runtime-jvm/SKILL.md
-  - .agents/skills/specialise/runtime-perl/SKILL.md
-  - .agents/skills/specialise/runtime-php/SKILL.md
-  - AGENTS.md
-  - README.md
-  - HANDOFF.toon
-  - docs/wiki/index.md
-  - docs/wiki/method/development.md
-  - docs/wiki/method/why-this-not-a-skill.md
-  - plans/review-claude-overall.md
+  - .agentic-template/bin/self-test
   - .agents/skills/CATALOG.toon
-  - .agents/skills/coordination/git-worktree-workflow/SKILL.md
-  - .agents/skills/coordination/context-hygiene-advisory/SKILL.md
-  - .agents/skills/coordination/specialist-recruitment-advisory/SKILL.md
-  - .agents/skills/coordination/loop-engineering-advisory/SKILL.md
-  - .agents/schemas/handoff.schema.md
-  - .gitignore
-  - .agentic-template/tests/test_project_ready.py
-  - .agentic-template/tests/test_scaffold_acceptance.py
-  - .agentic-template/tests/test_toon.py
-  - .agentic-template/tests/test_testing_expectations.py
-  - .agents/skills/workflow/test-first/SKILL.md
-  - .agentic-template/templates/AGENTS_TEMPLATE.md
+  - .agents/skills/init/SKILL.md
+  - .agents/skills/consult/stack-research/SKILL.md
+  - .agents/skills/consult/budget-hosting/SKILL.md
+  - .agents/skills/consult/repo-topology/SKILL.md
+  - .agents/skills/consult/dependency-vetting/SKILL.md
+  - .agents/skills/specialise/scaffold-execution/SKILL.md
+  - .agents/skills/specialise/security-scanning/SKILL.md
+  - .agents/skills/specialise/infra-k8s/SKILL.md
+  - .agents/skills/specialise/local-sandbox/SKILL.md
+  - AGENTS.md
+  - docs/wiki/method/development.md
+  - docs/wiki/product/operations.md
+  - docs/superpowers/specs/2026-07-16-research-driven-specialise-design.md
+  - docs/superpowers/plans/2026-08-06-research-driven-specialise.md
+  - HANDOFF.toon
 
 tests_run:
-  - 2026-08-02 python3 -m unittest discover .agentic-template/tests: pass (325 tests, was 272)
-  - 2026-08-02 .agentic-template/bin/project check: pass (all gates OK)
-  - 2026-08-02 .agentic-template/bin/project ready: pass (READY: PASS)
-  - 2026-08-02 .agentic-template/bin/project self-test: pass (SELF TEST OK)
-  - 2026-08-02 .agentic-template/bin/project hooks: pass (PRE-COMMIT OK, 0.1s)
-  - 2026-08-02 full-history secret scan over 759 blobs: no findings
-  - 2026-08-02 mutation checks: reverted each fix in turn and confirmed the new tests fail
-  - 2026-08-02 .agentic-template/bin/project repo-check: pass (REPO CONTRACT OK, after
-    adding coordination/git-worktree-workflow)
-  - 2026-08-04 mutation-checked 35 pre-existing tests across check-secrets (13/13),
-    project-ready (7/11), run-hooks/install-hooks/.agents/hooks.toon (15/22): each
-    implementation mutated, confirmed the target test(s) go red for the right reason,
-    restored, confirmed green; one test found not independently red-proof
-    (test_template_state_runs_no_runtime_commands - see completed and decisions)
-  - 2026-08-04 python3 -m unittest discover .agentic-template/tests: pass (325 tests,
-    working tree clean - full sanity check after all mutation/restore cycles)
-  - 2026-08-04 fixed test_template_state_runs_no_runtime_commands (set() instead of
-    dispatcher.UNSPECIALISED); re-ran the is_template-inversion mutation and confirmed
-    it now goes red
-  - 2026-08-04 added test_reapplying_scaffold_to_an_unchanged_project_reports_no_updates;
-    reproduced red against the pre-02d2463 behaviour (falsely reports "2 update"),
-    confirmed green on current code
-  - 2026-08-04 mutation-checked test_scaffold_acceptance.py's wiki-axis rule (4
-    scenarios) and byte-identical copy guarantee: all caught their mutations, restored
-  - 2026-08-04 mutation-checked test_toon.py: scalar coercion, quote detection,
-    nested-map indent, key-vs-scalar disambiguation (incl. URL guard), duplicate-key
-    last-wins, tab-indent error - all caught their mutations, restored
-  - 2026-08-04 strengthened test_odd_indent_is_rejected_with_line_number to assert the
-    specific error message; confirmed it now independently catches the mutation a
-    weaker assertion missed
-  - 2026-08-04 added test_backslash_and_quote_survive_a_value_that_also_needs_quoting;
-    confirmed it catches both the backslash-escaping-removed and
-    all-escaping-removed mutations, which no prior test caught
-  - 2026-08-04 python3 -m unittest discover .agentic-template/tests: pass (327 tests,
-    working tree clean - final sanity check)
-  - 2026-08-04 wrote test_testing_expectations.py first, confirmed red (17 failures)
-    against the pre-existing AGENTS.md/test-first content, added the AAA/FIRST/
-    fixture guidance, confirmed green
-  - 2026-08-04 python3 -m unittest discover .agentic-template/tests: pass (335 tests)
-  - 2026-08-04 .agentic-template/bin/project check: pass (all gates OK)
+  - 2026-08-08 python3 -m unittest discover .agentic-template/tests: pass (335 tests),
+    re-confirmed independently after every one of the 6 tasks and after the fix wave
+  - 2026-08-08 .agentic-template/bin/project self-test: pass (SELF TEST OK) after every
+    task and after the fix wave
+  - 2026-08-08 .agentic-template/bin/project repo-check: pass (REPO CONTRACT OK) after
+    every task and after the fix wave
+  - 2026-08-08 .agentic-template/bin/project check: pass, dep-audit reports
+    not_applicable on this manifest-free template
+  - 2026-08-08 git diff --check: clean throughout
+  - 2026-08-08 manual verification beyond the test suite (tools not installed in any
+    sandbox this ran in): real osv-scanner container pull against requests==2.31.0
+    (three real CVEs) confirmed the FAIL path fires correctly and is never
+    miscategorised as a skip; simulated docker exit 125 confirmed the skip path;
+    fake stand-in kustomize/kubeconform binaries confirmed the render-then-validate
+    wiring carries rendered output (not raw kustomize source) to the validator, with
+    correct error propagation on both a missing kustomize binary and a failing
+    kustomize build
+  - 2026-08-08 task-scoped review verdicts: Task 1 clean, Task 2 needs-fixes -> 1 fix
+    round -> clean, Task 3 clean, Task 4 clean, Task 5 clean, Task 6 clean
+  - 2026-08-08 final whole-branch review (opus): 7 Important findings -> fix wave ->
+    scoped re-review: all 6 in-scope findings ADDRESSED, no new Critical/Important
+    breakage
 
 knowledge:
   consulted:
-    - .agents/knowledge/index.md
-    - .agents/knowledge/TAXONOMY.md
-    - .agents/context/README.md
+    - docs/superpowers/specs/2026-07-16-research-driven-specialise-design.md
+    - .agents/skills/CATALOG.toon
+    - .agents/skills/init/SKILL.md
+    - .agents/skills/specialise/infra-decision/SKILL.md (checked for overlap with the
+      new consult/budget-hosting skill; found complementary, not competing)
   proposals: []
   no_record: >-
-    findings were defects in shipped tooling and their fixes, not durable reusable
-    knowledge; the decisions worth keeping are recorded in decisions above and the
-    reasoning in plans/review-claude-overall.md
+    this delivery's durable reasoning lives in the design spec, the regenerated
+    implementation plan, the SDD ledger
+    (.superpowers/sdd/2026-08-06-research-driven-specialise/progress.md) and the
+    decisions above; nothing here rises to a project-wide architecture pattern or
+    durable domain fact distinct from what those already record, so no
+    .agents/knowledge/ entry or new ADR was added. docs/decisions/ has exactly one
+    prior ADR and this repo's convention for session-level decisions has consistently
+    been the HANDOFF.toon decisions list, not a new ADR per feature
 
 team_fallback:
-  current: single lead agent using explicit review checklist
-  reason: bounded review and remediation of a known finding list
+  current: single lead agent (controller) dispatching fresh subagents per task and
+    review, via superpowers:subagent-driven-development
+  reason: bounded, well-specified feature with a pre-approved design and a fully
+    regenerated implementation plan; task-scoped review plus a final whole-branch
+    review gave independent-challenge coverage without needing a persistent team
   lost_challenge: >-
-    independent reviewer; mitigated by 325 automated tests, mutation-checking each new
-    test against the bug it guards, and end-to-end verification of the commit gate
+    a truly independent second implementer team; mitigated by dispatching each task
+    to a fresh subagent with no memory of prior tasks' choices, a separate reviewer
+    subagent for every task (never the implementer grading its own work), a
+    most-capable-model final whole-branch review that re-executed code rather than
+    trusting the diff, and two decisions (kustomize-render approach, naming
+    convention) explicitly escalated to the human rather than resolved unilaterally
