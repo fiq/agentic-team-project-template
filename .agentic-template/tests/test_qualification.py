@@ -203,7 +203,13 @@ class TestAnswerKeyDoesNotLeak(unittest.TestCase):
         fixture = (ROOT / ".agentic-template/fixtures/qualification-repo").resolve()
         strays = []
         for path in ROOT.rglob("*"):
-            if not path.is_file() or ".git" in path.parts or ".superpowers" in path.parts:
+            if (
+                not path.is_file()
+                or ".git" in path.parts
+                or ".superpowers" in path.parts
+                or ".worktrees" in path.parts
+                or "worktrees" in path.parts
+            ):
                 continue
             if fixture in path.resolve().parents:
                 continue

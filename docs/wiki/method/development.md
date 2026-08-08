@@ -73,3 +73,21 @@ commit ──► secrets    (blocking)   ┐
 - Non-trivial handoff notes include the spec reference or no-spec rationale,
   fitness-function delta or no-change rationale, validation and knowledge
   update.
+
+## Research-driven consultation during /specialise
+
+When `/specialise` finds undecided stack dimensions (greenfield, partial
+evidence, or an explicit reconsideration request), the decide phase loads only
+the relevant `consult/*` skills:
+
+- `consult/stack-research` — researched framework/frontend/database shortlists
+  with a recommendation; each candidate passes `consult/dependency-vetting`.
+- `consult/budget-hosting` — budget tier to hosting shortlist, routing to the
+  matching infra skill (`infra-fly`, `infra-aws`, `infra-k8s`).
+- `consult/repo-topology` — monorepo vs separate repos with a coordination
+  tracker for the split case.
+- `consult/dependency-vetting` — hard CVE/maintenance/licence/typosquat rules
+  applied before any dependency is offered.
+
+Every consultation ends in a `PROJECT_PROFILE.toon` decision plus an ADR for
+material choices. Evidence always wins over consultation.

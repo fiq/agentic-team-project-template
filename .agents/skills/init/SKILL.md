@@ -67,6 +67,35 @@ discover
 4. Select test layers from actual risks, not a fixed checklist.
 5. Ask only remaining high-impact questions.
 
+#### Consult branch (research-driven)
+
+Evidence always wins; consultation fills gaps or supports an explicit,
+user-requested reconsideration recorded as a decision change.
+
+1. List undecided material dimensions from `PROJECT_PROFILE.toon`: language,
+   backend framework, frontend, persistence, hosting/budget, repo topology,
+   local sandbox needs.
+2. If any dimension is undecided (greenfield or partial evidence), or the user
+   requested reconsideration of a dimension, load only the matching `consult/*`
+   skills via `CATALOG.toon`. Do not preload the cluster.
+   - stack dimensions -> `consult/stack-research`
+     (each candidate first passes `consult/dependency-vetting`).
+   - hosting/budget -> `consult/budget-hosting`, routing to
+     `specialise/infra-fly`, `specialise/infra-aws` or `specialise/infra-k8s`,
+     then `specialise/infra-decision` to formalise the recorded target.
+   - monorepo vs separate repos -> `consult/repo-topology`.
+   - local cloud-service semantics -> `specialise/local-sandbox`.
+3. The consult skills are self-sufficient: they run their own structured
+   dialogue and reach the same outcome in any agent. If Superpowers — or an
+   equivalent process capability in the host agent — is available, reuse it
+   (`brainstorming`, `writing-plans`, `verification-before-completion`) as an
+   accelerator and contribute domain content only. Never assume it is present
+   and never let its absence change the outcome.
+4. Write each resolved dimension to `PROJECT_PROFILE.toon` as a decision and,
+   where material, an ADR under `docs/decisions/`.
+5. Run the chosen official scaffolder via `specialise/scaffold-execution` and
+   ensure `specialise/security-scanning` (`project dep-audit`) is wired.
+
 ### 3. Specialise
 
 1. Invoke only relevant specialisation skills.

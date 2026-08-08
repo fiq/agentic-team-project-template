@@ -457,6 +457,33 @@ def main():
             failures += 1
         if not expect(work, "project --list includes check-readme", PROJECT + ["--list"], 0, "check-readme"):
             failures += 1
+        if not expect(work, "project --list includes dep-audit", PROJECT + ["--list"], 0, "dep-audit"):
+            failures += 1
+        if not expect(
+            work,
+            "dep-audit is not_applicable on template with no manifests",
+            PROJECT + ["dep-audit"],
+            0,
+            "not_applicable",
+        ):
+            failures += 1
+
+        # ---- dep-audit skips (not fails) when a manifest exists but no tool is available ----
+        if shutil.which("osv-scanner") is None and shutil.which("docker") is None:
+            dep_manifest = work / "requirements.txt"
+            dep_manifest.write_text("requests==2.31.0\n")
+            if not expect(
+                work,
+                "dep-audit skips cleanly with a manifest present but no tool on PATH",
+                PROJECT + ["dep-audit"],
+                0,
+                "status: skipped",
+            ):
+                failures += 1
+            dep_manifest.unlink()
+        else:
+            print("skip    dep-audit skip-path fixture skipped (osv-scanner or docker present)")
+
         if not expect(work, "project --list includes startup", PROJECT + ["--list"], 0, "startup"):
             failures += 1
         if not expect(work, "project --list includes docs", PROJECT + ["--list"], 0, "docs"):
@@ -579,6 +606,59 @@ def main():
             "not_applicable",
         ):
             failures += 1
+
+        # ---- infra-check with kubernetes manifests but no kubeconform ----
+        if shutil.which("kubeconform") is None:
+            kustomization = work / "kustomization.yaml"
+            kustomization.write_text("resources:\n  - deployment.yaml\n")
+            if not expect(
+                work,
+                "infra-check fails clearly for k8s manifests without kubeconform",
+                PROJECT + ["infra-check"],
+                1,
+                "kubeconform not found",
+            ):
+                failures += 1
+            kustomization.unlink()
+        else:
+            print("skip    infra-check k8s fixture skipped (kubeconform present)")
+
+        # ---- infra-check renders a kustomization with kustomize before validating ----
+        # Only exercisable when kubeconform is present (so the check reaches the
+        # kustomize step) and kustomize is absent (so rendering fails clearly).
+        if shutil.which("kubeconform") is not None and shutil.which("kustomize") is None:
+            kustomization = work / "kustomization.yaml"
+            kustomization.write_text("resources:\n  - deployment.yaml\n")
+            if not expect(
+                work,
+                "infra-check fails clearly for a kustomization without kustomize on PATH",
+                PROJECT + ["infra-check"],
+                1,
+                "kustomize not found",
+            ):
+                failures += 1
+            kustomization.unlink()
+        else:
+            print("skip    infra-check kustomize-render fixture skipped (kubeconform+kustomize state not exercisable here)")
+
+        # ---- infra-check with IaC files but no tools, plus k8s files ----
+        if shutil.which("terraform") is None and shutil.which("pulumi") is None:
+            pulumi_yaml = work / "Pulumi.yaml"
+            pulumi_yaml.write_text("name: test\nruntime: python\n")
+            kustomization = work / "kustomization.yaml"
+            kustomization.write_text("resources:\n  - deployment.yaml\n")
+            if not expect(
+                work,
+                "infra-check fails on IaC files when no tools present, even if k8s also exists",
+                PROJECT + ["infra-check"],
+                1,
+                "IaC files present but no supported tool found on PATH",
+            ):
+                failures += 1
+            pulumi_yaml.unlink()
+            kustomization.unlink()
+        else:
+            print("skip    infra-check IaC+k8s fixture skipped (terraform or pulumi present)")
 
         # ---- compose-config on empty template compose ----
         # compose.yaml has services: {} which means empty; compose-config
